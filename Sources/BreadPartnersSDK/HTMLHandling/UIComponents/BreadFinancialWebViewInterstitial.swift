@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 @preconcurrency import WebKit
+import QuickLook
 
 /// Manages WebView interactions and events within the SDK.
 internal class BreadFinancialWebViewInterstitial: NSObject,
@@ -26,14 +27,16 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     }
 
     var onPageLoadCompleted: ((Result<URL, Error>) -> Void)?
-    
     /// Stores a pending navigation URL that is waiting for the user to confirm
     /// they want to leave the current page (simulating a beforeunload dialog).
     var pendingNavigationURL: URL?
 
-    var logger: Logger = Logger()
+    let logger: Logger
     let callback: ((BreadPartnerEvents) -> Void)
     var appRestartListener: AppRestartListener?
+    /// Set to `true` when a LOG_OUT_OR_RESTART message is received from the web app,
+    /// so the navigation confirmation dialog is shown only for that specific flow.
+    var pendingLogOutOrRestart = false
     
     func createWebView(with url: URL) -> WKWebView {
 
@@ -58,6 +61,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         var request = URLRequest(url: url)
         request.setValue(Constants.headerPlatformValue, forHTTPHeaderField: Constants.headerPlatformKey)
         webView.load(request)
+        
 
         return webView
     }
@@ -74,61 +78,63 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             }
         }
     }
-    
-    /// Intercepts navigation actions. If a pending navigation URL is stored
-    /// (i.e. the user already confirmed leaving via the beforeunload dialog),
-    /// it is allowed through. All other navigations that change the page are
-    /// cancelled and a native confirmation dialog is shown first.
+
+    /// Intercepts navigation actions. Shows a native "Leave page?" confirmation
+    /// dialog only when a LOG_OUT_OR_RESTART message was previously received from
+    /// the web app. All other navigations are allowed through immediately.
     func webView(
-       _ webView: WKWebView,
-       decidePolicyFor navigationAction: WKNavigationAction,
-       decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-       guard let requestURL = navigationAction.request.url else {
-           decisionHandler(.allow)
-           return
-       }
+        guard let requestURL = navigationAction.request.url else {
+            decisionHandler(.allow)
+            return
+        }
 
-       // Allow the initial page load and same-page fragment navigation.
-       let isLinkActivated = navigationAction.navigationType == .linkActivated
-       let isFormSubmit = navigationAction.navigationType == .formSubmitted
+        let isLinkActivated = navigationAction.navigationType == .linkActivated
+        let isFormSubmit = navigationAction.navigationType == .formSubmitted
 
-       guard isLinkActivated || isFormSubmit else {
-           decisionHandler(.allow)
-           return
-       }
+        // Only intercept link/form navigations that follow a LOG_OUT_OR_RESTART message.
+        guard (isLinkActivated || isFormSubmit) && pendingLogOutOrRestart else {
+            decisionHandler(.allow)
+            return
+        }
 
-       // If this URL was already confirmed by the user, allow it through.
-       if let pending = pendingNavigationURL, pending == requestURL {
-           pendingNavigationURL = nil
-           decisionHandler(.allow)
-           return
-       }
+        // If this URL was already confirmed by the user, allow it through.
+        if let pending = pendingNavigationURL, pending == requestURL {
+            pendingNavigationURL = nil
+            decisionHandler(.allow)
+            return
+        }
 
-       // Cancel the navigation and show a native "Leave page?" dialog.
-       decisionHandler(.cancel)
-       pendingNavigationURL = requestURL
+        // Cancel the navigation and show a native "Leave page?" dialog.
+        decisionHandler(.cancel)
+        pendingNavigationURL = requestURL
 
-       guard let rootVC = topViewController() else {
-           // No view controller found — just proceed with navigation.
-           pendingNavigationURL = nil
-           webView.load(URLRequest(url: requestURL))
-           return
-       }
+        guard let rootVC = topViewController() else {
+            // No view controller found — just proceed with navigation.
+            pendingNavigationURL = nil
+            pendingLogOutOrRestart = false
+            webView.load(URLRequest(url: requestURL))
+            return
+        }
 
-       let alert = UIAlertController(
-           title: Constants.confirmNavigationTitle,
-           message: Constants.confirmNavigationMessage,
-           preferredStyle: .alert
-       )
-       alert.addAction(UIAlertAction(title: Constants.confirmNavigationStayButton, style: .cancel) { [weak self] _ in
-           self?.pendingNavigationURL = nil
-       })
-       alert.addAction(UIAlertAction(title: Constants.confirmNavigationLeaveButton, style: .destructive) { [weak self] _ in
-           self?.pendingNavigationURL = nil
-           webView.load(URLRequest(url: requestURL))
-       })
-       rootVC.present(alert, animated: true)
+        let alert = UIAlertController(
+            title: Constants.confirmNavigationTitle,
+            message: Constants.confirmNavigationMessage,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: Constants.confirmNavigationStayButton, style: .cancel) { [weak self] _ in
+            self?.pendingNavigationURL = nil
+            self?.pendingLogOutOrRestart = false
+        })
+        alert.addAction(UIAlertAction(title: Constants.confirmNavigationLeaveButton, style: .destructive) { [weak self] _ in
+            self?.pendingNavigationURL = nil
+            self?.pendingLogOutOrRestart = false
+            webView.load(URLRequest(url: requestURL))
+        })
+        rootVC.present(alert, animated: true)
     }
 
     func webView(
@@ -165,13 +171,16 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
            let type = action["type"] as? String {
             
             switch type {
+            case "LOG_OUT_OR_RESTART":
+                // Signal that the next link/form navigation should show a confirmation dialog.
+                pendingLogOutOrRestart = true
+
             case "APP_RESTART":
                 if let payload = action["payload"] as? String {
                     onAppRestartClicked(url: "\(payload)")
                 }else {
                     logger.printLog("Issue in restarting application")
                 }
-                
             case "AnchorTags":
                 if let payload = action["payload"] as? [String] {
 //                    logger.printWebAnchorLogs(data:"\(payload.joined(separator: "\n"))")
@@ -262,30 +271,133 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
                 
             case "RECEIVE_ACCOUNT_EXISTS":
                 if let payload = action["payload"] as? [String: Any] {
-                  logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(message.body)")
-                  callback(.receiveAccountExist(result: payload))
+                    logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(message.body)")
+                    callback(.receiveAccountExist(result: payload))
                 }
-                
+            
             default:
-                callback(.onSDKEventLog(logs: "\(message)"))
+                logger.printLog("BreadPartnersSDK: WebViewMessage: \(message.body)")
             }
         }
 
     }
     
+    /// Called by WebKit when a page requests a new window (e.g. `window.open()`).
+    ///
+    /// When the requested URL is `nil` or empty (typical for `about:blank` popups
+    /// where the web app writes disclosure HTML into a new window via `document.write()`),
+    /// we return a real `WKWebView` so the content can be captured and displayed as a PDF.
+    /// All other new-window requests are ignored by returning `nil`.
+    func webView(
+        _ webView: WKWebView,
+        createWebViewWith configuration: WKWebViewConfiguration,
+        for navigationAction: WKNavigationAction,
+        windowFeatures: WKWindowFeatures
+    ) -> WKWebView? {
+        let requestURL = navigationAction.request.url
+
+        // about:blank is used when the page does window.open() and then writes
+        // HTML into the new window (e.g. disclosure documents).
+        // Return a hosted WKWebView so the content renders in a modal sheet.
+        if requestURL == nil || (requestURL?.absoluteString ?? "").isEmpty {
+            return makeDisclosureCaptureWebView(with: configuration)
+        }
+
+        return nil
+    }
+
+    /// Creates an off-screen `WKWebView` for capturing disclosure content that the web app
+    /// injects into a new window via `window.open()` + `document.write()`.
+    ///
+    /// Called from the `WKUIDelegate` new-window callback when the requested URL is empty.
+    /// The web view is given a large off-screen frame (800×1200) for a reasonable PDF page
+    /// size, and is retained via associated objects so it survives until the asynchronous
+    /// PDF export completes. A one-shot `DisclosurePDFLoader` is attached as its navigation
+    /// delegate to wait for the HTML to load and then trigger PDF generation.
+    ///
+    /// - Parameter configuration: The WebKit-supplied config, reused so the popup shares the
+    ///   parent's process pool and data store.
+    /// - Returns: The off-screen `WKWebView` for WebKit to write disclosure content into.
+    private func makeDisclosureCaptureWebView(with configuration: WKWebViewConfiguration) -> WKWebView {
+        // Use a large off-screen frame so the PDF page size is reasonable.
+        let offscreenFrame = CGRect(x: 0, y: 0, width: 800, height: 1200)
+        let popupWebView = WKWebView(frame: offscreenFrame, configuration: configuration)
+        popupWebView.navigationDelegate = self
+
+        // Hold a strong reference so the capture webView isn't deallocated before PDF is ready.
+        objc_setAssociatedObject(self, &BreadFinancialWebViewInterstitial.popupWebViewKey, popupWebView, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+        // didFinish fires on popupWebView too (same delegate). We capture it via
+        // a one-shot navigation delegate wrapper below.
+        let loader = DisclosurePDFLoader(owner: self, webView: popupWebView)
+        objc_setAssociatedObject(popupWebView, &BreadFinancialWebViewInterstitial.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        popupWebView.navigationDelegate = loader
+
+        return popupWebView
+    }
+
+    private static var popupWebViewKey: UInt8 = 0
+    private static var loaderKey: UInt8 = 0
+    private static var dataSourceKey: UInt8 = 0
+    /// Re-entrancy guard for `presentDisclosureAsPDF(from:)`.
+    /// Since PDF generation is asynchronous, this flag prevents the method from
+    /// being triggered a second time (e.g. by a duplicate `disclosureReady` message)
+    /// before the first `QLPreviewController` has finished presenting.
+    private var isDisclosurePresenting = false
+
+    /// Presents the disclosure content as a PDF using QLPreviewController.
+    /// UIPrintPageRenderer to generate the PDF from the webview's content.
+    internal func presentDisclosureAsPDF(from webView: WKWebView) {
+        guard !isDisclosurePresenting else { return }
+        isDisclosurePresenting = true
     
+        let config = WKPDFConfiguration()
+        webView.createPDF(configuration: config) { [weak self] result in
+            switch result {
+            case .success(let data):
+                self?.presentPDF(data: data)
+            case .failure(let error):
+                self?.callback(.sdkError(error: error))
+            }
+        }
+    }
+
+    private func presentPDF(data: Data) {
+        // Write to a temp file so QLPreviewController can read it.
+        let tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("disclosure.pdf")
+        do {
+            try data.write(to: tmpURL)
+        } catch {
+            callback(.sdkError(error: error))
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let topVC = self?.topViewController() else { return }
+            let previewVC = QLPreviewController()
+            let dataSource = DisclosurePDFPreviewDataSource(url: tmpURL)
+            objc_setAssociatedObject(previewVC, &BreadFinancialWebViewInterstitial.dataSourceKey, dataSource, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            previewVC.dataSource = dataSource
+            previewVC.modalPresentationStyle = .pageSheet
+            topVC.present(previewVC, animated: true) {
+                self?.isDisclosurePresenting = false
+            }
+        }
+    }
+
     func injectAnchorInterceptorScript(view: WKWebView?) {
         // CSS to remove the default blue tap-highlight and focus outline that
         // WebKit draws around the first focusable element after navigation.
         let cssScript = """
-            (function() {
+        (function() {
             var style = document.createElement('style');
             style.textContent = '* { -webkit-tap-highlight-color: transparent !important; outline: none !important; }';
             document.head.appendChild(style);
-            })();
+        })();
         """
         view?.evaluateJavaScript(cssScript, completionHandler: nil)
-        
+
         // JavaScript code to intercept anchor tags and log them
         let script = """
         (function() {
@@ -363,7 +475,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     func onAppRestartClicked(url: String) {
         appRestartListener?.onAppRestartClicked(url: url)
     }
-    
+
     /// Returns the topmost active view controller in a backwards-compatible way.
     ///
     /// This is needed because `WKUIDelegate` methods for JavaScript dialogs
@@ -373,28 +485,98 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     /// locate one at runtime.
     ///
     /// - On iOS 15+, `keyWindow` is available directly on `UIWindowScene`.
-    /// - On iOS 13–14, we fall back to iterating `UIApplication.shared.windows`.
     /// - The presentation chain is walked so the alert is never presented on a
     ///   controller that is already presenting another one.
     private func topViewController() -> UIViewController? {
-       var root: UIViewController?
-       if #available(iOS 15.0, *) {
-           root = UIApplication.shared.connectedScenes
-               .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
-               .first
-       } else {
-           root = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController
-       }
-       // Walk up the presentation chain to get the topmost presented view controller,
-       // so the alert is not presented on a controller that is already presenting another one.
-       var top = root
-       while let presented = top?.presentedViewController {
-           top = presented
-       }
-       return top
+        var root: UIViewController?
+        
+        root = UIApplication.shared.connectedScenes
+            .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
+            .first
+        
+        // Walk up the presentation chain to get the topmost presented view controller,
+        // so the alert is not presented on a controller that is already presenting another one.
+        var top = root
+        while let presented = top?.presentedViewController {
+            top = presented
+        }
+        return top
     }
 }
 
 protocol AppRestartListener {
     func onAppRestartClicked(url: String)
+}
+
+private extension UIViewController {
+    @objc func dismissSelf() {
+        dismiss(animated: true)
+    }
+}
+
+// MARK: - Disclosure PDF helpers
+
+/// One-shot WKNavigationDelegate: waits for popup WKWebView to finish loading
+/// disclosure HTML, then triggers PDF export via the owner.
+private class DisclosurePDFLoader: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+    weak var owner: BreadFinancialWebViewInterstitial?
+    weak var webView: WKWebView?
+
+    init(owner: BreadFinancialWebViewInterstitial, webView: WKWebView) {
+        self.owner = owner
+        self.webView = webView
+    }
+
+    /// Called when the initial about:blank navigation completes.
+    /// We inject a MutationObserver that watches for document.write() content
+    /// and posts a message back when the body has meaningful HTML.
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // Add ourselves as a script message handler so JS can notify us.
+        webView.configuration.userContentController
+            .removeScriptMessageHandler(forName: "disclosureReady")
+        webView.configuration.userContentController
+            .add(self, name: "disclosureReady")
+
+        // Inject a MutationObserver that fires as soon as body has content.
+        // document.write() populates the body synchronously, so this may
+        // already have content by the time we run.
+        let js = """
+        (function() {
+            function checkAndNotify() {
+                if (document.body && document.body.innerHTML.trim().length > 0) {
+                    window.webkit.messageHandlers.disclosureReady.postMessage("ready");
+                    return true;
+                }
+                return false;
+            }
+            // Content may already be there (document.write is synchronous)
+            if (!checkAndNotify()) {
+                var observer = new MutationObserver(function() {
+                    if (checkAndNotify()) { observer.disconnect(); }
+                });
+                observer.observe(document.documentElement, { childList: true, subtree: true });
+            }
+        })();
+        """
+        webView.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    /// Called by JS MutationObserver when body content is ready.
+    func userContentController(_ userContentController: WKUserContentController,
+                                didReceive message: WKScriptMessage) {
+        guard message.name == "disclosureReady", let wv = webView else { return }
+        // Remove handler to prevent duplicate calls
+        userContentController.removeScriptMessageHandler(forName: "disclosureReady")
+        owner?.presentDisclosureAsPDF(from: wv)
+    }
+}
+
+/// QLPreviewController data source that serves a single local PDF file.
+private class DisclosurePDFPreviewDataSource: NSObject, QLPreviewControllerDataSource {
+    let url: URL
+    init(url: URL) { self.url = url }
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int { 1 }
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        url as QLPreviewItem
+    }
 }
