@@ -51,6 +51,16 @@ import Testing
     func financingTypeMapping(financingType: BreadPartnersFinancingType) {
         let placement = PlacementData(financingType: financingType)
         #expect(placement.financingType == financingType)
+        #expect(placement.financingType?.rawValue == financingType.rawValue)
+    }
+
+    @Test
+    func allFinancingTypes() {
+        let allTypes = BreadPartnersFinancingType.allCases
+        #expect(allTypes.count == 3)
+        #expect(allTypes.contains(.card))
+        #expect(allTypes.contains(.installments))
+        #expect(allTypes.contains(.versatile))
     }
 
     @Test(arguments: [
@@ -77,6 +87,27 @@ import Testing
         let placement = PlacementData(locationType: locationType)
         #expect(placement.locationType == locationType)
         #expect(placement.locationType?.channelCode == expectedCode)
+    }
+
+    @Test
+    func allLocationTypes() {
+        let allTypes = BreadPartnersLocationType.allCases
+        #expect(allTypes.count == 15)
+        #expect(allTypes.contains(.homepage))
+        #expect(allTypes.contains(.landing))
+        #expect(allTypes.contains(.search))
+        #expect(allTypes.contains(.product))
+        #expect(allTypes.contains(.category))
+        #expect(allTypes.contains(.banner))
+        #expect(allTypes.contains(.checkout))
+        #expect(allTypes.contains(.cart))
+        #expect(allTypes.contains(.mobile))
+        #expect(allTypes.contains(.loyalty))
+        #expect(allTypes.contains(.footer))
+        #expect(allTypes.contains(.bag))
+        #expect(allTypes.contains(.dashboard))
+        #expect(allTypes.contains(.myaccount))
+        #expect(allTypes.contains(.header))
     }
 
     @Test
@@ -190,8 +221,8 @@ import Testing
         #expect(pickupInformation.name?.givenName == "Jane")
         #expect(pickupInformation.name?.familyName == "Doe")
         #expect(pickupInformation.name?.additionalName == "Q")
-        #expect(pickupInformation.phone == "555-0100")
         #expect(pickupInformation.address?.address1 == "123 Main Street")
+        #expect(pickupInformation.phone == "555-0100")
         #expect(pickupInformation.address?.address2 == "Apt 4B")
         #expect(pickupInformation.address?.locality == "Columbus")
         #expect(pickupInformation.address?.postalCode == "43215")
@@ -211,12 +242,12 @@ import Testing
             quantity: 2,
             unitPrice: unitPrice,
             unitTax: unitTax,
-            sku: "SKU-123",
             itemUrl: "https://example.com/shoes",
+            sku: "SKU-123",
             imageUrl: "https://example.com/shoes.jpg",
             description: "Running shoes",
-            shippingCost: shippingCost,
             shippingProvider: "Carrier",
+            shippingCost: shippingCost,
             shippingDescription: "Standard",
             shippingTrackingNumber: "TRACK-123",
             shippingTrackingUrl: "https://example.com/tracking/TRACK-123",
