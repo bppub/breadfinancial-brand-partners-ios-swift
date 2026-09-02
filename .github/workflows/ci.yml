@@ -51,7 +51,6 @@ jobs:
             const { execFileSync } = require("node:child_process");
             const path = require("path");
 
-            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
             const resultBundle = path.join(process.env.GITHUB_WORKSPACE, "TestResults.xcresult");
             const report = JSON.parse(execFileSync(
               "xcrun",
@@ -73,23 +72,13 @@ jobs:
             const executableLines = files.reduce((total, file) => total + file.executableLines, 0);
             const lineCoverage = executableLines === 0 ? 0 : coveredLines / executableLines;
             const rows = files
-              .sort((left, right) => left.lineCoverage - right.lineCoverage)
+              .sort((left, right) => left.name.localeCompare(right.name))
               .map(file =>
-                `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
-              );
+              `| ${file.name} | ${percent(file.lineCoverage)} | ${file.coveredLines} | ${file.executableLines} |`
+            );
             const text = [
-              "| Metric | Value |",
-              "| --- | ---: |",
-              `| Line Coverage | **${percent(lineCoverage)}** |`,
-              `| Covered Lines | ${coveredLines} |`,
-              `| Executable Lines | ${executableLines} |`,
-              `| Files in Report | ${files.length} |`,
-              `| Workflow Run | ${context.runId} |`,
-              `| Commit | ${context.sha.slice(0, 7)} |`,
-              "",
-              "### Core File Coverage",
-              "| File | Coverage | Covered / Executable |",
-              "| --- | ---: | ---: |",
+              "| File | Line coverage | Covered lines | Executable lines |",
+              "| --- | ---: | ---: | ---: |",
               ...rows
             ].join("\n");
 
@@ -101,8 +90,8 @@ jobs:
               status: "completed",
               conclusion: "success",
               output: {
-                title: "Core Coverage",
-                summary: `Line coverage: **${percent(lineCoverage)}**`,
+                title: "Coverage",
+                summary: `BreadPartnersSDKCore line coverage: ${percent(lineCoverage)}`,
                 text
               }
             });
