@@ -9,4 +9,4 @@ if [[ "$actual_version" != "$expected_version" ]]; then
   echo "::warning::SwiftLint $expected_version is expected; found $actual_version" >&2
 fi
 
-swiftlint lint --strict --config .swiftlint.yml Sources
+swiftlint lint --strict --config .swiftlint.yml

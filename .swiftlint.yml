@@ -1,6 +1,7 @@
 # Focused initial baseline; expand this list as existing violations are reduced.
 included:
   - Sources
+  - Tests
 
 excluded:
   - .build
