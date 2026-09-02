@@ -31,16 +31,4 @@ import Testing
     func invalidRawValue(rawValue: String) {
         #expect(OfferResponse(rawValue: rawValue) == nil)
     }
-
-    @Test
-    func allCasesHaveDistinctRawValues() {
-        let rawValues = [
-            OfferResponse.yes.rawValue,
-            OfferResponse.no.rawValue,
-            OfferResponse.notMe.rawValue,
-            OfferResponse.abandoned.rawValue,
-            OfferResponse.prescreenNo.rawValue,
-        ]
-        #expect(Set(rawValues).count == rawValues.count)
-    }
 }

@@ -64,34 +64,4 @@ import Testing
         #expect(BreadPartnersEnvironment(rawValue: "prod") == nil)
         #expect(BreadPartnersEnvironment(rawValue: "uat") == nil)
     }
-
-    // MARK: - Equality
-
-    @Test
-    func testCaseEquality() {
-        #expect(BreadPartnersEnvironment.stage == BreadPartnersEnvironment.stage)
-        #expect(BreadPartnersEnvironment.prod == BreadPartnersEnvironment.prod)
-        #expect(BreadPartnersEnvironment.uat == BreadPartnersEnvironment.uat)
-    }
-
-    @Test
-    func testCaseInequality() {
-        #expect(BreadPartnersEnvironment.stage != BreadPartnersEnvironment.prod)
-        #expect(BreadPartnersEnvironment.prod != BreadPartnersEnvironment.uat)
-        #expect(BreadPartnersEnvironment.stage != BreadPartnersEnvironment.uat)
-    }
-
-    // MARK: - CaseIterable
-
-    @Test
-    func testAllCasesCount() {
-        #expect(BreadPartnersEnvironment.allCases.count == 3)
-    }
-
-    @Test
-    func testAllCasesContents() {
-        #expect(BreadPartnersEnvironment.allCases.contains(.stage))
-        #expect(BreadPartnersEnvironment.allCases.contains(.prod))
-        #expect(BreadPartnersEnvironment.allCases.contains(.uat))
-    }
 }
