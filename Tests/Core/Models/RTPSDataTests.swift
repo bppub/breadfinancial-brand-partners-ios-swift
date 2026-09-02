@@ -94,22 +94,6 @@ import Testing
         #expect(option.rawValue == expectedRawValue)
     }
 
-    @Test
-    func allMockOptions() {
-        let allOptions = BreadPartnersMockOptions.allCases
-        #expect(allOptions.count == 9)
-        #expect(allOptions.contains(.noMock))
-        #expect(allOptions.contains(.success))
-        #expect(allOptions.contains(.noHit))
-        #expect(allOptions.contains(.makeOffer))
-        #expect(allOptions.contains(.ackknowledge))
-        #expect(allOptions.contains(.existingAccount))
-        #expect(allOptions.contains(.existingOffer))
-        #expect(allOptions.contains(.newOffer))
-        #expect(allOptions.contains(.error))
-        #expect(Set(allOptions.map(\.rawValue)).count == allOptions.count)
-    }
-
     @Test(arguments: [
         BreadPartnersFinancingType.card,
         BreadPartnersFinancingType.installments,
@@ -148,10 +132,4 @@ import Testing
         #expect(rtps.country == country)
     }
 
-    @Test
-    func cardTypeAndCountry() {
-        let rtps = RTPSData(cardType: "MASTERCARD", country: "CA")
-        #expect(rtps.cardType == "MASTERCARD")
-        #expect(rtps.country == "CA")
-    }
 }

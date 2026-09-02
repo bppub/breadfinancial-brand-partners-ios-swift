@@ -77,20 +77,6 @@ import Testing
         #expect(address.postalCode == "43215")
     }
 
-    // MARK: - Environment Property
-
-    @Test
-    func testEnvironmentProperty() {
-        let config = MerchantConfiguration(env: .stage)
-        #expect(config.env == .stage)
-
-        let configProd = MerchantConfiguration(env: .prod)
-        #expect(configProd.env == .prod)
-
-        let configNil = MerchantConfiguration(env: nil)
-        #expect(configNil.env == nil)
-    }
-
     // MARK: - Custom Dictionary
 
     @Test

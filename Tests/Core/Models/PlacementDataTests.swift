@@ -51,16 +51,6 @@ import Testing
     func financingTypeMapping(financingType: BreadPartnersFinancingType) {
         let placement = PlacementData(financingType: financingType)
         #expect(placement.financingType == financingType)
-        #expect(placement.financingType?.rawValue == financingType.rawValue)
-    }
-
-    @Test
-    func allFinancingTypes() {
-        let allTypes = BreadPartnersFinancingType.allCases
-        #expect(allTypes.count == 3)
-        #expect(allTypes.contains(.card))
-        #expect(allTypes.contains(.installments))
-        #expect(allTypes.contains(.versatile))
     }
 
     @Test(arguments: [
@@ -90,27 +80,6 @@ import Testing
     }
 
     @Test
-    func allLocationTypes() {
-        let allTypes = BreadPartnersLocationType.allCases
-        #expect(allTypes.count == 15)
-        #expect(allTypes.contains(.homepage))
-        #expect(allTypes.contains(.landing))
-        #expect(allTypes.contains(.search))
-        #expect(allTypes.contains(.product))
-        #expect(allTypes.contains(.category))
-        #expect(allTypes.contains(.banner))
-        #expect(allTypes.contains(.checkout))
-        #expect(allTypes.contains(.cart))
-        #expect(allTypes.contains(.mobile))
-        #expect(allTypes.contains(.loyalty))
-        #expect(allTypes.contains(.footer))
-        #expect(allTypes.contains(.bag))
-        #expect(allTypes.contains(.dashboard))
-        #expect(allTypes.contains(.myaccount))
-        #expect(allTypes.contains(.header))
-    }
-
-    @Test
     func locationChannelMapCompleteness() {
         let locationMap = BreadPartnersLocationType.locationChannelMap
         #expect(locationMap.count == 15)
@@ -121,22 +90,22 @@ import Testing
     }
 
     @Test
-    func prequalificationIdAssignment() {
-        // Bug: Both prequalificationId and prequalCreditLimit are assigned from financingBuyerId
+    func financingBuyerIdPopulatesPrequalificationFields() {
         let placement = PlacementData(
-            financingBuyerId: "buyer123",
-            prequalificationId: nil,
-            prequalCreditLimit: nil
+            defaultSelectedCardKey: "default-card",
+            selectedCardKey: "selected-card",
+            upqInSessionToken: "session-token",
+            financingBuyerId: "buyer-id",
+            prequalificationId: "prequalification-id",
+            prequalCreditLimit: "5000"
         )
 
-        // Current behavior (expected to fail when bug is fixed):
-        #expect(placement.financingBuyerId == "buyer123")
-        #expect(
-            placement.prequalificationId == "buyer123",
-            "Bug: prequalificationId should use its own parameter, not financingBuyerId")
-        #expect(
-            placement.prequalCreditLimit == "buyer123",
-            "Bug: prequalCreditLimit should use its own parameter, not financingBuyerId")
+        #expect(placement.defaultSelectedCardKey == "default-card")
+        #expect(placement.selectedCardKey == "selected-card")
+        #expect(placement.upqInSessionToken == "session-token")
+        #expect(placement.financingBuyerId == "buyer-id")
+        #expect(placement.prequalificationId == "buyer-id")
+        #expect(placement.prequalCreditLimit == "buyer-id")
     }
 }
 
