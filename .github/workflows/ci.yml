@@ -34,6 +34,12 @@ jobs:
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
 
+      - name: Build BreadPartnersSDKCore
+        run: swift build --target BreadPartnersSDKCore
+
+      - name: Run BreadPartnersSDKCore Tests
+        run: swift test --filter BreadPartnersSDKCoreTests
+
       - name: Verify Build for iOS
         run: |
           xcodebuild \

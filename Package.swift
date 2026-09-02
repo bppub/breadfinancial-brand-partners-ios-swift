@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "BreadPartnersSDK",
     platforms: [
-        .iOS(.v15)
+        .iOS(.v15),
+        .macOS(.v12),
     ],
     products: [
         .library(
@@ -22,13 +23,22 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "BreadPartnersSDKCore",
+            dependencies: []
+        ),
+        .target(
             name: "BreadPartnersSDK",
             dependencies: [
+                "BreadPartnersSDKCore",
                 "SwiftSoup",
                 .product(
                     name: "RecaptchaEnterprise",
                     package: "recaptcha-enterprise-mobile-sdk"),
             ]
-        )
+        ),
+        .testTarget(
+            name: "BreadPartnersSDKCoreTests",
+            dependencies: ["BreadPartnersSDKCore"]
+        ),
     ]
 )
