@@ -51,6 +51,7 @@ jobs:
             const { execFileSync } = require("node:child_process");
             const path = require("path");
 
+            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
             const resultBundle = path.join(process.env.GITHUB_WORKSPACE, "TestResults.xcresult");
             const report = JSON.parse(execFileSync(
               "xcrun",
@@ -72,26 +73,36 @@ jobs:
             const executableLines = files.reduce((total, file) => total + file.executableLines, 0);
             const lineCoverage = executableLines === 0 ? 0 : coveredLines / executableLines;
             const rows = files
-              .sort((left, right) => left.name.localeCompare(right.name))
+              .sort((left, right) => left.lineCoverage - right.lineCoverage)
               .map(file =>
-              `| ${file.name} | ${percent(file.lineCoverage)} | ${file.coveredLines} | ${file.executableLines} |`
-            );
+                `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
+              );
             const text = [
-              "| File | Line coverage | Covered lines | Executable lines |",
-              "| --- | ---: | ---: | ---: |",
+              "| Metric | Value |",
+              "| --- | ---: |",
+              `| Line Coverage | **${percent(lineCoverage)}** |`,
+              `| Covered Lines | ${coveredLines} |`,
+              `| Executable Lines | ${executableLines} |`,
+              `| Files in Report | ${files.length} |`,
+              `| Workflow Run | ${context.runId} |`,
+              `| Commit | ${context.sha.slice(0, 7)} |`,
+              "",
+              "### Core File Coverage",
+              "| File | Coverage | Covered / Executable |",
+              "| --- | ---: | ---: |",
               ...rows
             ].join("\n");
 
             await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: "Coverage Report",
+              name: "Coverage (Core)",
               head_sha: context.payload.pull_request.head.sha,
               status: "completed",
               conclusion: "success",
               output: {
-                title: "Coverage",
-                summary: `BreadPartnersSDKCore line coverage: ${percent(lineCoverage)}`,
+                title: "Core Coverage",
+                summary: `Line coverage: **${percent(lineCoverage)}**`,
                 text
               }
             });
