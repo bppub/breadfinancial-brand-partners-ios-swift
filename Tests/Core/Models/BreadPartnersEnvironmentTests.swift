@@ -8,77 +8,90 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import XCTest
+import Testing
 @testable import BreadPartnersSDKCore
 
-final class BreadPartnersEnvironmentTests: XCTestCase {
+@Suite struct BreadPartnersEnvironmentTests {
     // MARK: - Raw Value Mapping
 
+    @Test
     func testStageRawValue() {
-        XCTAssertEqual(BreadPartnersEnvironment.stage.rawValue, "STAGE")
+        #expect(BreadPartnersEnvironment.stage.rawValue == "STAGE")
     }
 
+    @Test
     func testProdRawValue() {
-        XCTAssertEqual(BreadPartnersEnvironment.prod.rawValue, "PROD")
+        #expect(BreadPartnersEnvironment.prod.rawValue == "PROD")
     }
 
+    @Test
     func testUatRawValue() {
-        XCTAssertEqual(BreadPartnersEnvironment.uat.rawValue, "UAT")
+        #expect(BreadPartnersEnvironment.uat.rawValue == "UAT")
     }
 
     // MARK: - Initialisation from Raw Value
 
+    @Test
     func testInitFromStage() {
-        XCTAssertEqual(BreadPartnersEnvironment(rawValue: "STAGE"), .stage)
+        #expect(BreadPartnersEnvironment(rawValue: "STAGE") == .stage)
     }
 
+    @Test
     func testInitFromProd() {
-        XCTAssertEqual(BreadPartnersEnvironment(rawValue: "PROD"), .prod)
+        #expect(BreadPartnersEnvironment(rawValue: "PROD") == .prod)
     }
 
+    @Test
     func testInitFromUat() {
-        XCTAssertEqual(BreadPartnersEnvironment(rawValue: "UAT"), .uat)
+        #expect(BreadPartnersEnvironment(rawValue: "UAT") == .uat)
     }
 
     // MARK: - Invalid Raw Values
 
+    @Test
     func testInitFromUnknownRawValue() {
-        XCTAssertNil(BreadPartnersEnvironment(rawValue: "UNKNOWN"))
+        #expect(BreadPartnersEnvironment(rawValue: "UNKNOWN") == nil)
     }
 
+    @Test
     func testInitFromEmptyString() {
-        XCTAssertNil(BreadPartnersEnvironment(rawValue: ""))
+        #expect(BreadPartnersEnvironment(rawValue: "") == nil)
     }
 
+    @Test
     func testInitFromLowercaseRawValue() {
-        XCTAssertNil(BreadPartnersEnvironment(rawValue: "stage"))
-        XCTAssertNil(BreadPartnersEnvironment(rawValue: "prod"))
-        XCTAssertNil(BreadPartnersEnvironment(rawValue: "uat"))
+        #expect(BreadPartnersEnvironment(rawValue: "stage") == nil)
+        #expect(BreadPartnersEnvironment(rawValue: "prod") == nil)
+        #expect(BreadPartnersEnvironment(rawValue: "uat") == nil)
     }
 
     // MARK: - Equality
 
+    @Test
     func testCaseEquality() {
-        XCTAssertEqual(BreadPartnersEnvironment.stage, BreadPartnersEnvironment.stage)
-        XCTAssertEqual(BreadPartnersEnvironment.prod, BreadPartnersEnvironment.prod)
-        XCTAssertEqual(BreadPartnersEnvironment.uat, BreadPartnersEnvironment.uat)
+        #expect(BreadPartnersEnvironment.stage == BreadPartnersEnvironment.stage)
+        #expect(BreadPartnersEnvironment.prod == BreadPartnersEnvironment.prod)
+        #expect(BreadPartnersEnvironment.uat == BreadPartnersEnvironment.uat)
     }
 
+    @Test
     func testCaseInequality() {
-        XCTAssertNotEqual(BreadPartnersEnvironment.stage, BreadPartnersEnvironment.prod)
-        XCTAssertNotEqual(BreadPartnersEnvironment.prod, BreadPartnersEnvironment.uat)
-        XCTAssertNotEqual(BreadPartnersEnvironment.stage, BreadPartnersEnvironment.uat)
+        #expect(BreadPartnersEnvironment.stage != BreadPartnersEnvironment.prod)
+        #expect(BreadPartnersEnvironment.prod != BreadPartnersEnvironment.uat)
+        #expect(BreadPartnersEnvironment.stage != BreadPartnersEnvironment.uat)
     }
 
     // MARK: - CaseIterable
 
+    @Test
     func testAllCasesCount() {
-        XCTAssertEqual(BreadPartnersEnvironment.allCases.count, 3)
+        #expect(BreadPartnersEnvironment.allCases.count == 3)
     }
 
+    @Test
     func testAllCasesContents() {
-        XCTAssertTrue(BreadPartnersEnvironment.allCases.contains(.stage))
-        XCTAssertTrue(BreadPartnersEnvironment.allCases.contains(.prod))
-        XCTAssertTrue(BreadPartnersEnvironment.allCases.contains(.uat))
+        #expect(BreadPartnersEnvironment.allCases.contains(.stage))
+        #expect(BreadPartnersEnvironment.allCases.contains(.prod))
+        #expect(BreadPartnersEnvironment.allCases.contains(.uat))
     }
 }
