@@ -35,11 +35,13 @@ jobs:
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
 
-      - name: Build BreadPartnersSDKCore
-        run: swift build --target BreadPartnersSDKCore
-
       - name: Run BreadPartnersSDKCore Tests
-        run: swift test --enable-code-coverage --filter BreadPartnersSDKCoreTests
+        run: |
+          xcodebuild test \
+            -scheme BreadPartnersSDKCore \
+            -destination 'platform=macOS' \
+            -enableCodeCoverage YES \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Publish coverage check run
         if: always()
