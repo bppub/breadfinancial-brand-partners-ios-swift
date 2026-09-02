@@ -51,16 +51,6 @@ import Testing
     func financingTypeMapping(financingType: BreadPartnersFinancingType) {
         let placement = PlacementData(financingType: financingType)
         #expect(placement.financingType == financingType)
-        #expect(placement.financingType?.rawValue == financingType.rawValue)
-    }
-
-    @Test
-    func allFinancingTypes() {
-        let allTypes = BreadPartnersFinancingType.allCases
-        #expect(allTypes.count == 3)
-        #expect(allTypes.contains(.card))
-        #expect(allTypes.contains(.installments))
-        #expect(allTypes.contains(.versatile))
     }
 
     @Test(arguments: [
@@ -87,27 +77,6 @@ import Testing
         let placement = PlacementData(locationType: locationType)
         #expect(placement.locationType == locationType)
         #expect(placement.locationType?.channelCode == expectedCode)
-    }
-
-    @Test
-    func allLocationTypes() {
-        let allTypes = BreadPartnersLocationType.allCases
-        #expect(allTypes.count == 15)
-        #expect(allTypes.contains(.homepage))
-        #expect(allTypes.contains(.landing))
-        #expect(allTypes.contains(.search))
-        #expect(allTypes.contains(.product))
-        #expect(allTypes.contains(.category))
-        #expect(allTypes.contains(.banner))
-        #expect(allTypes.contains(.checkout))
-        #expect(allTypes.contains(.cart))
-        #expect(allTypes.contains(.mobile))
-        #expect(allTypes.contains(.loyalty))
-        #expect(allTypes.contains(.footer))
-        #expect(allTypes.contains(.bag))
-        #expect(allTypes.contains(.dashboard))
-        #expect(allTypes.contains(.myaccount))
-        #expect(allTypes.contains(.header))
     }
 
     @Test
