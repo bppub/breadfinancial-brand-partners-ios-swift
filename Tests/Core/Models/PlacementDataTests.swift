@@ -195,4 +195,79 @@ import Testing
         #expect(order.totalPrice?.currency == "EUR")
         #expect(order.totalTax?.currency == "GBP")
     }
+
+    @Test
+    func fulfillmentModelsInitialization() {
+        let name = Name(
+            givenName: "Jane",
+            familyName: "Doe",
+            additionalName: "Q"
+        )
+        let address = Address(
+            address1: "123 Main Street",
+            address2: "Apt 4B",
+            locality: "Columbus",
+            postalCode: "43215",
+            region: "OH",
+            country: "US"
+        )
+        let pickupInformation = PickupInformation(
+            name: name,
+            phone: "555-0100",
+            address: address,
+            email: "jane@example.com"
+        )
+
+        #expect(pickupInformation.name?.givenName == "Jane")
+        #expect(pickupInformation.name?.familyName == "Doe")
+        #expect(pickupInformation.name?.additionalName == "Q")
+        #expect(pickupInformation.phone == "555-0100")
+        #expect(pickupInformation.address?.address1 == "123 Main Street")
+        #expect(pickupInformation.address?.address2 == "Apt 4B")
+        #expect(pickupInformation.address?.locality == "Columbus")
+        #expect(pickupInformation.address?.postalCode == "43215")
+        #expect(pickupInformation.address?.region == "OH")
+        #expect(pickupInformation.address?.country == "US")
+        #expect(pickupInformation.email == "jane@example.com")
+    }
+
+    @Test
+    func itemInitialization() {
+        let unitPrice = CurrencyValue(currency: "USD", value: 1_000)
+        let unitTax = CurrencyValue(currency: "USD", value: 80)
+        let shippingCost = CurrencyValue(currency: "USD", value: 100)
+        let item = Item(
+            name: "Shoes",
+            category: "apparel",
+            quantity: 2,
+            unitPrice: unitPrice,
+            unitTax: unitTax,
+            sku: "SKU-123",
+            itemUrl: "https://example.com/shoes",
+            imageUrl: "https://example.com/shoes.jpg",
+            description: "Running shoes",
+            shippingCost: shippingCost,
+            shippingProvider: "Carrier",
+            shippingDescription: "Standard",
+            shippingTrackingNumber: "TRACK-123",
+            shippingTrackingUrl: "https://example.com/tracking/TRACK-123",
+            fulfillmentType: .delivery
+        )
+
+        #expect(item.name == "Shoes")
+        #expect(item.category == "apparel")
+        #expect(item.quantity == 2)
+        #expect(item.unitPrice === unitPrice)
+        #expect(item.unitTax === unitTax)
+        #expect(item.sku == "SKU-123")
+        #expect(item.itemUrl == "https://example.com/shoes")
+        #expect(item.imageUrl == "https://example.com/shoes.jpg")
+        #expect(item.description == "Running shoes")
+        #expect(item.shippingCost === shippingCost)
+        #expect(item.shippingProvider == "Carrier")
+        #expect(item.shippingDescription == "Standard")
+        #expect(item.shippingTrackingNumber == "TRACK-123")
+        #expect(item.shippingTrackingUrl == "https://example.com/tracking/TRACK-123")
+        #expect(item.fulfillmentType == .delivery)
+    }
 }
