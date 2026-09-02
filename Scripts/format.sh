@@ -10,7 +10,7 @@ if [[ "$actual_version" != "$expected_version" ]]; then
 fi
 
 if [[ "${1:-}" == "--check" ]]; then
-  swift-format lint --strict --recursive --configuration .swift-format Sources
+  swift-format lint --strict --recursive --configuration .swift-format Sources Tests
 else
-  swift-format format --in-place --recursive --configuration .swift-format Sources
+  swift-format format --in-place --recursive --configuration .swift-format Sources Tests
 fi
