@@ -221,8 +221,8 @@ import Testing
         #expect(pickupInformation.name?.givenName == "Jane")
         #expect(pickupInformation.name?.familyName == "Doe")
         #expect(pickupInformation.name?.additionalName == "Q")
-        #expect(pickupInformation.address?.address1 == "123 Main Street")
         #expect(pickupInformation.phone == "555-0100")
+        #expect(pickupInformation.address?.address1 == "123 Main Street")
         #expect(pickupInformation.address?.address2 == "Apt 4B")
         #expect(pickupInformation.address?.locality == "Columbus")
         #expect(pickupInformation.address?.postalCode == "43215")
@@ -242,12 +242,12 @@ import Testing
             quantity: 2,
             unitPrice: unitPrice,
             unitTax: unitTax,
-            itemUrl: "https://example.com/shoes",
             sku: "SKU-123",
+            itemUrl: "https://example.com/shoes",
             imageUrl: "https://example.com/shoes.jpg",
             description: "Running shoes",
-            shippingProvider: "Carrier",
             shippingCost: shippingCost,
+            shippingProvider: "Carrier",
             shippingDescription: "Standard",
             shippingTrackingNumber: "TRACK-123",
             shippingTrackingUrl: "https://example.com/tracking/TRACK-123",
