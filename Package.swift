@@ -38,7 +38,13 @@ let package = Package(
         ),
         .testTarget(
             name: "BreadPartnersSDKCoreTests",
-            dependencies: ["BreadPartnersSDKCore"]
+            dependencies: ["BreadPartnersSDKCore"],
+            path: "Tests/Core"
+        ),
+        .testTarget(
+            name: "BreadPartnersSDKTests",
+            dependencies: ["BreadPartnersSDK"],
+            path: "Tests/SDK"
         ),
     ]
 )
