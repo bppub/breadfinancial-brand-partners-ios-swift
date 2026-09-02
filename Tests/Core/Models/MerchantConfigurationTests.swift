@@ -58,6 +58,25 @@ import Testing
         #expect(config.buyer?.givenName == "Jane")
     }
 
+    @Test
+    func testAddressInitialization() {
+        let address = BreadPartnersAddress(
+            address1: "123 Main Street",
+            address2: "Apt 4B",
+            country: "US",
+            locality: "Columbus",
+            region: "OH",
+            postalCode: "43215"
+        )
+
+        #expect(address.address1 == "123 Main Street")
+        #expect(address.address2 == "Apt 4B")
+        #expect(address.country == "US")
+        #expect(address.locality == "Columbus")
+        #expect(address.region == "OH")
+        #expect(address.postalCode == "43215")
+    }
+
     // MARK: - Environment Property
 
     @Test
