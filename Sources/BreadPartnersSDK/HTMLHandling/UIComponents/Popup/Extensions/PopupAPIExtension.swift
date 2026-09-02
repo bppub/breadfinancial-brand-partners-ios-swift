@@ -58,9 +58,10 @@ extension PopupController {
     /// Handles the API response asynchronously by decoding the response data into a PlacementsResponse model.
     internal func handleResponse(_ response: AnySendable) async {
         do {
-            let responseModel: PlacementsResponse =
-                try await CommonUtils().decodeJSON(
-                    from: response, to: PlacementsResponse.self)
+            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
+                response,
+                as: PlacementsResponse.self
+            )
             guard
                 let popupPlacementHTMLContent = responseModel.placementContent?
                     .first,

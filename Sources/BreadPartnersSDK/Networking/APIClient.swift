@@ -62,7 +62,7 @@ internal class APIClient: @unchecked Sendable {
 
         var genericHeader: [String: String] = await [
             Constants.headerContentType: Constants.headerContentTypeValue,
-            Constants.headerUserAgentKey: CommonUtils().getUserAgent(),
+            Constants.headerUserAgentKey: DeviceInformationProvider.userAgent,
             Constants.headerOriginKey: Constants.headerOriginValue,
             Constants.headerPlatformKey: Constants.headerPlatformValue,
         ]

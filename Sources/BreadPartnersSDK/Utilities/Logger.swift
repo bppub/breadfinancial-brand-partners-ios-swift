@@ -23,6 +23,7 @@ internal class Logger: NSObject, @unchecked Sendable {
 
     private(set) var isLoggingEnabled: Bool = false
     private(set) var callback: (BreadPartnerEvents) -> Void = { _ in }
+    private let coreLogger = CoreLogger()
 
     let dashLineFifty = String(repeating: "-", count: 50)
     let dashLineFifteen = String(repeating: "-", count: 15)
@@ -30,19 +31,20 @@ internal class Logger: NSObject, @unchecked Sendable {
 
     func setLogging(enabled: Bool) {
         self.isLoggingEnabled = enabled
+        coreLogger.isEnabled = enabled
     }
 
     func setCallback(_ newCallback: @escaping (BreadPartnerEvents) -> Void) {
         self.callback = newCallback
+        coreLogger.sink = { [weak self] message in
+            self?.callback(.onSDKEventLog(logs: message))
+        }
     }
 
     nonisolated public func debugPrint(
         _ items: Any..., separator: String = " ", terminator: String = "\n"
     ) {
-        guard isLoggingEnabled else { return }
-        let logMessage = items.map { "\($0)" }.joined(separator: separator)
-        Swift.print(logMessage, terminator: terminator)
-        callback(.onSDKEventLog(logs: logMessage))
+        coreLogger.emit(items, separator: separator, terminator: terminator)
     }
 
     func printLog(
@@ -59,49 +61,14 @@ internal class Logger: NSObject, @unchecked Sendable {
     ) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\n\(dashLineFifteen) Request Details \(dashLineFifteen)")
-        lines.append("URL     : \(url)")
-        lines.append("Method  : \(method)")
-
-        if let headers = headers {
-            let headerLines: [String] =
-                headers
-                .compactMap { key, value in
-                    guard
-                        let keyStr = key as? CustomStringConvertible,
-                        let valStr = value as? CustomStringConvertible
-                    else { return nil }
-                    return "\(keyStr): \(valStr)"
-                }
-                .sorted()
-
-            lines.append("Headers :")
-            for headerLine in headerLines {
-                lines.append("  \(headerLine)")
-            }
-        } else {
-            lines.append("Headers : None")
-        }
-
-        let bodyString: String
-        if let body = body,
-            let json = try? JSONSerialization.jsonObject(with: body),
-            let pretty = try? JSONSerialization.data(
-                withJSONObject: json,
-                options: .prettyPrinted),
-            let str = String(data: pretty, encoding: .utf8)
-        {
-            bodyString = str
-        } else {
-            bodyString = "No Body"
-        }
-        lines.append("Body    : \(bodyString)")
-        lines.append("\(dashLineFifty)\n")
-
-        let message = lines.joined(separator: "\n")
-
-        debugPrint(message)
+        debugPrint(
+            coreLogger.requestMessage(
+                url: url,
+                method: method,
+                headers: headers,
+                body: body
+            )
+        )
     }
 
     func logResponseDetails(
@@ -112,46 +79,14 @@ internal class Logger: NSObject, @unchecked Sendable {
     ) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\n\(dashLineFifteen) Response Details \(dashLineFifteen)")
-        lines.append("URL         : \(url)")
-        lines.append("Status Code : \(statusCode)")
-
-        let headerLines: [String] =
-            headers
-            .compactMap { key, value in
-                guard
-                    let keyStr = key as? CustomStringConvertible,
-                    let valStr = value as? CustomStringConvertible
-                else { return nil }
-                return "\(keyStr): \(valStr)"
-            }
-            .sorted()
-
-        lines.append("Headers :")
-        for headerLine in headerLines {
-            lines.append("  \(headerLine)")
-        }
-
-        let bodyString: String = {
-            guard let data = body else { return "No Body" }
-
-            if let jsonObj = try? JSONSerialization.jsonObject(with: data, options: []),
-                let prettyData = try? JSONSerialization.data(withJSONObject: jsonObj, options: .prettyPrinted),
-                let pretty = String(data: prettyData, encoding: .utf8)
-            {
-                return pretty
-            }
-            if let str = String(data: data, encoding: .utf8) {
-                return str
-            }
-            return "No Body"
-        }()
-        lines.append("Body        : \(bodyString)")
-        lines.append("\(dashLineFifty)\n")
-
-        let message = lines.joined(separator: "\n")
-        debugPrint(message)
+        debugPrint(
+            coreLogger.responseMessage(
+                url: url,
+                statusCode: statusCode,
+                headers: headers,
+                body: body
+            )
+        )
     }
 
     func logTextPlacementModelDetails(_ model: TextPlacementModel) {
@@ -223,56 +158,25 @@ internal class Logger: NSObject, @unchecked Sendable {
     func logLoadingURL(url: URL) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\(dashLineFifteen) WebView URL \(dashLineFifteen)")
-        lines.append(url.absoluteString.trimmingCharacters(in: .whitespacesAndNewlines))
-        lines.append("\(dashLineFifty)")
-
-        let message = lines.joined(separator: "\n")
-        debugPrint(message)
+        debugPrint(coreLogger.loadingURLMessage(url))
     }
 
     func logReCaptchaToken(token: String) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\(dashLineFifteen) ReCAPTCHA TOKEN \(dashLineFifteen)")
-        lines.append(token)
-        lines.append("\(dashLineFifty)")
-
-        let message = lines.joined(separator: "\n")
-        debugPrint(message)
+        debugPrint(coreLogger.reCaptchaTokenMessage(token))
     }
 
     func logApplicationResultDetails(_ payload: [String: Any]) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\n\(dashLineTen) Application Result Details \(dashLineTen)")
-        lines.append("Application ID     : \(payload["applicationId"] ?? "N/A")")
-        lines.append("Call ID            : \(payload["callId"] ?? "N/A")")
-        lines.append("Card Type          : \(payload["cardType"] ?? "N/A")")
-        lines.append("Email Address      : \(payload["emailAddress"] ?? "N/A")")
-        lines.append("Message            : \(payload["message"] ?? "N/A")")
-        lines.append("Mobile Phone       : \(payload["mobilePhone"] ?? "N/A")")
-        lines.append("Result             : \(payload["result"] ?? "N/A")")
-        lines.append("Status             : \(payload["status"] ?? "N/A")")
-        lines.append("\(dashLineFifty)\n")
-
-        let message = lines.joined(separator: "\n")
-        debugPrint(message)
+        debugPrint(coreLogger.applicationResultMessage(payload))
     }
 
     func printWebAnchorLogs(data: String) {
         guard isLoggingEnabled else { return }
 
-        var lines: [String] = []
-        lines.append("\n\(dashLineFifteen) Anchors List \(dashLineFifteen)")
-        lines.append(data)
-        lines.append("\(dashLineFifty)\n")
-
-        let message = lines.joined(separator: "\n")
-        debugPrint(message)
+        debugPrint(coreLogger.webAnchorsMessage(data))
     }
 
 }
