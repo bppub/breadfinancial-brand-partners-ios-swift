@@ -8,65 +8,73 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import XCTest
+import Foundation
+import Testing
 @testable import BreadPartnersSDKCore
 
-final class MerchantConfigurationTests: XCTestCase {
+@Suite struct MerchantConfigurationTests {
     // MARK: - Store Number Handling
 
+    @Test
     func testMerchantConfigurationDefaultStore() {
         let config = MerchantConfiguration()
-        XCTAssertEqual(config.storeNumber, "8883")
+        #expect(config.storeNumber == "8883")
     }
 
+    @Test
     func testMerchantConfigurationStoreNumberDefault() {
         let config = MerchantConfiguration(storeNumber: "")
-        XCTAssertEqual(config.storeNumber, "8883")
+        #expect(config.storeNumber == "8883")
     }
 
+    @Test
     func testMerchantConfigurationStoreNumberPreserved() {
         let config = MerchantConfiguration(storeNumber: "1234")
-        XCTAssertEqual(config.storeNumber, "1234")
+        #expect(config.storeNumber == "1234")
     }
 
     // MARK: - Payment Mode
 
+    @Test
     func testPaymentModeRawValues() {
-        XCTAssertEqual(MerchantConfiguration.PaymentMode.full.rawValue, "full")
-        XCTAssertEqual(MerchantConfiguration.PaymentMode.split.rawValue, "split")
+        #expect(MerchantConfiguration.PaymentMode.full.rawValue == "full")
+        #expect(MerchantConfiguration.PaymentMode.split.rawValue == "split")
     }
 
+    @Test
     func testPaymentModeInitialization() {
         let fullMode = MerchantConfiguration.PaymentMode(rawValue: "full")
         let splitMode = MerchantConfiguration.PaymentMode(rawValue: "split")
-        XCTAssertEqual(fullMode, .full)
-        XCTAssertEqual(splitMode, .split)
+        #expect(fullMode == .full)
+        #expect(splitMode == .split)
     }
 
     // MARK: - Buyer Initialization
 
+    @Test
     func testBuyerInitialization() {
-        let buyer = BreadPartnersBuyer()
+        let buyer = BreadPartnersBuyer(givenName: "Jane")
         let config = MerchantConfiguration(buyer: buyer)
-        XCTAssertNotNil(config.buyer)
-        XCTAssert(config.buyer === buyer)
+        #expect(config.buyer?.givenName == "Jane")
     }
 
     // MARK: - Environment Property
 
+    @Test
     func testEnvironmentProperty() {
         let config = MerchantConfiguration(env: .stage)
-        XCTAssertEqual(config.env, .stage)
+        #expect(config.env == .stage)
 
         let configProd = MerchantConfiguration(env: .prod)
-        XCTAssertEqual(configProd.env, .prod)
+        #expect(configProd.env == .prod)
 
         let configNil = MerchantConfiguration(env: nil)
-        XCTAssertNil(configNil.env)
+        #expect(configNil.env == nil)
     }
 
     // MARK: - Custom Dictionary
 
+    @Test
     func testCustomDictionary() {
         let customData: [String: Any] = [
             "key1": "value1",
@@ -74,17 +82,17 @@ final class MerchantConfigurationTests: XCTestCase {
             "key3": true,
         ]
         let config = MerchantConfiguration(custom: customData)
-        XCTAssertNotNil(config.custom)
-        XCTAssertEqual(config.custom?.count, 3)
-        XCTAssertEqual(config.custom?["key1"] as? String, "value1")
-        XCTAssertEqual(config.custom?["key2"] as? Int, 42)
-        XCTAssertEqual(config.custom?["key3"] as? Bool, true)
+        #expect(config.custom?.count == 3)
+        #expect(config.custom?["key1"] as? String == "value1")
+        #expect(config.custom?["key2"] as? Int == 42)
+        #expect(config.custom?["key3"] as? Bool == true)
     }
 
     // MARK: - All Properties Initialization
 
+    @Test
     func testAllPropertiesInitialization() {
-        let buyer = BreadPartnersBuyer()
+        let buyer = BreadPartnersBuyer(givenName: "Jane")
         let customData: [String: Any] = ["test": "data"]
         let providerConfig: [String: Data] = ["provider": Data()]
 
@@ -116,52 +124,53 @@ final class MerchantConfigurationTests: XCTestCase {
             cardChoiceCode: "choice123"
         )
 
-        XCTAssertNotNil(config.buyer)
-        XCTAssertEqual(config.loyaltyID, "loyalty123")
-        XCTAssertEqual(config.campaignID, "campaign456")
-        XCTAssertEqual(config.storeNumber, "5678")
-        XCTAssertEqual(config.departmentId, "dept789")
-        XCTAssertTrue(config.existingCardHolder ?? false)
-        XCTAssertEqual(config.cardholderTier, "gold")
-        XCTAssertEqual(config.env, .uat)
-        XCTAssertEqual(config.cardEnv, "card_env")
-        XCTAssertEqual(config.channel, "online")
-        XCTAssertEqual(config.subchannel, "mobile")
-        XCTAssertEqual(config.clerkId, "clerk001")
-        XCTAssertEqual(config.overrideKey, "override123")
-        XCTAssertEqual(config.clientVariable1, "var1")
-        XCTAssertEqual(config.clientVariable2, "var2")
-        XCTAssertEqual(config.clientVariable3, "var3")
-        XCTAssertEqual(config.clientVariable4, "var4")
-        XCTAssertEqual(config.accountId, "account001")
-        XCTAssertEqual(config.applicationId, "app001")
-        XCTAssertEqual(config.invoiceNumber, "inv001")
-        XCTAssertEqual(config.paymentMode, .split)
-        XCTAssertNotNil(config.providerConfig)
-        XCTAssertTrue(config.skipVerification ?? false)
-        XCTAssertNotNil(config.custom)
-        XCTAssertEqual(config.cardChoiceCode, "choice123")
+        #expect(config.buyer?.givenName == "Jane")
+        #expect(config.loyaltyID == "loyalty123")
+        #expect(config.campaignID == "campaign456")
+        #expect(config.storeNumber == "5678")
+        #expect(config.departmentId == "dept789")
+        #expect(config.existingCardHolder == true)
+        #expect(config.cardholderTier == "gold")
+        #expect(config.env == BreadPartnersEnvironment.uat)
+        #expect(config.cardEnv == "card_env")
+        #expect(config.channel == "online")
+        #expect(config.subchannel == "mobile")
+        #expect(config.clerkId == "clerk001")
+        #expect(config.overrideKey == "override123")
+        #expect(config.clientVariable1 == "var1")
+        #expect(config.clientVariable2 == "var2")
+        #expect(config.clientVariable3 == "var3")
+        #expect(config.clientVariable4 == "var4")
+        #expect(config.accountId == "account001")
+        #expect(config.applicationId == "app001")
+        #expect(config.invoiceNumber == "inv001")
+        #expect(config.paymentMode == MerchantConfiguration.PaymentMode.split)
+        #expect(config.providerConfig == providerConfig)
+        #expect(config.skipVerification == true)
+        #expect((config.custom?["test"] as? String) == "data")
+        #expect(config.cardChoiceCode == "choice123")
     }
 
     // MARK: - Nil Properties
 
+    @Test
     func testNilProperties() {
         let config = MerchantConfiguration()
-        XCTAssertNil(config.buyer)
-        XCTAssertNil(config.loyaltyID)
-        XCTAssertNil(config.campaignID)
-        XCTAssertNil(config.departmentId)
-        XCTAssertNil(config.existingCardHolder)
-        XCTAssertNil(config.cardholderTier)
-        XCTAssertNil(config.env)
-        XCTAssertNil(config.cardEnv)
-        XCTAssertNil(config.channel)
-        XCTAssertNil(config.subchannel)
-        XCTAssertNil(config.clerkId)
-        XCTAssertNil(config.overrideKey)
-        XCTAssertNil(config.paymentMode)
-        XCTAssertNil(config.providerConfig)
-        XCTAssertNil(config.skipVerification)
-        XCTAssertNil(config.custom)
+        #expect(config.buyer == nil)
+        #expect(config.loyaltyID == nil)
+        #expect(config.campaignID == nil)
+        #expect(config.departmentId == nil)
+        #expect(config.existingCardHolder == nil)
+        #expect(config.cardholderTier == nil)
+        #expect(config.env == nil)
+        #expect(config.cardEnv == nil)
+        #expect(config.channel == nil)
+        #expect(config.subchannel == nil)
+        #expect(config.clerkId == nil)
+        #expect(config.overrideKey == nil)
+        #expect(config.paymentMode == nil)
+        #expect(config.providerConfig == nil)
+        #expect(config.skipVerification == nil)
+        #expect(config.custom == nil)
     }
 }

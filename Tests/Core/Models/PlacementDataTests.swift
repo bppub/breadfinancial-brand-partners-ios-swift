@@ -8,23 +8,23 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import XCTest
+import Testing
 @testable import BreadPartnersSDKCore
 
-final class PlacementDataTests: XCTestCase {
-    // MARK: - Initialization
-
-    func testBasicInitialization() {
+@Suite struct PlacementDataTests {
+    @Test
+    func basicInitialization() {
         let placement = PlacementData()
-        XCTAssertNil(placement.financingType)
-        XCTAssertNil(placement.locationType)
-        XCTAssertNil(placement.placementId)
-        XCTAssertNil(placement.domID)
-        XCTAssertNil(placement.allowCheckout)
-        XCTAssertNil(placement.order)
+        #expect(placement.financingType == nil)
+        #expect(placement.locationType == nil)
+        #expect(placement.placementId == nil)
+        #expect(placement.domID == nil)
+        #expect(placement.allowCheckout == nil)
+        #expect(placement.order == nil)
     }
 
-    func testInitializationWithValues() {
+    @Test
+    func initializationWithValues() {
         let order = Order()
         let placement = PlacementData(
             financingType: .installments,
@@ -35,202 +35,129 @@ final class PlacementDataTests: XCTestCase {
             order: order
         )
 
-        XCTAssertEqual(placement.financingType, .installments)
-        XCTAssertEqual(placement.locationType, .checkout)
-        XCTAssertEqual(placement.placementId, "placement123")
-        XCTAssertEqual(placement.domID, "dom456")
-        XCTAssertTrue(placement.allowCheckout ?? false)
-        XCTAssertNotNil(placement.order)
+        #expect(placement.financingType == BreadPartnersFinancingType.installments)
+        #expect(placement.locationType == BreadPartnersLocationType.checkout)
+        #expect(placement.placementId == "placement123")
+        #expect(placement.domID == "dom456")
+        #expect(placement.allowCheckout == true)
+        #expect(placement.order === order)
     }
 
-    // MARK: - Financing Type Mapping
-
-    func testFinancingTypeCard() {
-        let placement = PlacementData(financingType: .card)
-        XCTAssertEqual(placement.financingType, .card)
-        XCTAssertEqual(placement.financingType?.rawValue, "card")
+    @Test(arguments: [
+        BreadPartnersFinancingType.card,
+        BreadPartnersFinancingType.installments,
+        BreadPartnersFinancingType.versatile,
+    ])
+    func financingTypeMapping(financingType: BreadPartnersFinancingType) {
+        let placement = PlacementData(financingType: financingType)
+        #expect(placement.financingType == financingType)
+        #expect(placement.financingType?.rawValue == financingType.rawValue)
     }
 
-    func testFinancingTypeInstallments() {
-        let placement = PlacementData(financingType: .installments)
-        XCTAssertEqual(placement.financingType, .installments)
-        XCTAssertEqual(placement.financingType?.rawValue, "installments")
-    }
-
-    func testFinancingTypeVersatile() {
-        let placement = PlacementData(financingType: .versatile)
-        XCTAssertEqual(placement.financingType, .versatile)
-        XCTAssertEqual(placement.financingType?.rawValue, "versatile")
-    }
-
-    func testAllFinancingTypes() {
+    @Test
+    func allFinancingTypes() {
         let allTypes = BreadPartnersFinancingType.allCases
-        XCTAssertEqual(allTypes.count, 3)
-        XCTAssertTrue(allTypes.contains(.card))
-        XCTAssertTrue(allTypes.contains(.installments))
-        XCTAssertTrue(allTypes.contains(.versatile))
+        #expect(allTypes.count == 3)
+        #expect(allTypes.contains(.card))
+        #expect(allTypes.contains(.installments))
+        #expect(allTypes.contains(.versatile))
     }
 
-    // MARK: - Location Type Channel Code Mapping (All 15 Cases)
-
-    func testLocationTypeHomepage() {
-        let placement = PlacementData(locationType: .homepage)
-        XCTAssertEqual(placement.locationType, .homepage)
-        XCTAssertEqual(placement.locationType?.channelCode, "H")
+    @Test(arguments: [
+        (BreadPartnersLocationType.homepage, "H"),
+        (BreadPartnersLocationType.landing, "L"),
+        (BreadPartnersLocationType.search, "S"),
+        (BreadPartnersLocationType.product, "P"),
+        (BreadPartnersLocationType.category, "C"),
+        (BreadPartnersLocationType.banner, "U"),
+        (BreadPartnersLocationType.checkout, "O"),
+        (BreadPartnersLocationType.cart, "A"),
+        (BreadPartnersLocationType.mobile, "E"),
+        (BreadPartnersLocationType.loyalty, "D"),
+        (BreadPartnersLocationType.footer, "F"),
+        (BreadPartnersLocationType.bag, "2"),
+        (BreadPartnersLocationType.dashboard, "5"),
+        (BreadPartnersLocationType.myaccount, "5"),
+        (BreadPartnersLocationType.header, "R"),
+    ])
+    func locationTypeChannelCode(
+        locationType: BreadPartnersLocationType,
+        expectedCode: String
+    ) {
+        let placement = PlacementData(locationType: locationType)
+        #expect(placement.locationType == locationType)
+        #expect(placement.locationType?.channelCode == expectedCode)
     }
 
-    func testLocationTypeLanding() {
-        let placement = PlacementData(locationType: .landing)
-        XCTAssertEqual(placement.locationType, .landing)
-        XCTAssertEqual(placement.locationType?.channelCode, "L")
-    }
-
-    func testLocationTypeSearch() {
-        let placement = PlacementData(locationType: .search)
-        XCTAssertEqual(placement.locationType, .search)
-        XCTAssertEqual(placement.locationType?.channelCode, "S")
-    }
-
-    func testLocationTypeProduct() {
-        let placement = PlacementData(locationType: .product)
-        XCTAssertEqual(placement.locationType, .product)
-        XCTAssertEqual(placement.locationType?.channelCode, "P")
-    }
-
-    func testLocationTypeCategory() {
-        let placement = PlacementData(locationType: .category)
-        XCTAssertEqual(placement.locationType, .category)
-        XCTAssertEqual(placement.locationType?.channelCode, "C")
-    }
-
-    func testLocationTypeBanner() {
-        let placement = PlacementData(locationType: .banner)
-        XCTAssertEqual(placement.locationType, .banner)
-        XCTAssertEqual(placement.locationType?.channelCode, "U")
-    }
-
-    func testLocationTypeCheckout() {
-        let placement = PlacementData(locationType: .checkout)
-        XCTAssertEqual(placement.locationType, .checkout)
-        XCTAssertEqual(placement.locationType?.channelCode, "O")
-    }
-
-    func testLocationTypeCart() {
-        let placement = PlacementData(locationType: .cart)
-        XCTAssertEqual(placement.locationType, .cart)
-        XCTAssertEqual(placement.locationType?.channelCode, "A")
-    }
-
-    func testLocationTypeMobile() {
-        let placement = PlacementData(locationType: .mobile)
-        XCTAssertEqual(placement.locationType, .mobile)
-        XCTAssertEqual(placement.locationType?.channelCode, "E")
-    }
-
-    func testLocationTypeLoyalty() {
-        let placement = PlacementData(locationType: .loyalty)
-        XCTAssertEqual(placement.locationType, .loyalty)
-        XCTAssertEqual(placement.locationType?.channelCode, "D")
-    }
-
-    func testLocationTypeFooter() {
-        let placement = PlacementData(locationType: .footer)
-        XCTAssertEqual(placement.locationType, .footer)
-        XCTAssertEqual(placement.locationType?.channelCode, "F")
-    }
-
-    func testLocationTypeBag() {
-        let placement = PlacementData(locationType: .bag)
-        XCTAssertEqual(placement.locationType, .bag)
-        XCTAssertEqual(placement.locationType?.channelCode, "2")
-    }
-
-    func testLocationTypeDashboard() {
-        let placement = PlacementData(locationType: .dashboard)
-        XCTAssertEqual(placement.locationType, .dashboard)
-        XCTAssertEqual(placement.locationType?.channelCode, "5")
-    }
-
-    func testLocationTypeMyaccount() {
-        let placement = PlacementData(locationType: .myaccount)
-        XCTAssertEqual(placement.locationType, .myaccount)
-        XCTAssertEqual(placement.locationType?.channelCode, "5")
-    }
-
-    func testLocationTypeHeader() {
-        let placement = PlacementData(locationType: .header)
-        XCTAssertEqual(placement.locationType, .header)
-        XCTAssertEqual(placement.locationType?.channelCode, "R")
-    }
-
-    func testAllLocationTypes() {
+    @Test
+    func allLocationTypes() {
         let allTypes = BreadPartnersLocationType.allCases
-        XCTAssertEqual(allTypes.count, 15)
-        XCTAssertTrue(allTypes.contains(.homepage))
-        XCTAssertTrue(allTypes.contains(.landing))
-        XCTAssertTrue(allTypes.contains(.search))
-        XCTAssertTrue(allTypes.contains(.product))
-        XCTAssertTrue(allTypes.contains(.category))
-        XCTAssertTrue(allTypes.contains(.banner))
-        XCTAssertTrue(allTypes.contains(.checkout))
-        XCTAssertTrue(allTypes.contains(.cart))
-        XCTAssertTrue(allTypes.contains(.mobile))
-        XCTAssertTrue(allTypes.contains(.loyalty))
-        XCTAssertTrue(allTypes.contains(.footer))
-        XCTAssertTrue(allTypes.contains(.bag))
-        XCTAssertTrue(allTypes.contains(.dashboard))
-        XCTAssertTrue(allTypes.contains(.myaccount))
-        XCTAssertTrue(allTypes.contains(.header))
+        #expect(allTypes.count == 15)
+        #expect(allTypes.contains(.homepage))
+        #expect(allTypes.contains(.landing))
+        #expect(allTypes.contains(.search))
+        #expect(allTypes.contains(.product))
+        #expect(allTypes.contains(.category))
+        #expect(allTypes.contains(.banner))
+        #expect(allTypes.contains(.checkout))
+        #expect(allTypes.contains(.cart))
+        #expect(allTypes.contains(.mobile))
+        #expect(allTypes.contains(.loyalty))
+        #expect(allTypes.contains(.footer))
+        #expect(allTypes.contains(.bag))
+        #expect(allTypes.contains(.dashboard))
+        #expect(allTypes.contains(.myaccount))
+        #expect(allTypes.contains(.header))
     }
 
-    func testLocationChannelMapCompleteness() {
+    @Test
+    func locationChannelMapCompleteness() {
         let locationMap = BreadPartnersLocationType.locationChannelMap
-        XCTAssertEqual(locationMap.count, 15)
+        #expect(locationMap.count == 15)
 
         for locationType in BreadPartnersLocationType.allCases {
-            XCTAssertNotNil(locationMap[locationType], "Missing channel code for \(locationType)")
+            #expect(locationMap[locationType] != nil, "Missing channel code for \(locationType)")
         }
     }
 
-    // MARK: - Known Bug: prequalificationId and prequalCreditLimit Assignment
-
-    func testPrequalificationIdAssignment() {
+    @Test
+    func prequalificationIdAssignment() {
         // Bug: Both prequalificationId and prequalCreditLimit are assigned from financingBuyerId
         let placement = PlacementData(
             financingBuyerId: "buyer123",
-            prequalificationId: nil,  // This parameter is not used in the initializer
-            prequalCreditLimit: nil  // This parameter is not used in the initializer
+            prequalificationId: nil,
+            prequalCreditLimit: nil
         )
 
         // Current behavior (expected to fail when bug is fixed):
-        XCTAssertEqual(placement.financingBuyerId, "buyer123")
-        XCTAssertEqual(
-            placement.prequalificationId, "buyer123",
+        #expect(placement.financingBuyerId == "buyer123")
+        #expect(
+            placement.prequalificationId == "buyer123",
             "Bug: prequalificationId should use its own parameter, not financingBuyerId")
-        XCTAssertEqual(
-            placement.prequalCreditLimit, "buyer123",
+        #expect(
+            placement.prequalCreditLimit == "buyer123",
             "Bug: prequalCreditLimit should use its own parameter, not financingBuyerId")
     }
 }
 
-// MARK: - Order Tests
-
-final class OrderTests: XCTestCase {
-    func testOrderBasicInitialization() {
+@Suite struct OrderTests {
+    @Test
+    func basicInitialization() {
         let order = Order()
-        XCTAssertNil(order.subTotal)
-        XCTAssertNil(order.totalDiscounts)
-        XCTAssertNil(order.totalPrice)
-        XCTAssertNil(order.totalShipping)
-        XCTAssertNil(order.totalTax)
+        #expect(order.subTotal == nil)
+        #expect(order.totalDiscounts == nil)
+        #expect(order.totalPrice == nil)
+        #expect(order.totalShipping == nil)
+        #expect(order.totalTax == nil)
     }
 
-    func testOrderInitializationWithValues() {
-        let subTotal = CurrencyValue(value: 100.00, currency: "USD")
-        let totalDiscounts = CurrencyValue(value: 10.00, currency: "USD")
-        let totalPrice = CurrencyValue(value: 90.00, currency: "USD")
-        let totalShipping = CurrencyValue(value: 5.00, currency: "USD")
-        let totalTax = CurrencyValue(value: 7.20, currency: "USD")
+    @Test
+    func initializationWithValues() {
+        let subTotal = CurrencyValue(currency: "USD", value: 10_000)
+        let totalDiscounts = CurrencyValue(currency: "USD", value: 1_000)
+        let totalPrice = CurrencyValue(currency: "USD", value: 9_000)
+        let totalShipping = CurrencyValue(currency: "USD", value: 500)
+        let totalTax = CurrencyValue(currency: "USD", value: 720)
 
         let order = Order(
             subTotal: subTotal,
@@ -242,39 +169,30 @@ final class OrderTests: XCTestCase {
             bnplEligible: true
         )
 
-        XCTAssertNotNil(order.subTotal)
-        XCTAssertEqual(order.subTotal?.value, 100.00)
-        XCTAssertEqual(order.subTotal?.currency, "USD")
-
-        XCTAssertNotNil(order.totalDiscounts)
-        XCTAssertEqual(order.totalDiscounts?.value, 10.00)
-
-        XCTAssertNotNil(order.totalPrice)
-        XCTAssertEqual(order.totalPrice?.value, 90.00)
-
-        XCTAssertNotNil(order.totalShipping)
-        XCTAssertEqual(order.totalShipping?.value, 5.00)
-
-        XCTAssertNotNil(order.totalTax)
-        XCTAssertEqual(order.totalTax?.value, 7.20)
-
-        XCTAssertEqual(order.discountCode, "SAVE10")
-        XCTAssertTrue(order.bnplEligible ?? false)
+        #expect(order.subTotal?.value == 10_000)
+        #expect(order.subTotal?.currency == "USD")
+        #expect(order.totalDiscounts?.value == 1_000)
+        #expect(order.totalDiscounts?.currency == "USD")
+        #expect(order.totalPrice?.value == 9_000)
+        #expect(order.totalPrice?.currency == "USD")
+        #expect(order.totalShipping?.value == 500)
+        #expect(order.totalShipping?.currency == "USD")
+        #expect(order.totalTax?.value == 720)
+        #expect(order.totalTax?.currency == "USD")
+        #expect(order.discountCode == "SAVE10")
+        #expect(order.bnplEligible == true)
     }
 
-    func testOrderCurrencyTypes() {
-        let usdValue = CurrencyValue(value: 100.00, currency: "USD")
-        let eurValue = CurrencyValue(value: 85.00, currency: "EUR")
-        let gbpValue = CurrencyValue(value: 75.00, currency: "GBP")
-
+    @Test
+    func currencyTypes() {
         let order = Order(
-            subTotal: usdValue,
-            totalPrice: eurValue,
-            totalTax: gbpValue
+            subTotal: CurrencyValue(currency: "USD", value: 10_000),
+            totalPrice: CurrencyValue(currency: "EUR", value: 8_500),
+            totalTax: CurrencyValue(currency: "GBP", value: 7_500)
         )
 
-        XCTAssertEqual(order.subTotal?.currency, "USD")
-        XCTAssertEqual(order.totalPrice?.currency, "EUR")
-        XCTAssertEqual(order.totalTax?.currency, "GBP")
+        #expect(order.subTotal?.currency == "USD")
+        #expect(order.totalPrice?.currency == "EUR")
+        #expect(order.totalTax?.currency == "GBP")
     }
 }

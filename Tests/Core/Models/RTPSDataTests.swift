@@ -8,29 +8,29 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import XCTest
+import Testing
 @testable import BreadPartnersSDKCore
 
-final class RTPSDataTests: XCTestCase {
-    // MARK: - Initialization
-
-    func testBasicInitialization() {
+@Suite struct RTPSDataTests {
+    @Test
+    func basicInitialization() {
         let rtps = RTPSData()
-        XCTAssertNil(rtps.financingType)
-        XCTAssertNil(rtps.order)
-        XCTAssertNil(rtps.locationType)
-        XCTAssertNil(rtps.screenName)
-        XCTAssertNil(rtps.cardType)
-        XCTAssertNil(rtps.country)
-        XCTAssertNil(rtps.prescreenId)
-        XCTAssertNil(rtps.correlationData)
-        XCTAssertNil(rtps.customerAcceptedOffer)
-        XCTAssertNil(rtps.channel)
-        XCTAssertNil(rtps.subChannel)
-        XCTAssertNil(rtps.mockResponse)
+        #expect(rtps.financingType == nil)
+        #expect(rtps.order == nil)
+        #expect(rtps.locationType == nil)
+        #expect(rtps.screenName == nil)
+        #expect(rtps.cardType == nil)
+        #expect(rtps.country == nil)
+        #expect(rtps.prescreenId == nil)
+        #expect(rtps.correlationData == nil)
+        #expect(rtps.customerAcceptedOffer == nil)
+        #expect(rtps.channel == nil)
+        #expect(rtps.subChannel == nil)
+        #expect(rtps.mockResponse == nil)
     }
 
-    func testInitializationWithValues() {
+    @Test
+    func initializationWithValues() {
         let order = Order()
         let rtps = RTPSData(
             financingType: .card,
@@ -39,7 +39,7 @@ final class RTPSDataTests: XCTestCase {
             screenName: "checkout_screen",
             cardType: "VISA",
             country: "US",
-            prescreenId: 9876543210,
+            prescreenId: 9_876_543_210,
             correlationData: "correlation123",
             customerAcceptedOffer: true,
             channel: "online",
@@ -47,193 +47,111 @@ final class RTPSDataTests: XCTestCase {
             mockResponse: .success
         )
 
-        XCTAssertEqual(rtps.financingType, .card)
-        XCTAssertNotNil(rtps.order)
-        XCTAssertEqual(rtps.locationType, .checkout)
-        XCTAssertEqual(rtps.screenName, "checkout_screen")
-        XCTAssertEqual(rtps.cardType, "VISA")
-        XCTAssertEqual(rtps.country, "US")
-        XCTAssertEqual(rtps.prescreenId, 9876543210)
-        XCTAssertEqual(rtps.correlationData, "correlation123")
-        XCTAssertTrue(rtps.customerAcceptedOffer ?? false)
-        XCTAssertEqual(rtps.channel, "online")
-        XCTAssertEqual(rtps.subChannel, "mobile")
-        XCTAssertEqual(rtps.mockResponse, .success)
+        #expect(rtps.financingType == BreadPartnersFinancingType.card)
+        #expect(rtps.order === order)
+        #expect(rtps.locationType == BreadPartnersLocationType.checkout)
+        #expect(rtps.screenName == "checkout_screen")
+        #expect(rtps.cardType == "VISA")
+        #expect(rtps.country == "US")
+        #expect(rtps.prescreenId == 9_876_543_210)
+        #expect(rtps.correlationData == "correlation123")
+        #expect(rtps.customerAcceptedOffer == true)
+        #expect(rtps.channel == "online")
+        #expect(rtps.subChannel == "mobile")
+        #expect(rtps.mockResponse == BreadPartnersMockOptions.success)
     }
 
-    // MARK: - PrescreenId (Int64 Type)
-
-    func testPrescreenIdInt64Type() {
-        let rtps = RTPSData(prescreenId: 9223372036854775807)  // Max Int64
-        XCTAssertEqual(rtps.prescreenId, 9223372036854775807)
+    @Test(arguments: [Int64.max, 0, -9_876_543_210])
+    func prescreenId(value: Int64) {
+        let rtps = RTPSData(prescreenId: value)
+        #expect(rtps.prescreenId == value)
     }
 
-    func testPrescreenIdZero() {
-        let rtps = RTPSData(prescreenId: 0)
-        XCTAssertEqual(rtps.prescreenId, 0)
+    @Test(arguments: ["correlation-abc-123-xyz", ""])
+    func correlationData(value: String) {
+        let rtps = RTPSData(correlationData: value)
+        #expect(rtps.correlationData == value)
     }
 
-    func testPrescreenIdNegative() {
-        let rtps = RTPSData(prescreenId: -9876543210)
-        XCTAssertEqual(rtps.prescreenId, -9876543210)
+    @Test(arguments: [true, false])
+    func customerAcceptedOffer(value: Bool) {
+        let rtps = RTPSData(customerAcceptedOffer: value)
+        #expect(rtps.customerAcceptedOffer == value)
     }
 
-    // MARK: - Correlation Data
-
-    func testCorrelationData() {
-        let correlationId = "correlation-abc-123-xyz"
-        let rtps = RTPSData(correlationData: correlationId)
-        XCTAssertEqual(rtps.correlationData, correlationId)
+    @Test(arguments: [
+        (BreadPartnersMockOptions.noMock, ""),
+        (BreadPartnersMockOptions.success, "success"),
+        (BreadPartnersMockOptions.noHit, "noHit"),
+        (BreadPartnersMockOptions.makeOffer, "makeOffer"),
+        (BreadPartnersMockOptions.ackknowledge, "ackknowledge"),
+        (BreadPartnersMockOptions.existingAccount, "existingAccount"),
+        (BreadPartnersMockOptions.existingOffer, "existingOffer"),
+        (BreadPartnersMockOptions.newOffer, "newOffer"),
+        (BreadPartnersMockOptions.error, "error"),
+    ])
+    func mockOptionRawValue(option: BreadPartnersMockOptions, expectedRawValue: String) {
+        #expect(option.rawValue == expectedRawValue)
     }
 
-    func testCorrelationDataEmpty() {
-        let rtps = RTPSData(correlationData: "")
-        XCTAssertEqual(rtps.correlationData, "")
-    }
-
-    // MARK: - Customer Accepted Offer
-
-    func testCustomerAcceptedOfferTrue() {
-        let rtps = RTPSData(customerAcceptedOffer: true)
-        XCTAssertTrue(rtps.customerAcceptedOffer ?? false)
-    }
-
-    func testCustomerAcceptedOfferFalse() {
-        let rtps = RTPSData(customerAcceptedOffer: false)
-        XCTAssertFalse(rtps.customerAcceptedOffer ?? true)
-    }
-
-    // MARK: - Mock Options (All 9 Cases)
-
-    func testMockOptionNoMock() {
-        XCTAssertEqual(BreadPartnersMockOptions.noMock.rawValue, "")
-    }
-
-    func testMockOptionSuccess() {
-        XCTAssertEqual(BreadPartnersMockOptions.success.rawValue, "success")
-    }
-
-    func testMockOptionNoHit() {
-        XCTAssertEqual(BreadPartnersMockOptions.noHit.rawValue, "noHit")
-    }
-
-    func testMockOptionMakeOffer() {
-        XCTAssertEqual(BreadPartnersMockOptions.makeOffer.rawValue, "makeOffer")
-    }
-
-    func testMockOptionAckknowledge() {
-        XCTAssertEqual(BreadPartnersMockOptions.ackknowledge.rawValue, "ackknowledge")
-    }
-
-    func testMockOptionExistingAccount() {
-        XCTAssertEqual(BreadPartnersMockOptions.existingAccount.rawValue, "existingAccount")
-    }
-
-    func testMockOptionExistingOffer() {
-        XCTAssertEqual(BreadPartnersMockOptions.existingOffer.rawValue, "existingOffer")
-    }
-
-    func testMockOptionNewOffer() {
-        XCTAssertEqual(BreadPartnersMockOptions.newOffer.rawValue, "newOffer")
-    }
-
-    func testMockOptionError() {
-        XCTAssertEqual(BreadPartnersMockOptions.error.rawValue, "error")
-    }
-
-    func testAllMockOptionsCount() {
+    @Test
+    func allMockOptions() {
         let allOptions = BreadPartnersMockOptions.allCases
-        XCTAssertEqual(allOptions.count, 9)
+        #expect(allOptions.count == 9)
+        #expect(allOptions.contains(.noMock))
+        #expect(allOptions.contains(.success))
+        #expect(allOptions.contains(.noHit))
+        #expect(allOptions.contains(.makeOffer))
+        #expect(allOptions.contains(.ackknowledge))
+        #expect(allOptions.contains(.existingAccount))
+        #expect(allOptions.contains(.existingOffer))
+        #expect(allOptions.contains(.newOffer))
+        #expect(allOptions.contains(.error))
+        #expect(Set(allOptions.map(\.rawValue)).count == allOptions.count)
     }
 
-    func testAllMockOptionsContents() {
-        let allOptions = BreadPartnersMockOptions.allCases
-        XCTAssertTrue(allOptions.contains(.noMock))
-        XCTAssertTrue(allOptions.contains(.success))
-        XCTAssertTrue(allOptions.contains(.noHit))
-        XCTAssertTrue(allOptions.contains(.makeOffer))
-        XCTAssertTrue(allOptions.contains(.ackknowledge))
-        XCTAssertTrue(allOptions.contains(.existingAccount))
-        XCTAssertTrue(allOptions.contains(.existingOffer))
-        XCTAssertTrue(allOptions.contains(.newOffer))
-        XCTAssertTrue(allOptions.contains(.error))
+    @Test(arguments: [
+        BreadPartnersFinancingType.card,
+        BreadPartnersFinancingType.installments,
+        BreadPartnersFinancingType.versatile,
+    ])
+    func financingType(financingType: BreadPartnersFinancingType) {
+        let rtps = RTPSData(financingType: financingType)
+        #expect(rtps.financingType == financingType)
     }
 
-    func testMockOptionsDistinct() {
-        let allOptions = BreadPartnersMockOptions.allCases
-        let rawValues = allOptions.map { $0.rawValue }
-        let uniqueRawValues = Set(rawValues)
-        XCTAssertEqual(uniqueRawValues.count, allOptions.count)
+    @Test(arguments: [
+        BreadPartnersLocationType.checkout,
+        BreadPartnersLocationType.cart,
+    ])
+    func locationType(locationType: BreadPartnersLocationType) {
+        let rtps = RTPSData(locationType: locationType)
+        #expect(rtps.locationType == locationType)
     }
 
-    // MARK: - Financing Type with RTPS
-
-    func testFinancingTypeCard() {
-        let rtps = RTPSData(financingType: .card)
-        XCTAssertEqual(rtps.financingType, .card)
+    @Test
+    func channelAndSubChannel() {
+        let rtps = RTPSData(channel: "ecommerce", subChannel: "mobile_web")
+        #expect(rtps.channel == "ecommerce")
+        #expect(rtps.subChannel == "mobile_web")
     }
 
-    func testFinancingTypeInstallments() {
-        let rtps = RTPSData(financingType: .installments)
-        XCTAssertEqual(rtps.financingType, .installments)
+    @Test(arguments: ["VISA", "MASTERCARD", "AMEX"])
+    func cardType(cardType: String) {
+        let rtps = RTPSData(cardType: cardType)
+        #expect(rtps.cardType == cardType)
     }
 
-    func testFinancingTypeVersatile() {
-        let rtps = RTPSData(financingType: .versatile)
-        XCTAssertEqual(rtps.financingType, .versatile)
+    @Test(arguments: ["US", "CA", "UK"])
+    func country(country: String) {
+        let rtps = RTPSData(country: country)
+        #expect(rtps.country == country)
     }
 
-    // MARK: - Location Type with RTPS
-
-    func testLocationTypeCheckout() {
-        let rtps = RTPSData(locationType: .checkout)
-        XCTAssertEqual(rtps.locationType, .checkout)
-    }
-
-    func testLocationTypeCart() {
-        let rtps = RTPSData(locationType: .cart)
-        XCTAssertEqual(rtps.locationType, .cart)
-    }
-
-    // MARK: - Channel and SubChannel
-
-    func testChannelAndSubChannel() {
-        let rtps = RTPSData(
-            channel: "ecommerce",
-            subChannel: "mobile_web"
-        )
-        XCTAssertEqual(rtps.channel, "ecommerce")
-        XCTAssertEqual(rtps.subChannel, "mobile_web")
-    }
-
-    // MARK: - Card Type and Country
-
-    func testCardTypeAndCountry() {
-        let rtps = RTPSData(
-            cardType: "MASTERCARD",
-            country: "CA"
-        )
-        XCTAssertEqual(rtps.cardType, "MASTERCARD")
-        XCTAssertEqual(rtps.country, "CA")
-    }
-
-    func testMultipleCardTypes() {
-        let visaRtps = RTPSData(cardType: "VISA")
-        let mastercardRtps = RTPSData(cardType: "MASTERCARD")
-        let amexRtps = RTPSData(cardType: "AMEX")
-
-        XCTAssertEqual(visaRtps.cardType, "VISA")
-        XCTAssertEqual(mastercardRtps.cardType, "MASTERCARD")
-        XCTAssertEqual(amexRtps.cardType, "AMEX")
-    }
-
-    func testMultipleCountries() {
-        let usRtps = RTPSData(country: "US")
-        let caRtps = RTPSData(country: "CA")
-        let ukRtps = RTPSData(country: "UK")
-
-        XCTAssertEqual(usRtps.country, "US")
-        XCTAssertEqual(caRtps.country, "CA")
-        XCTAssertEqual(ukRtps.country, "UK")
+    @Test
+    func cardTypeAndCountry() {
+        let rtps = RTPSData(cardType: "MASTERCARD", country: "CA")
+        #expect(rtps.cardType == "MASTERCARD")
+        #expect(rtps.country == "CA")
     }
 }
