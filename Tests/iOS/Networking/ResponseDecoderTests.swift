@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BreadPartnersSDK
+@testable import BreadPartners
 
 @Suite struct ResponseDecoderTests {
     private struct TestValue: Decodable, Equatable {
