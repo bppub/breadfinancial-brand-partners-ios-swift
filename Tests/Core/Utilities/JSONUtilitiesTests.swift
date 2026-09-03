@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BreadPartnersSDKCore
+@testable import BreadPartnersCore
 
 @Suite struct JSONUtilitiesTests {
     private struct TestValue: Codable, Equatable {
