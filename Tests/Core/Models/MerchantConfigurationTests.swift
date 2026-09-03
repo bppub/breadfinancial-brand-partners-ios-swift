@@ -10,7 +10,7 @@
 
 import Foundation
 import Testing
-@testable import BreadPartnersSDKCore
+@testable import BreadPartnersCore
 
 @Suite struct MerchantConfigurationTests {
     // MARK: - Store Number Handling

@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "BreadPartnersSDK",
+    name: "BreadPartners",
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
     ],
     products: [
         .library(
-            name: "BreadPartnersSDK",
-            targets: ["BreadPartnersSDK"])
+            name: "BreadPartners",
+            targets: ["BreadPartners"])
     ],
     dependencies: [
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.5"),
@@ -23,13 +23,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "BreadPartnersSDKCore",
+            name: "BreadPartnersCore",
             dependencies: []
         ),
         .target(
-            name: "BreadPartnersSDK",
+            name: "BreadPartners",
             dependencies: [
-                "BreadPartnersSDKCore",
+                "BreadPartnersCore",
                 "SwiftSoup",
                 .product(
                     name: "RecaptchaEnterprise",
@@ -37,8 +37,14 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "BreadPartnersSDKCoreTests",
-            dependencies: ["BreadPartnersSDKCore"]
+            name: "BreadPartnersCoreTests",
+            dependencies: ["BreadPartnersCore"],
+            path: "Tests/Core"
+        ),
+        .testTarget(
+            name: "BreadPartnersTests",
+            dependencies: ["BreadPartners"],
+            path: "Tests/iOS"
         ),
     ]
 )
