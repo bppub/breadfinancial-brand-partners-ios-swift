@@ -1,6 +1,6 @@
 import Testing
 import UIKit
-@testable import BreadPartnersSDK
+@testable import BreadPartners
 
 @Suite struct PlacementConfigurationTests {
     @Test

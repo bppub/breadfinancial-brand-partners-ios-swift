@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BreadPartnersSDK
+@testable import BreadPartners
 
 @Suite struct LoggerTests {
     private final class EventBox: @unchecked Sendable {
