@@ -1,3 +1,15 @@
+//------------------------------------------------------------------------------
+//  File:          PlacementConfiguration.swift
+//  Author(s):     Bread Financial
+//  Date:          27 March 2025
+//
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing UI components and functionalities to integrate Bread Financial
+//  services into partner applications.
+//
+//  © 2025 Bread Financial
+//------------------------------------------------------------------------------
+
 import UIKit
 
 public struct PopUpStyling: @unchecked Sendable {
