@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          17 March 2026
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing extension methods for mapping RTPSResponse data to configuration
 //  objects.
 //

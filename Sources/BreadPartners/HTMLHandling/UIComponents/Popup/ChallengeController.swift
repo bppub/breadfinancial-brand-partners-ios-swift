@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          4 December 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
