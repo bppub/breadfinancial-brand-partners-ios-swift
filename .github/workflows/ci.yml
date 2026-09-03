@@ -35,21 +35,21 @@ jobs:
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
 
-      - name: Run BreadPartnersSDKCore Tests
+      - name: Run BreadPartnersCore Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersSDKCore \
+            -scheme BreadPartnersCoreTests \
             -destination 'platform=macOS' \
             -resultBundlePath CoreTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Run BreadPartnersSDK Tests
+      - name: Run BreadPartners Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersSDK \
+            -scheme BreadPartnersTests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -resultBundlePath SDKTestResults.xcresult \
+            -resultBundlePath iOSTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
@@ -69,10 +69,10 @@ jobs:
             ));
             const reports = [
               readReport("CoreTestResults.xcresult"),
-              readReport("SDKTestResults.xcresult")
+              readReport("iOSTestResults.xcresult")
             ];
             const sourceRoot = `${path.sep}Sources${path.sep}`;
-            const sourceTargets = new Set(["BreadPartnersSDKCore", "BreadPartnersSDK"]);
+            const sourceTargets = new Set(["BreadPartnersCore", "BreadPartners"]);
             const filesByPath = new Map();
 
             for (const target of reports.flatMap(report => report.targets || [])) {
@@ -123,7 +123,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | Core + SDK |",
+              "| Test Runs Combined | Core + iOS |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -132,7 +132,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `CoreTestResults.xcresult` + `SDKTestResults.xcresult`"
+              "Source: `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
@@ -152,7 +152,7 @@ jobs:
       - name: Verify Build for iOS
         run: |
           xcodebuild \
-            -scheme BreadPartnersSDK \
+            -scheme BreadPartners \
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
             -verbose \
