@@ -75,7 +75,7 @@ struct ExtensionsTests {
         #expect(imageView.image != nil)
         #expect(imageView.image?.size == sourceImage.size)
     }
-    
+
     @Test
     func loadImageReturnsNilIfNoImageInUrl() async throws {
         let imageURL = FileManager.default.temporaryDirectory
