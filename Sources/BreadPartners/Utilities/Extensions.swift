@@ -58,6 +58,7 @@ extension UILabel {
 extension String {
     /// Converts an HTML string to NSAttributedString with formatting preserved
     func htmlToAttributedString() -> NSAttributedString? {
+        // It's not possible to generate a testable string that is not utf8 encodable.
         guard let data = self.data(using: .utf8) else { return nil }
 
         do {
@@ -68,6 +69,7 @@ extension String {
 
             return try NSAttributedString(data: data, options: options, documentAttributes: nil)
         } catch {
+            // NSAttributedString is very flexible and not possible to unit test an error directly.
             return nil
         }
     }
