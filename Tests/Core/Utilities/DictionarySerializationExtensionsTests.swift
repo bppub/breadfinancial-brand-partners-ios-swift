@@ -31,7 +31,8 @@ import Testing
     func queryStringSerializesSupportedValues() throws {
         let values: [String: Any?] = [
             "string": "value",
-            "boolean": true,
+            "falsey": false,
+            "truthy": true,
             "double": 1.2,
             "number": 5,
             "missing": nil,
@@ -39,12 +40,16 @@ import Testing
         let components = try #require(
             URLComponents(string: "https://example.com?\(values.toQueryString())")
         )
+        
+        let  queryItems = try #require(components.queryItems)
+        
         let query = Dictionary(
-            uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value) }
+            uniqueKeysWithValues: queryItems.map { ($0.name, $0.value) }
         )
 
         #expect(query["string"] == "value")
-        #expect(query["boolean"] == "true")
+        #expect(query["falsey"] == "false")
+        #expect(query["truthy"] == "true")
         #expect(query["double"] == "1.20")
         #expect(query["number"] == "5")
         #expect(query["missing"] == nil)
