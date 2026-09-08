@@ -40,9 +40,9 @@ import Testing
         let components = try #require(
             URLComponents(string: "https://example.com?\(values.toQueryString())")
         )
-        
-        let  queryItems = try #require(components.queryItems)
-        
+
+        let queryItems = try #require(components.queryItems)
+
         let query = Dictionary(
             uniqueKeysWithValues: queryItems.map { ($0.name, $0.value) }
         )

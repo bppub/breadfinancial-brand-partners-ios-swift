@@ -16,10 +16,11 @@ import Testing
 
         #expect(value == TestValue(id: 42))
     }
-    
+
     @Test
     func decodesNonSendableResponseDirectly() throws {
-        let value = try ResponseDecoder.decode(Data(#"{"id":42}"#.utf8),
+        let value = try ResponseDecoder.decode(
+            Data(#"{"id":42}"#.utf8),
             as: TestValue.self
         )
 
