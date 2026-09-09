@@ -24,14 +24,19 @@ import Testing
 
     private actor FactorySpy: RecaptchaClientFactory {
         let client: ClientSpy?
+        let error: TestError?
         private(set) var siteKeys: [String] = []
 
-        init(client: ClientSpy?) {
+        init(client: ClientSpy?, error: TestError? = nil) {
             self.client = client
+            self.error = error
         }
 
         func makeClient(siteKey: String) async throws -> (any RecaptchaClientProviding)? {
             siteKeys.append(siteKey)
+            if let error {
+                throw error
+            }
             return client
         }
     }
@@ -73,6 +78,47 @@ import Testing
 
         #expect(token.isEmpty)
         #expect(await factory.siteKeys == ["site-key"])
+    }
+
+    @Test
+    func executeRetriesClientCreationWhenClientIsUnavailable() async throws {
+        let factory = FactorySpy(client: nil)
+        let provider = LiveRecaptchaProvider(clientFactory: factory)
+
+        _ = try await provider.execute(
+            siteKey: "site-key",
+            action: "checkout",
+            timeout: 10000,
+            debug: false
+        )
+        _ = try await provider.execute(
+            siteKey: "site-key",
+            action: "checkout",
+            timeout: 10000,
+            debug: false
+        )
+
+        #expect(await factory.siteKeys == ["site-key", "site-key"])
+    }
+
+    @Test
+    func executePropagatesClientCreationErrors() async {
+        let factory = FactorySpy(client: nil, error: .executionFailed)
+        let provider = LiveRecaptchaProvider(clientFactory: factory)
+
+        do {
+            _ = try await provider.execute(
+                siteKey: "site-key",
+                action: "checkout",
+                timeout: 10000,
+                debug: false
+            )
+            Issue.record("Expected client creation error to be propagated")
+        } catch TestError.executionFailed {
+            #expect(await factory.siteKeys == ["site-key"])
+        } catch {
+            Issue.record("Received an unexpected error: \(error)")
+        }
     }
 
     @Test
