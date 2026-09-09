@@ -37,7 +37,7 @@ jobs:
       - name: Verify Build for iOS
         run: |
           xcodebuild \
-            -scheme BreadPartnersSDK \
+            -scheme BreadPartners \
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
             -verbose \
