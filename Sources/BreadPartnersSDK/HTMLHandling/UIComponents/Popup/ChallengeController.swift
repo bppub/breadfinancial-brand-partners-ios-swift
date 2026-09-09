@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          4 December 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -27,12 +27,12 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
     private var hasFinisedLoading: Bool = false
     private var hasRemovedCookieObserver: Bool = false
 
-    init(
-        htmlContent: String,
-        originalURL: String,
-        callback: ((BreadPartnerEvents) -> Void)? = nil,
-        onComplete: @escaping (String) -> Void,
-        logger: Logger,
+    
+    init(htmlContent: String,
+         originalURL: String,
+         callback: ((BreadPartnerEvents) -> Void)? = nil,
+         onComplete: @escaping (String) -> Void,
+         logger: Logger,
     ) {
         self.htmlContent = htmlContent
         self.originalURL = originalURL
@@ -82,6 +82,10 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         view.addSubview(closeButton)
 
         let config = WKWebViewConfiguration()
+        
+        let preferences = WKWebpagePreferences()
+        preferences.allowsContentJavaScript = true
+        config.defaultWebpagePreferences = preferences
 
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
