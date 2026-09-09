@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 import Foundation
+import BreadPartnersCore
 import UIKit
 
 /// The primary interface class for interacting with the Bread Partners SDK.
@@ -27,6 +28,9 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
     var sdkEnvironment: BreadPartnersEnvironment = .stage
     var brandConfiguration: BrandConfigResponse?
+    internal var rtpsDependencies = RTPSDependencies(
+        recaptcha: LiveRecaptchaProvider()
+    )
     private var isInitialized: Bool = false
 
     private func checkInitialized(
