@@ -3,10 +3,15 @@ import BreadPartnersCore
 
 package actor LiveRecaptchaProvider: RecaptchaProviding {
     private let logger: Logger
-    private var recaptchaClient: RecaptchaClient?
+    private let clientFactory: any RecaptchaClientFactory
+    private var recaptchaClient: (any RecaptchaClientProviding)?
 
-    package init(logger: Logger = Logger()) {
+    internal init(
+        logger: Logger = Logger(),
+        clientFactory: any RecaptchaClientFactory = LiveRecaptchaClientFactory()
+    ) {
         self.logger = logger
+        self.clientFactory = clientFactory
     }
 
     package func execute(
@@ -21,20 +26,16 @@ package actor LiveRecaptchaProvider: RecaptchaProviding {
             return ""
         }
 
-        do {
-            let token = try await recaptchaClient.execute(
-                withAction: .init(customAction: action),
-                withTimeout: timeout
-            )
+        let token = try await recaptchaClient.execute(
+            action: action,
+            timeout: timeout
+        )
 
-            if debug {
-                logger.logReCaptchaToken(token: token)
-            }
-
-            return token
-        } catch let error as RecaptchaError {
-            throw error
+        if debug {
+            logger.logReCaptchaToken(token: token)
         }
+
+        return token
     }
 
     private func fetchRecaptchaClient(siteKey: String) async throws {
@@ -43,9 +44,7 @@ package actor LiveRecaptchaProvider: RecaptchaProviding {
         }
 
         do {
-            recaptchaClient = try await Recaptcha.fetchClient(withSiteKey: siteKey)
-        } catch let error as RecaptchaError {
-            throw error
+            recaptchaClient = try await clientFactory.makeClient(siteKey: siteKey)
         }
     }
 }
