@@ -92,13 +92,13 @@ import Testing
             debug: false
         )
         _ = try await provider.execute(
-            siteKey: "site-key",
+            siteKey: "second-site-key",
             action: "checkout",
             timeout: 10000,
             debug: false
         )
 
-        #expect(await factory.siteKeys == ["site-key", "site-key"])
+        #expect(await factory.siteKeys == ["site-key", "second-site-key"])
     }
 
     @Test
