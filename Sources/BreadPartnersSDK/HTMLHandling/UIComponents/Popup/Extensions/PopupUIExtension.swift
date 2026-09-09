@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -59,7 +59,7 @@ extension PopupController {
         subtitleLabel = PopupElements.shared.createLabel(
             withText: popupModel.overlaySubtitle,
             style: popupStyle.subTitlePopupTextStyle)
-        disclosureTextView = PopupElements.shared.createDisclosureTextView(
+        disclosureTextView = await PopupElements.shared.createDisclosureTextView(
             withText: popupModel.disclosure,
             rawHTML: popupModel.disclosureHTML,
             style: popupStyle.disclosurePopupTextStyle,

@@ -3,15 +3,15 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
 //  © 2025 Bread Financial
 //------------------------------------------------------------------------------
 
-import UIKit
 import SwiftSoup
+import UIKit
 
 /// An actor responsible for managing the elements within the popup.
 internal actor PopupElements: NSObject {

@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -13,8 +13,8 @@
 import UIKit
 
 //  Provides reusable extension methods for use across apps integrating the Bread Partners SDK.
-public extension UIImageView {
-    func loadImage(from url: URL, completion: @escaping @Sendable (Bool) -> Void) {
+extension UIImageView {
+    public func loadImage(from url: URL, completion: @escaping @Sendable (Bool) -> Void) {
         Task {
             let result = await Task.detached(priority: .userInitiated) {
                 if let data = try? Data(contentsOf: url),
@@ -31,8 +31,8 @@ public extension UIImageView {
     }
 }
 
-public extension UIColor {
-    convenience init(hex: String, alpha: CGFloat = 1.0) {
+extension UIColor {
+    public convenience init(hex: String, alpha: CGFloat = 1.0) {
         let hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
         var hexInt: UInt64 = 0
 

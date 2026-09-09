@@ -3,7 +3,7 @@
 ////  Author(s):     Bread Financial
 ////  Date:          27 March 2025
 ////
-////  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+////  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 ////  providing UI components and functionalities to integrate Bread Financial
 ////  services into partner applications.
 ////
@@ -42,7 +42,7 @@ internal actor RecaptchaManager: @unchecked Sendable {
     ) async throws -> String {
         do {
             try await fetchRecaptchaClient(siteKey: siteKey)
-            if (recaptchaClient != nil) {
+            if recaptchaClient != nil {
                 do {
                     let token = try await recaptchaClient!.execute(
                         withAction: action, withTimeout: timeout)

@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -64,7 +64,7 @@ extension BreadPartnersSDK {
     ) async {
         do {
             // Check for Batch Prescreen Flow when prescreen id has to be entered by user.
-            if (placementsConfiguration.rtpsData?.customerAcceptedOffer == true) {
+            if placementsConfiguration.rtpsData?.customerAcceptedOffer == true {
                 return await fetchRTPSData(
                     merchantConfiguration: merchantConfiguration,
                     placementsConfiguration: placementsConfiguration,
@@ -134,7 +134,7 @@ extension BreadPartnersSDK {
                     .headerRequestedWithValue,
             ]
 
-            if (cookies != nil) {
+            if cookies != nil {
                 logger.printLog("Attaching cookies to RTPS request: \(cookies!)")
             } else {
                 logger.printLog("No Cookies")

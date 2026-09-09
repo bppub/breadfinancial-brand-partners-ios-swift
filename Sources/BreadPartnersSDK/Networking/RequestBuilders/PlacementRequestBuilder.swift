@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -60,7 +60,7 @@ class PlacementRequestBuilder {
             ALLOW_CHECKOUT: placementData?.allowCheckout ?? false
         )
 
-        if (placementData?.allowCheckout == true) {
+        if placementData?.allowCheckout == true {
             let upqCheckoutData = mapUnifiedPlacementContextToUpqCheckout(
                 placementData: placementData,
                 merchantConfiguration: merchantConfiguration,

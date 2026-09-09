@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -137,7 +137,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         logger.setCallback(callback)
 
         // This will fetch reCaptcha keys if it was not done yet.
-        if (brandConfiguration == nil) {
+        if brandConfiguration == nil {
             await fetchBrandConfig(logger: logger)
         }
 

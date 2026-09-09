@@ -3,15 +3,15 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
 //  © 2025 Bread Financial
 //------------------------------------------------------------------------------
 
-@preconcurrency import WebKit
 import QuickLook
+@preconcurrency import WebKit
 
 /// Manages WebView interactions and events within the SDK.
 internal class BreadFinancialWebViewInterstitial: NSObject,
@@ -202,7 +202,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             case "LOAD_ADOBE_TRACKING_ID":
                 if let payload = action["payload"] as? [String: Any] {
                     if let adobeTrackingId = payload["adobeTrackingId"] {
-                        if (logger.isLoggingEnabled) {
+                        if logger.isLoggingEnabled {
                             logger.printLog("BreadPartnersSDK: AdobeTrackingID: \(adobeTrackingId)")
                         }
                     }
@@ -517,8 +517,8 @@ protocol AppRestartListener {
     func onAppRestartClicked(url: String)
 }
 
-private extension UIViewController {
-    @objc func dismissSelf() {
+extension UIViewController {
+    @objc fileprivate func dismissSelf() {
         dismiss(animated: true)
     }
 }

@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          27 March 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -70,7 +70,7 @@ internal class APIClient: @unchecked Sendable {
         var updatedHeaders = (headers ?? [:]).merging(
             genericHeader, uniquingKeysWith: { first, _ in first })
 
-        if (cookies != nil) {
+        if cookies != nil {
             updatedHeaders["Cookie"] = cookies
         }
 
@@ -194,7 +194,7 @@ internal class APIClient: @unchecked Sendable {
                 return AnySendable(value: jsonDict)
             } else {
                 throw NSError(
-                    domain: "BreadPartnersSDK", code: 0,
+                    domain: "BreadPartners", code: 0,
                     userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"]
                 )
             }
