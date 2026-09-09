@@ -87,10 +87,6 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         preferences.allowsContentJavaScript = true
         config.defaultWebpagePreferences = preferences
 
-        let preferences = WKWebpagePreferences()
-        preferences.allowsContentJavaScript = true
-        config.defaultWebpagePreferences = preferences
-
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self
         webView.translatesAutoresizingMaskIntoConstraints = false
