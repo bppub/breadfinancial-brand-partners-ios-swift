@@ -2,7 +2,7 @@ import Testing
 @testable import BreadPartners
 @preconcurrency import RecaptchaEnterprise
 
-@Suite struct RecaptchaClientFactoryTests {
+@Suite struct RecaptchaClientTests {
     private enum TestError: Error {
         case executionFailed
     }
