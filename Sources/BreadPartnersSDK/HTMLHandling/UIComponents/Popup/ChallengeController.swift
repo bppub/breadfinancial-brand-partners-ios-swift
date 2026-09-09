@@ -27,12 +27,12 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
     private var hasFinisedLoading: Bool = false
     private var hasRemovedCookieObserver: Bool = false
 
-    
-    init(htmlContent: String,
-         originalURL: String,
-         callback: ((BreadPartnerEvents) -> Void)? = nil,
-         onComplete: @escaping (String) -> Void,
-         logger: Logger,
+    init(
+        htmlContent: String,
+        originalURL: String,
+        callback: ((BreadPartnerEvents) -> Void)? = nil,
+        onComplete: @escaping (String) -> Void,
+        logger: Logger,
     ) {
         self.htmlContent = htmlContent
         self.originalURL = originalURL
@@ -82,7 +82,7 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         view.addSubview(closeButton)
 
         let config = WKWebViewConfiguration()
-        
+
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
         config.defaultWebpagePreferences = preferences
