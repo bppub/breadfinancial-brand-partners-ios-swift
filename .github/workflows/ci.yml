@@ -9,6 +9,7 @@ concurrency:
 
 permissions:
   contents: read
+  checks: write
 
 jobs:
   quality:
@@ -33,6 +34,78 @@ jobs:
           xcodebuild -version
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Run BreadPartnersSDKCore Tests
+        run: |
+          xcodebuild test \
+            -scheme BreadPartnersSDKCore \
+            -destination 'platform=macOS' \
+            -resultBundlePath TestResults.xcresult \
+            -enableCodeCoverage YES \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Publish coverage check run
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { execFileSync } = require("node:child_process");
+            const path = require("path");
+
+            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
+            const resultBundle = path.join(process.env.GITHUB_WORKSPACE, "TestResults.xcresult");
+            const report = JSON.parse(execFileSync(
+              "xcrun",
+              ["xccov", "view", "--report", "--json", resultBundle],
+              { encoding: "utf8" }
+            ));
+            const sourcePath = `${path.sep}Sources${path.sep}BreadPartnersSDKCore${path.sep}`;
+            const files = report.targets
+              .flatMap(target => target.files || [])
+              .filter(file => file.path.includes(sourcePath));
+
+            if (files.length === 0) {
+              const targetNames = report.targets.map(target => target.name).join(", ");
+              throw new Error(`No BreadPartnersSDKCore source files found. Coverage targets: ${targetNames}`);
+            }
+
+            const percent = value => `${(value * 100).toFixed(2)}%`;
+            const coveredLines = files.reduce((total, file) => total + file.coveredLines, 0);
+            const executableLines = files.reduce((total, file) => total + file.executableLines, 0);
+            const lineCoverage = executableLines === 0 ? 0 : coveredLines / executableLines;
+            const rows = files
+              .sort((left, right) => left.lineCoverage - right.lineCoverage)
+              .map(file =>
+                `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
+              );
+            const text = [
+              "| Metric | Value |",
+              "| --- | ---: |",
+              `| Line Coverage | **${percent(lineCoverage)}** |`,
+              `| Covered Lines | ${coveredLines} |`,
+              `| Executable Lines | ${executableLines} |`,
+              `| Files in Report | ${files.length} |`,
+              `| Workflow Run | ${context.runId} |`,
+              `| Commit | ${context.sha.slice(0, 7)} |`,
+              "",
+              "### Core File Coverage",
+              "| File | Coverage | Covered / Executable |",
+              "| --- | ---: | ---: |",
+              ...rows
+            ].join("\n");
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: "Coverage (Core)",
+              head_sha: context.payload.pull_request.head.sha,
+              status: "completed",
+              conclusion: "success",
+              output: {
+                title: "Core Coverage",
+                summary: `Line coverage: **${percent(lineCoverage)}**`,
+                text
+              }
+            });
 
       - name: Verify Build for iOS
         run: |
