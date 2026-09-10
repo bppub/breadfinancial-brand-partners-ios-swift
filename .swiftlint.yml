@@ -1,0 +1,19 @@
+# Focused initial baseline; expand this list as existing violations are reduced.
+included:
+  - Sources
+
+excluded:
+  - .build
+  - Packages
+  - DerivedData
+
+only_rules:
+  - force_cast
+  - force_try
+  # - cyclomatic_complexity  // TODO - Enable this rule once refactoring is complete.
+  # - identifier_name // TODO - Discuss with team and generate clean-up plan for existing violations.
+  - type_name
+  - unused_declaration
+  - unused_import
+
+reporter: github-actions-logging

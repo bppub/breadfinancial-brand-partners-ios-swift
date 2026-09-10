@@ -60,19 +60,19 @@ public enum BreadPartnerEvents {
     /// Provides an error result from the web view, such as a failure response.
     /// - Parameter error: error object detailing the issue.
     case webViewFailure(error: Error)
-    
+
     /// Provides a result with offers from the UPQ flow.
     /// - Parameter result: The result object returned.
     case unifiedOffersReceived(result: Any)
-    
+
     /// Provides a result from the UPQ flow after applying for credit card.
     /// - Parameter result: The result object returned.
     case receivePrequalApplicationResult(result: Any)
-    
+
     /// Provides a result from the UPQ flow after applying for installment product.
     /// - Parameter result: The result object returned.
     case receiveUnifiedCheckoutApplicationResult(result: Any)
-    
+
     /// Detects when application for credit card was submitted from UPQ flow.
     case submitPrequalApplication
 
@@ -86,16 +86,16 @@ public enum BreadPartnerEvents {
     /// Provides information about any Card-related status.
     /// - Parameter status: object detailing the status.
     case cardApplicationStatus(status: Any)
-    
+
     /// Logs requests, responses, errors, and successes.
     case onSDKEventLog(logs: String)
-    
+
     /// Provides account information in account lookup call (ECO).
     case receiveAccountExist(result: Any)
-    
+
     /// Fires when application have been submitted in different flows.
     case applicationCompleted
-    
+
     /// Fires when the WebView sends an OFFER RESPONSE. The response parameter contains the OfferResponse value corresponding to the payload received from the WebView.
     case offerResponse(response: OfferResponse)
 }

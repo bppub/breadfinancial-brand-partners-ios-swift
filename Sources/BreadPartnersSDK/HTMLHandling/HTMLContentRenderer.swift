@@ -172,7 +172,7 @@ internal class HTMLContentRenderer {
             popupModel: popupPlacementModel,
             overlayType: overlayType,
             brandConfiguration: brandConfiguration,
-            logger:logger,
+            logger: logger,
             callback: callback
         )
         configurePopupPresentation(popupViewController)

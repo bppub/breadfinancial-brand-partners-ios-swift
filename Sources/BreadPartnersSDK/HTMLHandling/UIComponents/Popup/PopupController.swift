@@ -15,7 +15,7 @@ import UIKit
 import WebKit
 
 /// A view controller responsible for managing and displaying the popup overlay.
-internal class PopupController: UIViewController,@preconcurrency AppRestartListener, UITextViewDelegate  {
+internal class PopupController: UIViewController, @preconcurrency AppRestartListener, UITextViewDelegate {
 
     var integrationKey: String
     var popupModel: PopupPlacementModel
@@ -81,11 +81,10 @@ internal class PopupController: UIViewController,@preconcurrency AppRestartListe
         self.callback = callback
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -117,7 +116,8 @@ internal class PopupController: UIViewController,@preconcurrency AppRestartListe
 
         popupView.addSubview(overlayEmbeddedView)
         webViewManager = BreadFinancialWebViewInterstitial(
-            logger: logger, callback: { event in
+            logger: logger,
+            callback: { event in
                 self.handleWebViewEvent(event: event)
             })
         webViewManager.appRestartListener = self
@@ -148,7 +148,7 @@ internal class PopupController: UIViewController,@preconcurrency AppRestartListe
             callback(event)
         }
     }
-    
+
     func onAppRestartClicked(url: String) {
 
         if let oldWebView = webView {

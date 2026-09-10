@@ -13,10 +13,9 @@
 import Foundation
 @preconcurrency import SwiftSoup
 
-
 /// Actor responsible for extracting structured data from HTML using SwiftSoup.
 internal actor HTMLContentParser {
-    
+
     func extractTextPlacementModel(htmlContent: String) async throws
         -> TextPlacementModel?
     {
@@ -208,7 +207,7 @@ internal actor HTMLContentParser {
         } catch {
             throw error
         }
-        
+
         return dynamicBodyModel
     }
 

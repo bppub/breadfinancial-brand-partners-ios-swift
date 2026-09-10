@@ -26,11 +26,11 @@ internal struct PopupPlacementModel: @unchecked Sendable {
     var dynamicBodyModel: DynamicBodyModel
     var disclosure: NSAttributedString
     var disclosureHTML: String
-    
+
     struct DynamicBodyModel {
         var bodyDiv: [String: DynamicBodyContent]
     }
-    
+
     struct DynamicBodyContent {
         var tagValuePairs: [String: String]
     }
@@ -45,14 +45,16 @@ internal struct PrimaryActionButtonModel {
     var dataActionContentId: String?
     var dataLocation: String?
     var buttonText: String?
-    
-    init(dataOverlayType: String? = nil,
-         dataContentFetch: String? = nil,
-         dataActionTarget: String? = nil,
-         dataActionType: String? = nil,
-         dataActionContentId: String? = nil,
-         dataLocation: String? = nil,
-         buttonText: String? = nil) {
+
+    init(
+        dataOverlayType: String? = nil,
+        dataContentFetch: String? = nil,
+        dataActionTarget: String? = nil,
+        dataActionType: String? = nil,
+        dataActionContentId: String? = nil,
+        dataLocation: String? = nil,
+        buttonText: String? = nil
+    ) {
         self.dataOverlayType = dataOverlayType
         self.dataContentFetch = dataContentFetch
         self.dataActionTarget = dataActionTarget

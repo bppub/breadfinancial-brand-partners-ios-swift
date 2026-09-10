@@ -18,7 +18,8 @@ public extension UIImageView {
         Task {
             let result = await Task.detached(priority: .userInitiated) {
                 if let data = try? Data(contentsOf: url),
-                   let image = UIImage(data: data) {
+                    let image = UIImage(data: data)
+                {
                     return (image as UIImage?, true)
                 }
                 return (nil as UIImage?, false)
@@ -30,22 +31,20 @@ public extension UIImageView {
     }
 }
 
-
 public extension UIColor {
     convenience init(hex: String, alpha: CGFloat = 1.0) {
         let hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
         var hexInt: UInt64 = 0
-        
+
         Scanner(string: hexString).scanHexInt64(&hexInt)
-        
+
         let red = CGFloat((hexInt >> 16) & 0xFF) / 255.0
         let green = CGFloat((hexInt >> 8) & 0xFF) / 255.0
         let blue = CGFloat(hexInt & 0xFF) / 255.0
-        
+
         self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
 }
-
 
 extension UILabel {
     func applyTextStyle(style: PopupTextStyle) {
@@ -71,13 +70,13 @@ extension String {
     /// Converts an HTML string to NSAttributedString with formatting preserved
     func htmlToAttributedString() -> NSAttributedString? {
         guard let data = self.data(using: .utf8) else { return nil }
-        
+
         do {
             let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
                 .documentType: NSAttributedString.DocumentType.html,
-                .characterEncoding: String.Encoding.utf8.rawValue
+                .characterEncoding: String.Encoding.utf8.rawValue,
             ]
-            
+
             return try NSAttributedString(data: data, options: options, documentAttributes: nil)
         } catch {
             return nil

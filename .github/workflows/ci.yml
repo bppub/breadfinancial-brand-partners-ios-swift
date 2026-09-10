@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}-ci-pipeline
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Format, lint, and build
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install swift-format and SwiftLint
+        run: brew install swift-format swiftlint
+
+      # Keep these checks first: failures stop the job before build/test work.
+      - name: Check Swift formatting
+        run: Scripts/format.sh --check
+
+      - name: Run SwiftLint
+        run: Scripts/lint.sh
+
+      - name: Show Apple toolchain
+        run: |
+          xcodebuild -version
+          xcode-select -p
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Verify Build for iOS
+        run: |
+          xcodebuild \
+            -scheme BreadPartnersSDK \
+            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
+            -verbose \
+            CODE_SIGNING_ALLOWED=NO \
+            build

@@ -41,8 +41,7 @@ internal actor CommonUtils: NSObject {
             {
                 jsonData = try JSONSerialization.data(
                     withJSONObject: responseDictionary, options: [])
-            } else if let responseArray = unwrappedResponse as? [[String: Any]]
-            {
+            } else if let responseArray = unwrappedResponse as? [[String: Any]] {
                 jsonData = try JSONSerialization.data(
                     withJSONObject: responseArray, options: [])
             } else {
@@ -81,7 +80,7 @@ internal actor CommonUtils: NSObject {
     ) async -> URL? {
 
         let mockResponseValue = rtpsData.mockResponse?.rawValue
-        
+
         var queryParams: [String: String?] = [
             "mockMO": mockResponseValue.takeIfNotEmpty(),
             "mockPA": mockResponseValue.takeIfNotEmpty(),
@@ -104,10 +103,10 @@ internal actor CommonUtils: NSObject {
             "alternativePhone": merchantConfiguration.buyer?.alternativePhone,
         ]
 
-        if (prescreenId != nil){
+        if (prescreenId != nil) {
             queryParams["prescreenId"] = "\(prescreenId ?? 0)"
         }
-        
+
         guard
             var urlComponents = URLComponents(
                 string: APIUrl(urlType: .rtpsWebUrl(type: "offer")).url)
@@ -136,22 +135,23 @@ internal actor CommonUtils: NSObject {
     ) async -> URL? {
 
         let mockResponseValue = placementConfiguration.rtpsData?.mockResponse?.rawValue
-        
+
         // Extract buyer information
         let buyer = merchantConfiguration.buyer
         let billingAddress = buyer?.billingAddress
-        
+
         // Extract order data from RTPS or placement data
         let order = placementConfiguration.rtpsData?.order ?? placementConfiguration.placementData?.order
-        
+
         // Extract location - prioritize RTPS location over placement location
-        let location = placementConfiguration.rtpsData?.locationType?.rawValue
+        let location =
+            placementConfiguration.rtpsData?.locationType?.rawValue
             ?? placementConfiguration.placementData?.locationType?.rawValue
-        
+
         // Extract channel - prioritize RTPS channel over merchant channel
         let channel = placementConfiguration.rtpsData?.channel ?? merchantConfiguration.channel
         let subchannel = placementConfiguration.rtpsData?.subChannel ?? merchantConfiguration.subchannel
-        
+
         let queryParams: [String: String?] = [
             "mockMO": mockResponseValue.takeIfNotEmpty(),
             "mockPA": mockResponseValue.takeIfNotEmpty(),
@@ -203,9 +203,9 @@ internal actor CommonUtils: NSObject {
             "shortCode": nil,
             "channelId": nil,
             "applicationSubType": nil,
-            "splitPayment": nil
+            "splitPayment": nil,
         ]
-        
+
         guard
             var urlComponents = URLComponents(
                 string: APIUrl(urlType: .bpsWebUrl).url)
@@ -231,7 +231,6 @@ internal actor CommonUtils: NSObject {
 
 }
 
-
 /// Converts Money value to dollars (divides by 100).
 ///
 /// - Parameter moneyValue: Long value in cents
@@ -241,7 +240,6 @@ public func fromMoneyToDollars(_ moneyValue: Int64?) -> Double? {
 
     return Double(moneyValue) / 100.0
 }
-
 
 /// Converts an object to JSON string, unwrapping Any? values before serialization
 /// - Parameter object: The object to convert
@@ -289,7 +287,6 @@ public func unwrapForJSON(_ value: Any) -> Any {
     return value
 }
 
-
 // MARK: - Dictionary Extension for Query String Conversion
 extension Dictionary where Key == String, Value == Any? {
     /// Converts dictionary to URL query string format
@@ -297,7 +294,7 @@ extension Dictionary where Key == String, Value == Any? {
     func toQueryString() -> String {
         let queryItems = self.compactMap { key, value -> String? in
             guard let value = value else { return nil }
-            
+
             let stringValue: String
             if let stringVal = value as? String {
                 stringValue = stringVal
@@ -308,28 +305,30 @@ extension Dictionary where Key == String, Value == Any? {
             } else if let numVal = value as? NSNumber {
                 stringValue = numVal.stringValue
             } else if let dictVal = value as? [String: Any?],
-                      let jsonData = try? JSONSerialization.data(withJSONObject: unwrapForJSON(dictVal)),
-                      let jsonString = String(data: jsonData, encoding: .utf8) {
+                let jsonData = try? JSONSerialization.data(withJSONObject: unwrapForJSON(dictVal)),
+                let jsonString = String(data: jsonData, encoding: .utf8)
+            {
                 stringValue = jsonString
             } else if let arrVal = value as? [Any],
-                      let jsonData = try? JSONSerialization.data(withJSONObject: unwrapForJSON(arrVal)),
-                      let jsonString = String(data: jsonData, encoding: .utf8) {
+                let jsonData = try? JSONSerialization.data(withJSONObject: unwrapForJSON(arrVal)),
+                let jsonString = String(data: jsonData, encoding: .utf8)
+            {
                 stringValue = jsonString
             } else {
                 stringValue = String(describing: value)
             }
-            
+
             // URL encode the value
             guard let encodedValue = stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
                 return nil
             }
-            
+
             return "\(key)=\(encodedValue)"
         }
-        
+
         return queryItems.joined(separator: "&")
     }
-    
+
     /// Merges source dictionaries into this dictionary, only including defined and non-empty values.
     ///
     /// - Parameter sources: One or more source dictionaries to merge from
@@ -338,7 +337,7 @@ extension Dictionary where Key == String, Value == Any? {
     mutating func assignDefined(_ sources: [String: Any?]...) -> [String: Any?] {
         for source in sources {
             if source.isEmpty { continue }
-            
+
             for (key, value) in source {
                 // Only add if value is not nil and not an empty string
                 if let stringValue = value as? String {

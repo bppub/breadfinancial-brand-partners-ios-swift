@@ -37,7 +37,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     /// Set to `true` when a LOG_OUT_OR_RESTART message is received from the web app,
     /// so the navigation confirmation dialog is shown only for that specific flow.
     var pendingLogOutOrRestart = false
-    
+
     func createWebView(with url: URL) -> WKWebView {
 
         let contentController = WKUserContentController()
@@ -61,7 +61,6 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         var request = URLRequest(url: url)
         request.setValue(Constants.headerPlatformValue, forHTTPHeaderField: Constants.headerPlatformKey)
         webView.load(request)
-        
 
         return webView
     }
@@ -125,15 +124,17 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             message: Constants.confirmNavigationMessage,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: Constants.confirmNavigationStayButton, style: .cancel) { [weak self] _ in
-            self?.pendingNavigationURL = nil
-            self?.pendingLogOutOrRestart = false
-        })
-        alert.addAction(UIAlertAction(title: Constants.confirmNavigationLeaveButton, style: .destructive) { [weak self] _ in
-            self?.pendingNavigationURL = nil
-            self?.pendingLogOutOrRestart = false
-            webView.load(URLRequest(url: requestURL))
-        })
+        alert.addAction(
+            UIAlertAction(title: Constants.confirmNavigationStayButton, style: .cancel) { [weak self] _ in
+                self?.pendingNavigationURL = nil
+                self?.pendingLogOutOrRestart = false
+            })
+        alert.addAction(
+            UIAlertAction(title: Constants.confirmNavigationLeaveButton, style: .destructive) { [weak self] _ in
+                self?.pendingNavigationURL = nil
+                self?.pendingLogOutOrRestart = false
+                webView.load(URLRequest(url: requestURL))
+            })
         rootVC.present(alert, animated: true)
     }
 
@@ -151,7 +152,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Inject the anchor tag interception script on every page load
         injectAnchorInterceptorScript(view: webView)
-        
+
         if let url = webView.url {
             // Capture and nil out the handler before calling it to prevent the continuation
             // from being resumed more than once. This can happen when messages like
@@ -167,9 +168,10 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         didReceive message: WKScriptMessage
     ) {
         if let parsedData = message.body as? [String: Any],
-           let action = parsedData["action"] as? [String: Any],
-           let type = action["type"] as? String {
-            
+            let action = parsedData["action"] as? [String: Any],
+            let type = action["type"] as? String
+        {
+
             switch type {
             case "LOG_OUT_OR_RESTART":
                 // Signal that the next link/form navigation should show a confirmation dialog.
@@ -178,14 +180,14 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             case "APP_RESTART":
                 if let payload = action["payload"] as? String {
                     onAppRestartClicked(url: "\(payload)")
-                }else {
+                } else {
                     logger.printLog("Issue in restarting application")
                 }
             case "AnchorTags":
                 if let payload = action["payload"] as? [String] {
-//                    logger.printWebAnchorLogs(data:"\(payload.joined(separator: "\n"))")
+                    //                    logger.printWebAnchorLogs(data:"\(payload.joined(separator: "\n"))")
                 } else {
-//                    logger.printWebAnchorLogs(data:"Anchor Tags: No anchors found")
+                    //                    logger.printWebAnchorLogs(data:"Anchor Tags: No anchors found")
                 }
 
             case "OPEN_EXTERNAL":
@@ -196,54 +198,55 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
                 }
             case "HEIGHT_CHANGED":
                 break
-                
+
             case "LOAD_ADOBE_TRACKING_ID":
                 if let payload = action["payload"] as? [String: Any] {
                     if let adobeTrackingId = payload["adobeTrackingId"] {
-                        if(logger.isLoggingEnabled){
+                        if (logger.isLoggingEnabled) {
                             logger.printLog("BreadPartnersSDK: AdobeTrackingID: \(adobeTrackingId)")
                         }
                     }
                 }
-                
+
             case "VIEW_PAGE":
                 if let payload = action["payload"] as? [String: Any],
-                   let pageName = payload["pageName"] as? String {
+                    let pageName = payload["pageName"] as? String
+                {
                     callback(.screenName(name: pageName))
                 }
-                
+
             case "CANCEL_APPLICATION":
                 callback(.popupClosed)
-                
+
             case "SUBMIT_APPLICATION":
                 callback(.screenName(name: "submit-application"))
-                
+
             case "RECEIVE_APPLICATION_RESULT":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.logApplicationResultDetails(payload)
                     callback(.webViewSuccess(result: payload))
                 }
-                
+
             case "RECEIVE_PRESCREEN_APPLICATION_RESULT":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.logApplicationResultDetails(payload)
                     callback(.webViewSuccess(result: payload))
                 }
-                
+
             case "UNIFIED_OFFERS_RECEIVED":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.logApplicationResultDetails(payload)
                     callback(.webViewSuccess(result: payload))
                     callback(.unifiedOffersReceived(result: payload))
                 }
-                
+
             case "RECEIVE_PREQUAL_APPLICATION_RESULT":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.logApplicationResultDetails(payload)
                     callback(.webViewSuccess(result: payload))
                     callback(.receivePrequalApplicationResult(result: payload))
                 }
-                
+
             case "RECEIVE_UNIFIED_CHECKOUT_APPLICATION_RESULT":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.logApplicationResultDetails(payload)
@@ -251,37 +254,38 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
                     callback(.receiveUnifiedCheckoutApplicationResult(result: payload))
                     callback(.popupClosed)
                 }
-                
+
             case "SUBMIT_PREQUAL_APPLICATION":
                 callback(.submitPrequalApplication)
-                
+
             case "APPLICATION_COMPLETED":
                 callback(.screenName(name: "application-completed"))
                 callback(.applicationCompleted)
                 callback(.popupClosed)
-                
+
             case "OFFER_RESPONSE":
                 if let payload = action["payload"] as? String,
-                   let offerResponse = OfferResponse(rawValue: payload) {
+                    let offerResponse = OfferResponse(rawValue: payload)
+                {
                     callback(.offerResponse(response: offerResponse))
                     if offerResponse == .no || offerResponse == .notMe {
                         callback(.popupClosed)
                     }
                 }
-                
+
             case "RECEIVE_ACCOUNT_EXISTS":
                 if let payload = action["payload"] as? [String: Any] {
                     logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(message.body)")
                     callback(.receiveAccountExist(result: payload))
                 }
-            
+
             default:
                 logger.printLog("BreadPartnersSDK: WebViewMessage: \(message.body)")
             }
         }
 
     }
-    
+
     /// Called by WebKit when a page requests a new window (e.g. `window.open()`).
     ///
     /// When the requested URL is `nil` or empty (typical for `about:blank` popups
@@ -325,12 +329,14 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         popupWebView.navigationDelegate = self
 
         // Hold a strong reference so the capture webView isn't deallocated before PDF is ready.
-        objc_setAssociatedObject(self, &BreadFinancialWebViewInterstitial.popupWebViewKey, popupWebView, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        objc_setAssociatedObject(
+            self, &BreadFinancialWebViewInterstitial.popupWebViewKey, popupWebView, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         // didFinish fires on popupWebView too (same delegate). We capture it via
         // a one-shot navigation delegate wrapper below.
         let loader = DisclosurePDFLoader(owner: self, webView: popupWebView)
-        objc_setAssociatedObject(popupWebView, &BreadFinancialWebViewInterstitial.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        objc_setAssociatedObject(
+            popupWebView, &BreadFinancialWebViewInterstitial.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         popupWebView.navigationDelegate = loader
 
         return popupWebView
@@ -350,7 +356,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     internal func presentDisclosureAsPDF(from webView: WKWebView) {
         guard !isDisclosurePresenting else { return }
         isDisclosurePresenting = true
-    
+
         let config = WKPDFConfiguration()
         webView.createPDF(configuration: config) { [weak self] result in
             switch result {
@@ -377,7 +383,9 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             guard let topVC = self?.topViewController() else { return }
             let previewVC = QLPreviewController()
             let dataSource = DisclosurePDFPreviewDataSource(url: tmpURL)
-            objc_setAssociatedObject(previewVC, &BreadFinancialWebViewInterstitial.dataSourceKey, dataSource, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(
+                previewVC, &BreadFinancialWebViewInterstitial.dataSourceKey, dataSource,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             previewVC.dataSource = dataSource
             previewVC.modalPresentationStyle = .pageSheet
             topVC.present(previewVC, animated: true) {
@@ -390,88 +398,88 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         // CSS to remove the default blue tap-highlight and focus outline that
         // WebKit draws around the first focusable element after navigation.
         let cssScript = """
-        (function() {
-            var style = document.createElement('style');
-            style.textContent = '* { -webkit-tap-highlight-color: transparent !important; outline: none !important; }';
-            document.head.appendChild(style);
-        })();
-        """
+            (function() {
+                var style = document.createElement('style');
+                style.textContent = '* { -webkit-tap-highlight-color: transparent !important; outline: none !important; }';
+                document.head.appendChild(style);
+            })();
+            """
         view?.evaluateJavaScript(cssScript, completionHandler: nil)
 
         // JavaScript code to intercept anchor tags and log them
         let script = """
-        (function() {
-            function isVisible(elem) {
-                return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
-            }
-
-            function handleAnchors() {
-                const anchors = document.querySelectorAll('a[target="_blank"], a[data-open-externally="true"]');
-                const anchorsHTML = Array.from(anchors).map(a => a.outerHTML);
-
-                if (anchorsHTML.length > 0) {
-                    window.webkit.messageHandlers.messageHandler.postMessage({
-                        action: { type: 'AnchorTags', payload: anchorsHTML }
-                    });
-                } else {
-                    window.webkit.messageHandlers.messageHandler.postMessage({
-                        action: { type: 'AnchorTags', payload: 'No anchors found' }
-                    });
+            (function() {
+                function isVisible(elem) {
+                    return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
                 }
 
-                anchors.forEach(a => {
-                    if (!a.__handled__) {
-                        a.__handled__ = true;
-                        a.addEventListener('click', function(event) {
-                            event.preventDefault();
-                            window.webkit.messageHandlers.messageHandler.postMessage({
-                                action: { type: 'OPEN_EXTERNAL', payload: a.href }
-                            });
+                function handleAnchors() {
+                    const anchors = document.querySelectorAll('a[target="_blank"], a[data-open-externally="true"]');
+                    const anchorsHTML = Array.from(anchors).map(a => a.outerHTML);
+
+                    if (anchorsHTML.length > 0) {
+                        window.webkit.messageHandlers.messageHandler.postMessage({
+                            action: { type: 'AnchorTags', payload: anchorsHTML }
+                        });
+                    } else {
+                        window.webkit.messageHandlers.messageHandler.postMessage({
+                            action: { type: 'AnchorTags', payload: 'No anchors found' }
                         });
                     }
-                });
-            }
 
-            function handleRestartButton() {
-                const btn = document.querySelector('#appRestart');
-                if (btn && isVisible(btn)) {
-                    if (!btn.__handled__) {
-                        btn.__handled__ = true;
-                        btn.addEventListener('click', function(event) {
-                            event.preventDefault();
-                            if (btn.href) {
-                                // Send the URL to the native iOS code to trigger the restart
+                    anchors.forEach(a => {
+                        if (!a.__handled__) {
+                            a.__handled__ = true;
+                            a.addEventListener('click', function(event) {
+                                event.preventDefault();
                                 window.webkit.messageHandlers.messageHandler.postMessage({
-                                    action: { type: 'APP_RESTART', payload: btn.href }
+                                    action: { type: 'OPEN_EXTERNAL', payload: a.href }
                                 });
-                            }
-                        });
+                            });
+                        }
+                    });
+                }
+
+                function handleRestartButton() {
+                    const btn = document.querySelector('#appRestart');
+                    if (btn && isVisible(btn)) {
+                        if (!btn.__handled__) {
+                            btn.__handled__ = true;
+                            btn.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                if (btn.href) {
+                                    // Send the URL to the native iOS code to trigger the restart
+                                    window.webkit.messageHandlers.messageHandler.postMessage({
+                                        action: { type: 'APP_RESTART', payload: btn.href }
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
-            }
 
-            // Initial run
-            handleAnchors();
-            handleRestartButton();
+                // Initial run
+                handleAnchors();
+                handleRestartButton();
 
-            // MutationObserver to handle dynamically added elements like anchor tags and the restart button
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.addedNodes.length) {
-                        handleAnchors();
-                        handleRestartButton();
-                    }
+                // MutationObserver to handle dynamically added elements like anchor tags and the restart button
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.addedNodes.length) {
+                            handleAnchors();
+                            handleRestartButton();
+                        }
+                    });
                 });
-            });
 
-            observer.observe(document.body, { childList: true, subtree: true });
-        })();
-        """
-        
+                observer.observe(document.body, { childList: true, subtree: true });
+            })();
+            """
+
         // Inject the script into the WebView
         view?.evaluateJavaScript(script, completionHandler: nil)
     }
-    
+
     func onAppRestartClicked(url: String) {
         appRestartListener?.onAppRestartClicked(url: url)
     }
@@ -489,11 +497,12 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
     ///   controller that is already presenting another one.
     private func topViewController() -> UIViewController? {
         var root: UIViewController?
-        
-        root = UIApplication.shared.connectedScenes
+
+        root =
+            UIApplication.shared.connectedScenes
             .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
             .first
-        
+
         // Walk up the presentation chain to get the topmost presented view controller,
         // so the alert is not presented on a controller that is already presenting another one.
         var top = root
@@ -541,29 +550,31 @@ private class DisclosurePDFLoader: NSObject, WKNavigationDelegate, WKScriptMessa
         // document.write() populates the body synchronously, so this may
         // already have content by the time we run.
         let js = """
-        (function() {
-            function checkAndNotify() {
-                if (document.body && document.body.innerHTML.trim().length > 0) {
-                    window.webkit.messageHandlers.disclosureReady.postMessage("ready");
-                    return true;
+            (function() {
+                function checkAndNotify() {
+                    if (document.body && document.body.innerHTML.trim().length > 0) {
+                        window.webkit.messageHandlers.disclosureReady.postMessage("ready");
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-            // Content may already be there (document.write is synchronous)
-            if (!checkAndNotify()) {
-                var observer = new MutationObserver(function() {
-                    if (checkAndNotify()) { observer.disconnect(); }
-                });
-                observer.observe(document.documentElement, { childList: true, subtree: true });
-            }
-        })();
-        """
+                // Content may already be there (document.write is synchronous)
+                if (!checkAndNotify()) {
+                    var observer = new MutationObserver(function() {
+                        if (checkAndNotify()) { observer.disconnect(); }
+                    });
+                    observer.observe(document.documentElement, { childList: true, subtree: true });
+                }
+            })();
+            """
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     /// Called by JS MutationObserver when body content is ready.
-    func userContentController(_ userContentController: WKUserContentController,
-                                didReceive message: WKScriptMessage) {
+    func userContentController(
+        _ userContentController: WKUserContentController,
+        didReceive message: WKScriptMessage
+    ) {
         guard message.name == "disclosureReady", let wv = webView else { return }
         // Remove handler to prevent duplicate calls
         userContentController.removeScriptMessageHandler(forName: "disclosureReady")

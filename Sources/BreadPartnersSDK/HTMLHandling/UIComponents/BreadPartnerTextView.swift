@@ -48,7 +48,7 @@ public struct BreadPartnerTextView: View {
         copy.padding = value
         return copy
     }
-    
+
     public func alignment(_ alignment: TextAlignment) -> BreadPartnerTextView {
         var copy = self
         copy.alignment = alignment
@@ -61,6 +61,6 @@ public struct BreadPartnerTextView: View {
             .foregroundColor(textColor)
             .background(backgroundColor)
             .padding(padding)
-            .multilineTextAlignment(alignment) // Applying alignment
+            .multilineTextAlignment(alignment)  // Applying alignment
     }
 }

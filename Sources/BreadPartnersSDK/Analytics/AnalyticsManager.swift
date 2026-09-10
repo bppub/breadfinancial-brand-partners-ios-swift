@@ -26,7 +26,7 @@ internal actor AnalyticsManager {
     }
 
     var logger: Logger = Logger()
-    
+
     private var apiKey: String = ""
 
     func setApiKey(_ newApiKey: String) {

@@ -14,14 +14,14 @@ import Foundation
 import UIKit
 
 extension PopupController {
-    
+
     /// Handles the close button tap event..
     @objc func closeButtonTapped() {
         callback(.popupClosed)
         dismiss(animated: true, completion: nil)
     }
 
-    /// Handles the action button tap event. 
+    /// Handles the action button tap event.
     @objc func actionButtonTapped() {
         callback(.actionButtonTapped)
         if let placementModel = webViewPlacementModel {
@@ -37,7 +37,7 @@ extension PopupController {
                         ])))
         }
     }
-    
+
     /// Intercepts link taps in the disclosure text view.
     /// Anchor links beginning with `#` (e.g. `#epjs-css-overlay-header`) scroll
     /// the popup's scroll view back to the top instead of trying to open a URL.

@@ -30,7 +30,7 @@ internal class APIClient: @unchecked Sendable {
     }
 
     var logger: Logger = Logger()
-    
+
     /// Generic API call function
     ///
     /// - Parameters:
@@ -69,9 +69,9 @@ internal class APIClient: @unchecked Sendable {
 
         var updatedHeaders = (headers ?? [:]).merging(
             genericHeader, uniquingKeysWith: { first, _ in first })
-        
-        if(cookies != nil) {
-             updatedHeaders["Cookie"] = cookies
+
+        if (cookies != nil) {
+            updatedHeaders["Cookie"] = cookies
         }
 
         for (key, value) in updatedHeaders {
@@ -139,7 +139,8 @@ internal class APIClient: @unchecked Sendable {
         guard (200...299).contains(httpResponse.statusCode) else {
             let messageString: String = {
                 if let jsonObj = try? JSONSerialization.jsonObject(with: data, options: []),
-                   let message = (jsonObj as? [String: Any])?["message"] as? String {
+                    let message = (jsonObj as? [String: Any])?["message"] as? String
+                {
                     return message
                 }
                 if let str = String(data: data, encoding: .utf8) {
@@ -154,7 +155,7 @@ internal class APIClient: @unchecked Sendable {
                         "\(messageString)"
                 ])
         }
-        
+
         // Check content type before attempting JSON parsing
         let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
         guard contentType.contains("application/json") else {
@@ -171,7 +172,7 @@ internal class APIClient: @unchecked Sendable {
                     userInfo: [
                         NSLocalizedDescriptionKey: "Security challenge detected. User interaction required.",
                         "htmlContent": responseString,
-                        "url": urlString
+                        "url": urlString,
                     ])
             }
 
@@ -180,7 +181,7 @@ internal class APIClient: @unchecked Sendable {
                 code: 415,
                 userInfo: [
                     NSLocalizedDescriptionKey: "Server returned \(contentType) instead of JSON.",
-                    "responseBody": responseString
+                    "responseBody": responseString,
                 ])
         }
 

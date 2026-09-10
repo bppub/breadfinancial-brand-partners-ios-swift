@@ -72,7 +72,7 @@ internal actor PopupElements: NSObject {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0
-        
+
         // Apply font while preserving bold/italic traits from HTML (e.g. <b> tags),
         // but also keeping the default font's own traits (e.g. bold) as a baseline.
         if let targetFont = style.font, text.length > 0 {
@@ -87,7 +87,8 @@ internal actor PopupElements: NSObject {
             // which overrides label.textAlignment. Re-apply the requested alignment
             // to every paragraph style run (preserving other properties like line spacing).
             mutable.enumerateAttribute(.paragraphStyle, in: fullRange, options: []) { value, range, _ in
-                let ps = ((value as? NSParagraphStyle)?.mutableCopy() as? NSMutableParagraphStyle)
+                let ps =
+                    ((value as? NSParagraphStyle)?.mutableCopy() as? NSMutableParagraphStyle)
                     ?? NSMutableParagraphStyle()
                 ps.alignment = align
                 mutable.addAttribute(.paragraphStyle, value: ps, range: range)
@@ -98,34 +99,38 @@ internal actor PopupElements: NSObject {
             label.attributedText = text
             label.applyTextStyle(style: style)
         }
-        
+
         return label
     }
-    
+
     /// Enumerates every font run in `mutable` and replaces it with `targetFont`'s
     /// family/size while unioning the symbolic traits (bold, italic, etc.) so that:
     ///  - the default font's own traits (e.g. bold) are always preserved as a baseline, and
     ///  - traits embedded by the HTML parser (e.g. from <b> tags) are layered on top.
-    nonisolated private func applyFont(_ targetFont: UIFont,
-                      to mutable: NSMutableAttributedString,
-                      in fullRange: NSRange) {
+    nonisolated private func applyFont(
+        _ targetFont: UIFont,
+        to mutable: NSMutableAttributedString,
+        in fullRange: NSRange
+    ) {
         mutable.enumerateAttribute(.font, in: fullRange, options: []) { value, range, _ in
-           let newFont: UIFont
-           if let existingFont = value as? UIFont {
-               let combinedTraits = targetFont.fontDescriptor.symbolicTraits
-                   .union(existingFont.fontDescriptor.symbolicTraits)
-               if let descriptor = targetFont.fontDescriptor
-                   .withFamily(targetFont.familyName)
-                   .withSymbolicTraits(combinedTraits) {
-                   newFont = UIFont(descriptor: descriptor.withSize(targetFont.pointSize),
-                                    size: targetFont.pointSize)
-               } else {
-                   newFont = targetFont
-               }
-           } else {
-               newFont = targetFont
-           }
-           mutable.addAttribute(.font, value: newFont, range: range)
+            let newFont: UIFont
+            if let existingFont = value as? UIFont {
+                let combinedTraits = targetFont.fontDescriptor.symbolicTraits
+                    .union(existingFont.fontDescriptor.symbolicTraits)
+                if let descriptor = targetFont.fontDescriptor
+                    .withFamily(targetFont.familyName)
+                    .withSymbolicTraits(combinedTraits)
+                {
+                    newFont = UIFont(
+                        descriptor: descriptor.withSize(targetFont.pointSize),
+                        size: targetFont.pointSize)
+                } else {
+                    newFont = targetFont
+                }
+            } else {
+                newFont = targetFont
+            }
+            mutable.addAttribute(.font, value: newFont, range: range)
         }
     }
 
@@ -160,56 +165,56 @@ internal actor PopupElements: NSObject {
         button.addTarget(target, action: action, for: .touchUpInside)
         return button
     }
-    
+
     @MainActor func createDisclosureTextView(
-       withText text: NSAttributedString,
-       rawHTML: String,
-       style: PopupTextStyle,
-       delegate: UITextViewDelegate
-   ) -> UITextView {
-       let textView = UITextView()
-       textView.translatesAutoresizingMaskIntoConstraints = false
-       textView.isEditable = false
-       textView.isScrollEnabled = false
-       textView.backgroundColor = .clear
-       textView.textContainerInset = .zero
-       textView.textContainer.lineFragmentPadding = 0
-       textView.delegate = delegate
+        withText text: NSAttributedString,
+        rawHTML: String,
+        style: PopupTextStyle,
+        delegate: UITextViewDelegate
+    ) -> UITextView {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.isEditable = false
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.textContainerInset = .zero
+        textView.textContainer.lineFragmentPadding = 0
+        textView.delegate = delegate
 
-       // Apply attributed text, preserving any link attributes from HTML
-       let mutable = NSMutableAttributedString(attributedString: text)
-       let fullRange = NSRange(location: 0, length: mutable.length)
-       mutable.addAttribute(.foregroundColor, value: style.textColor, range: fullRange)
-       
-       if let font = style.font {
-           applyFont(font, to: mutable, in: fullRange)
-       }
-       // Re-parse the raw HTML with SwiftSoup to find every <a href> and its
-       // visible text, then inject the .link attribute at those ranges.
-       if let doc = try? SwiftSoup.parse(rawHTML) {
-           let anchors = (try? doc.select("a[href]").array()) ?? []
-           let fullText = mutable.string as NSString
-           for anchor in anchors {
-               guard
-                   let href = try? anchor.attr("href"), !href.isEmpty,
-                   let linkURL = URL(string: href),
-                   let linkText = try? anchor.text(), !linkText.isEmpty
-               else { continue }
+        // Apply attributed text, preserving any link attributes from HTML
+        let mutable = NSMutableAttributedString(attributedString: text)
+        let fullRange = NSRange(location: 0, length: mutable.length)
+        mutable.addAttribute(.foregroundColor, value: style.textColor, range: fullRange)
 
-               // Find the first occurrence of the link text in the plain string
-               let searchRange = NSRange(location: 0, length: fullText.length)
-               let found = fullText.range(of: linkText, options: [], range: searchRange)
-               mutable.addAttribute(.link, value: linkURL, range: found)
-           }
-       }
+        if let font = style.font {
+            applyFont(font, to: mutable, in: fullRange)
+        }
+        // Re-parse the raw HTML with SwiftSoup to find every <a href> and its
+        // visible text, then inject the .link attribute at those ranges.
+        if let doc = try? SwiftSoup.parse(rawHTML) {
+            let anchors = (try? doc.select("a[href]").array()) ?? []
+            let fullText = mutable.string as NSString
+            for anchor in anchors {
+                guard
+                    let href = try? anchor.attr("href"), !href.isEmpty,
+                    let linkURL = URL(string: href),
+                    let linkText = try? anchor.text(), !linkText.isEmpty
+                else { continue }
 
-       textView.attributedText = mutable
-       textView.linkTextAttributes = [
-           .foregroundColor: style.textColor,
-           .underlineStyle: NSUnderlineStyle.single.rawValue
-       ]
-       return textView
-   }
+                // Find the first occurrence of the link text in the plain string
+                let searchRange = NSRange(location: 0, length: fullText.length)
+                let found = fullText.range(of: linkText, options: [], range: searchRange)
+                mutable.addAttribute(.link, value: linkURL, range: found)
+            }
+        }
+
+        textView.attributedText = mutable
+        textView.linkTextAttributes = [
+            .foregroundColor: style.textColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+        ]
+        return textView
+    }
 
     @MainActor func createLabelForTag(
         tag: String, value: String, popupStyle: PopUpStyling
@@ -228,7 +233,7 @@ internal actor PopupElements: NSObject {
                 withText: value.toAttributedString(),
                 style: popupStyle.connectorPopupTextStyle)
         case "footer":
-            return createLabel(withText: value.toAttributedString(),style: popupStyle.paragraphPopupTextStyle)
+            return createLabel(withText: value.toAttributedString(), style: popupStyle.paragraphPopupTextStyle)
         default:
             return nil
         }

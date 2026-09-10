@@ -70,7 +70,6 @@ playground.xcworkspace
 *.backup
 
 # SwiftLint cache (if used)
-.swiftlint.yml
 .swiftlint.cache
 
 # Xcode previews
@@ -81,5 +80,5 @@ playground.xcworkspace
 *.iml
 .vscode/
 
-# Ignore 
+# Ignore
 **/TestData.swift

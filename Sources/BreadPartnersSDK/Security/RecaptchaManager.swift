@@ -13,7 +13,7 @@
 @preconcurrency import RecaptchaEnterprise
 
 /// `RecaptchaManager` handles the process of executing a reCAPTCHA for verifying user actions.
-internal actor RecaptchaManager:@unchecked Sendable {
+internal actor RecaptchaManager: @unchecked Sendable {
 
     static let shared = RecaptchaManager()
     private let logger: Logger
@@ -49,7 +49,7 @@ internal actor RecaptchaManager:@unchecked Sendable {
                     if debug {
                         logger.logReCaptchaToken(token: token)
                     }
-                    
+
                     return token
                 } catch let error as RecaptchaError {
                     throw error
@@ -58,7 +58,7 @@ internal actor RecaptchaManager:@unchecked Sendable {
         } catch let error as RecaptchaError {
             throw error
         }
-        
+
         return ""
     }
 }

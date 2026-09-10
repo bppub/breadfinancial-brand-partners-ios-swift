@@ -13,7 +13,7 @@
 import Foundation
 
 /// Represents configuration details for a merchant.
-public struct MerchantConfiguration:@unchecked Sendable {
+public struct MerchantConfiguration: @unchecked Sendable {
     public var buyer: BreadPartnersBuyer?
     public var loyaltyID: String?
     public var campaignID: String?
@@ -42,7 +42,7 @@ public struct MerchantConfiguration:@unchecked Sendable {
     public var skipVerification: Bool?
     public var custom: [String: Any]?
 
-    public enum PaymentMode: String,Sendable {
+    public enum PaymentMode: String, Sendable {
         case full
         case split
     }
@@ -102,7 +102,7 @@ public struct MerchantConfiguration:@unchecked Sendable {
     }
 }
 
-public struct BreadPartnersBuyer:@unchecked Sendable {
+public struct BreadPartnersBuyer: @unchecked Sendable {
     public var givenName: String?
     public var familyName: String?
     public var additionalName: String?
@@ -136,7 +136,7 @@ public struct BreadPartnersBuyer:@unchecked Sendable {
     }
 }
 
-public struct BreadPartnersAddress:@unchecked Sendable {
+public struct BreadPartnersAddress: @unchecked Sendable {
     public var address1: String
     public var address2: String?
     public var country: String?

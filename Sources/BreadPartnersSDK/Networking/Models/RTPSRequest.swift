@@ -34,11 +34,11 @@ internal struct RTPSRequest: Codable {
     let alternativePhone: String?
     let mobilePhone: String?
     let emailAddress: String?
-    
+
     struct OverrideConfig: Codable {
         let enhancedPresentment: Bool?
     }
-    
+
     init(
         urlPath: String? = nil,
         firstName: String? = nil,

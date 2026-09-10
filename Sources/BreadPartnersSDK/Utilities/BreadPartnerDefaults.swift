@@ -14,38 +14,38 @@ import UIKit
 
 /// `BreadPartnerDefaults` class provides default configurations/styles/properties used across the BreadPartner SDK.
 public class BreadPartnerDefaults: NSObject {
-    
+
     public static let GRAY_COLOR: UIColor = .init(hex: "#767676")
     public static let LIGHT_GRAY_COLOR: UIColor = .init(hex: "#ececec")
     public static let TITLE_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT", size: 16.0),
-      textColor: .black
+        font: UIFont(name: "Arial-BoldMT", size: 16.0),
+        textColor: .black
     )
     public static let SUBTITLE_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT",size: 12.0),
-      textColor: GRAY_COLOR
+        font: UIFont(name: "Arial-BoldMT", size: 12.0),
+        textColor: GRAY_COLOR
     )
     public static let HEADER_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT", size: 14.0),
-      textColor: .black
+        font: UIFont(name: "Arial-BoldMT", size: 14.0),
+        textColor: .black
     )
     public static let HEADING_THREE_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT", size: 14.0),
-      textColor: .black
+        font: UIFont(name: "Arial-BoldMT", size: 14.0),
+        textColor: .black
     )
     public static let PARAGRAPH_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT",size: 10.0),
-      textColor: GRAY_COLOR
+        font: UIFont(name: "Arial-BoldMT", size: 10.0),
+        textColor: GRAY_COLOR
     )
     public static let CONNECTOR_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT",size: 14.0),
-      textColor: .black
+        font: UIFont(name: "Arial-BoldMT", size: 14.0),
+        textColor: .black
     )
     public static let DISCLOSURE_POPUP_TEXT_STYLE: PopupTextStyle = PopupTextStyle(
-      font: UIFont(name: "Arial-BoldMT",size: 10.0),
-      textColor: GRAY_COLOR
+        font: UIFont(name: "Arial-BoldMT", size: 10.0),
+        textColor: GRAY_COLOR
     )
-    
+
     /// Default Popup Style
     public static let popupStyle = PopUpStyling(
         loaderColor: UIColor(hex: "#0f2233"),

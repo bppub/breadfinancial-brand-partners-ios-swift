@@ -44,10 +44,11 @@ extension HTMLContentRenderer {
         let actionType = textPlacementModel?.actionType
         let htmlContent = textPlacementModel?.htmlContent
 
-//         For NO_ACTION type, render as formatted HTML text that's clickable (triggers textClicked callback)
+        //         For NO_ACTION type, render as formatted HTML text that's clickable (triggers textClicked callback)
         if actionType == PlacementActionType.noAction.rawValue,
-           let htmlString = htmlContent, !htmlString.isEmpty {
-            
+            let htmlString = htmlContent, !htmlString.isEmpty
+        {
+
             // Convert HTML to attributed string
             if let attributedString = htmlString.htmlToAttributedString() {
                 // Create a mutable copy to remove any link attributes and underlines
@@ -55,7 +56,7 @@ extension HTMLContentRenderer {
                 let range = NSRange(location: 0, length: mutableAttributedString.length)
                 mutableAttributedString.removeAttribute(.link, range: range)
                 mutableAttributedString.removeAttribute(.underlineStyle, range: range)
-                
+
                 if forSwiftUI {
                     let swiftUIView = BreadPartnerLinkTextSwitUI(
                         attributedString: mutableAttributedString,

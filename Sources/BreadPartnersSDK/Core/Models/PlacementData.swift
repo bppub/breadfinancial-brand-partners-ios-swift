@@ -35,7 +35,7 @@ public class PlacementData: @unchecked Sendable {
     public var financingBuyerId: String?
     public var prequalificationId: String?
     public var prequalCreditLimit: String?
-    
+
     public init(
         financingType: BreadPartnersFinancingType? = nil,
         locationType: BreadPartnersLocationType? = nil,
@@ -43,7 +43,7 @@ public class PlacementData: @unchecked Sendable {
         domID: String? = nil,
         allowCheckout: Bool? = nil,
         order: Order? = nil,
-        defaultSelectedCardKey: String? = nil, 
+        defaultSelectedCardKey: String? = nil,
         selectedCardKey: String? = nil,
         upqInSessionToken: String? = nil,
         financingBuyerId: String? = nil,
@@ -66,8 +66,7 @@ public class PlacementData: @unchecked Sendable {
 }
 
 /// Specifies the location type where the placement is rendered.
-public enum BreadPartnersLocationType: String, CaseIterable, @unchecked Sendable
-{
+public enum BreadPartnersLocationType: String, CaseIterable, @unchecked Sendable {
     case bag
     case banner
     case cart
@@ -83,7 +82,7 @@ public enum BreadPartnersLocationType: String, CaseIterable, @unchecked Sendable
     case header
     case search
     case myaccount
-    
+
     /// Maps location types to their corresponding channel codes
     public static let locationChannelMap: [BreadPartnersLocationType: String] = [
         .homepage: "H",
@@ -100,9 +99,9 @@ public enum BreadPartnersLocationType: String, CaseIterable, @unchecked Sendable
         .bag: "2",
         .dashboard: "5",
         .myaccount: "5",
-        .header: "R"
+        .header: "R",
     ]
-    
+
     /// Returns the channel code for this location type
     public var channelCode: String? {
         return Self.locationChannelMap[self]
@@ -110,9 +109,7 @@ public enum BreadPartnersLocationType: String, CaseIterable, @unchecked Sendable
 }
 
 /// Specifies the type of financing for the placement.
-public enum BreadPartnersFinancingType: String, CaseIterable, @unchecked
-    Sendable
-{
+public enum BreadPartnersFinancingType: String, CaseIterable, @unchecked Sendable {
     case card, installments, versatile
 }
 
@@ -128,7 +125,7 @@ public class Order: @unchecked Sendable {
     public var fulfillmentType: OrderFulfillmentType?
     public var items: [Item]?
     public var bnplEligible: Bool?
-    
+
     public init(
         subTotal: CurrencyValue? = nil,
         totalDiscounts: CurrencyValue? = nil,
@@ -274,9 +271,8 @@ public class Item: @unchecked Sendable {
     }
 }
 
-
 public let ineligibleItemCategories: Set<String> = [
-    "non-leasable", "nonleasable"
+    "non-leasable", "nonleasable",
 ]
 
 /// Enum representing different fulfillment types for orders.

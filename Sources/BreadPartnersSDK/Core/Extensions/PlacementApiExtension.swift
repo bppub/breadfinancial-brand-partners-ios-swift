@@ -38,9 +38,10 @@ extension BreadPartnersSDK {
         forSwiftUI: Bool = false,
         logger: Logger,
         cookie: String? = nil,
-        callback: @Sendable @escaping (
-            BreadPartnerEvents
-        ) -> Void
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
     ) async {
         do {
             let apiUrl = APIUrl(urlType: .generatePlacements).url
@@ -55,12 +56,12 @@ extension BreadPartnersSDK {
             request = builder.build()
 
             let response = try await APIClient(logger: logger).request(
-                         urlString: apiUrl,
-                         method: .POST,
-                         cookies: cookie,
-                         body: request,
-                        )
-            
+                urlString: apiUrl,
+                method: .POST,
+                cookies: cookie,
+                body: request,
+            )
+
             await handlePlacementResponse(
                 response,
                 merchantConfiguration: merchantConfiguration,
@@ -71,44 +72,44 @@ extension BreadPartnersSDK {
                 logger: logger,
                 callback: callback)
         } catch let error as NSError {
-                  if error.domain == Constants.incapsulaChallenge {
-                      guard let htmlContent = error.userInfo[Constants.htmlContent] as? String,
-                            let url = error.userInfo[Constants.url] as? String else {
-                          return callback(.sdkError(error: error))
-                      }
+            if error.domain == Constants.incapsulaChallenge {
+                guard let htmlContent = error.userInfo[Constants.htmlContent] as? String,
+                    let url = error.userInfo[Constants.url] as? String
+                else {
+                    return callback(.sdkError(error: error))
+                }
 
-                      let challengeController = ChallengeController(
-                          htmlContent: htmlContent,
-                          originalURL: url,
-                          onComplete: { cookie in
-                              Task {
-                                  await self.fetchPlacementData(
-                                      merchantConfiguration: merchantConfiguration,
-                                      placementsConfiguration: placementsConfiguration,
-                                      splitTextAndAction: splitTextAndAction,
-                                      openPlacementExperience: openPlacementExperience,
-                                      forSwiftUI: forSwiftUI,
-                                      logger: logger,
-                                      cookie: cookie,
-                                      callback: callback
-                                  )
-                              }
-                          },
-                          logger: logger
-                      )
+                let challengeController = ChallengeController(
+                    htmlContent: htmlContent,
+                    originalURL: url,
+                    onComplete: { cookie in
+                        Task {
+                            await self.fetchPlacementData(
+                                merchantConfiguration: merchantConfiguration,
+                                placementsConfiguration: placementsConfiguration,
+                                splitTextAndAction: splitTextAndAction,
+                                openPlacementExperience: openPlacementExperience,
+                                forSwiftUI: forSwiftUI,
+                                logger: logger,
+                                cookie: cookie,
+                                callback: callback
+                            )
+                        }
+                    },
+                    logger: logger
+                )
 
-
-                      return callback(.renderPopupView(view: challengeController))
-                  } else {
-                      return callback(
-                        .sdkError(
-                            error: NSError(
-                                domain: "", code: 500,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey: Constants.apiError(
-                                        message: error.localizedDescription)
-                                ])))
-                  }
+                return callback(.renderPopupView(view: challengeController))
+            } else {
+                return callback(
+                    .sdkError(
+                        error: NSError(
+                            domain: "", code: 500,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: Constants.apiError(
+                                    message: error.localizedDescription)
+                            ])))
+            }
         }
     }
 
@@ -120,9 +121,10 @@ extension BreadPartnersSDK {
         openPlacementExperience: Bool = false,
         forSwiftUI: Bool = false,
         logger: Logger,
-        callback: @Sendable @escaping (
-            BreadPartnerEvents
-        ) -> Void
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
     ) async {
         do {
             let responseModel: PlacementsResponse =
@@ -139,7 +141,7 @@ extension BreadPartnersSDK {
                 guard
                     let popupPlacementHTMLContent = responseModel
                         .placementContent?
-                        .first(where: {$0.metadata?.templateId?.contains("overlay") == true}),
+                        .first(where: { $0.metadata?.templateId?.contains("overlay") == true }),
                     let popupPlacementModel = try await HTMLContentParser()
                         .extractPopupPlacementModel(
                             from: popupPlacementHTMLContent.contentData?
@@ -168,7 +170,8 @@ extension BreadPartnersSDK {
                     callback: callback
                 ).createPopupOverlay(
                     popupPlacementModel: popupPlacementModel,
-                    overlayType: PlacementOverlayType(rawValue: popupPlacementModel.overlayType) ?? .singleProductOverlay
+                    overlayType: PlacementOverlayType(rawValue: popupPlacementModel.overlayType)
+                        ?? .singleProductOverlay
                 )
 
             } else {

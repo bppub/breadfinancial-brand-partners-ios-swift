@@ -29,7 +29,7 @@ let prescreenResultMap: [String: PrescreenResult] = [
     "01": .approved,
     "10": .noHit,
     "11": .makeOffer,
-    "12": .acknowledge
+    "12": .acknowledge,
 ]
 
 /// Returns the corresponding PrescreenResult based on the given API response string.
@@ -54,7 +54,7 @@ struct RTPSResponse: Codable {
     let hasExistingAccount: Bool?
     let errorMessage: String?
     let errorCode: Int?
-    
+
     enum CodingKeys: String, CodingKey {
         case returnCode
         case prescreenId
@@ -72,13 +72,13 @@ struct RTPSResponse: Codable {
         case errorMessage
         case errorCode
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         // Handle prescreenId as Int64
         prescreenId = try container.decodeIfPresent(Int64.self, forKey: .prescreenId)
-        
+
         // Handle returnCode as either String or Int, convert to String
         if let returnCodeString = try? container.decode(String.self, forKey: .returnCode) {
             returnCode = returnCodeString
@@ -87,7 +87,7 @@ struct RTPSResponse: Codable {
         } else {
             returnCode = nil
         }
-        
+
         // Decode remaining fields
         firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
         middleInitial = try container.decodeIfPresent(String.self, forKey: .middleInitial)
@@ -104,4 +104,3 @@ struct RTPSResponse: Codable {
         errorCode = try container.decodeIfPresent(Int.self, forKey: .errorCode)
     }
 }
-

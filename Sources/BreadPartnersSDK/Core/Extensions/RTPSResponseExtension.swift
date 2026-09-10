@@ -22,51 +22,51 @@ extension RTPSResponse {
     /// - Returns: An updated MerchantConfiguration with buyer data from the response.
     func updateMerchantConfiguration(_ merchantConfiguration: MerchantConfiguration) -> MerchantConfiguration {
         var updatedConfig = merchantConfiguration
-        
+
         // Create or update buyer information
         var buyer = updatedConfig.buyer ?? BreadPartnersBuyer()
-        
+
         if let firstName = self.firstName {
             buyer.givenName = firstName
         }
-        
+
         if let lastName = self.lastName {
             buyer.familyName = lastName
         }
-        
+
         if let middleInitial = self.middleInitial {
             buyer.additionalName = middleInitial
         }
-        
+
         // Create or update billing address
         if address1 != nil || city != nil || state != nil || zip != nil {
             var billingAddress = buyer.billingAddress ?? BreadPartnersAddress(address1: "")
-            
+
             if let address1 = self.address1 {
                 billingAddress.address1 = address1
             }
-            
+
             if let address2 = self.address2 {
                 billingAddress.address2 = address2
             }
-            
+
             if let city = self.city {
                 billingAddress.locality = city
             }
-            
+
             if let state = self.state {
                 billingAddress.region = state
             }
-            
+
             if let zip = self.zip {
                 billingAddress.postalCode = zip
             }
-            
+
             buyer.billingAddress = billingAddress
         }
-        
+
         updatedConfig.buyer = buyer
-        
+
         return updatedConfig
     }
 }

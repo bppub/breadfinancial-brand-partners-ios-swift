@@ -73,7 +73,7 @@ public struct BreadPartnerButtonView: View {
                 .background(backgroundColor)
                 .cornerRadius(cornerRadius)
         }
-        .frame(maxWidth: .infinity, alignment: alignment) // Corrected alignment logic
+        .frame(maxWidth: .infinity, alignment: alignment)  // Corrected alignment logic
         .padding(padding)
     }
 }

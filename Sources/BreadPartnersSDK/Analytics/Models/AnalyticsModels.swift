@@ -13,7 +13,7 @@
 import Foundation
 
 internal enum Analytics {
-    
+
     struct PlacementContent: Codable {
         let id: String?
         let contentType: String?

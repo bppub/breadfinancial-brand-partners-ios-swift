@@ -53,8 +53,7 @@ public class RTPSData: @unchecked Sendable {
 }
 
 /// Enum representing mock options for supporting testing and mock configurations.
-public enum BreadPartnersMockOptions: String, CaseIterable, @unchecked Sendable
-{
+public enum BreadPartnersMockOptions: String, CaseIterable, @unchecked Sendable {
     case noMock = ""
     case success = "success"
     case noHit = "noHit"

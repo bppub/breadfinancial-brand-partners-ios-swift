@@ -76,21 +76,22 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         placementsConfiguration: PlacementConfiguration,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
-        callback: @Sendable @escaping (
-            BreadPartnerEvents
-        ) -> Void
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
         var mutablePlacementsConfiguration = placementsConfiguration
-        
+
         if mutablePlacementsConfiguration.popUpStyling == nil {
             mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
         }
-        
+
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
         logger.setCallback(callback)
-        
+
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: mutablePlacementsConfiguration,
@@ -119,26 +120,27 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         placementsConfiguration: PlacementConfiguration,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
-        callback: @Sendable @escaping (
-            BreadPartnerEvents
-        ) -> Void
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
         var mutablePlacementsConfiguration = placementsConfiguration
-        
+
         if mutablePlacementsConfiguration.popUpStyling == nil {
             mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
         }
-        
+
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
         logger.setCallback(callback)
-        
+
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
             await fetchBrandConfig(logger: logger)
         }
-            
+
         await rtpsCall(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: mutablePlacementsConfiguration,
@@ -160,21 +162,22 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         forSwiftUI: Bool = false,
-        callback: @Sendable @escaping (
-            BreadPartnerEvents
-        ) -> Void
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
         var mutablePlacementsConfiguration = placementsConfiguration
-        
+
         if mutablePlacementsConfiguration.popUpStyling == nil {
             mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
         }
-        
+
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
         logger.setCallback(callback)
-            
+
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: mutablePlacementsConfiguration,

@@ -35,7 +35,7 @@ public struct BreadPartnerLinkTextSwitUI: View {
         self.linkFontSize = fontSize
         self.attributedText = nil
     }
-    
+
     /// Initializer for attributed string (with HTML formatting preserved)
     public init(
         attributedString: NSAttributedString, onTap: (() -> Void)? = nil
@@ -52,26 +52,29 @@ public struct BreadPartnerLinkTextSwitUI: View {
     public var body: some View {
         // Use provided attributedText if available (for HTML formatted content)
         let finalAttributedString: NSAttributedString
-        
+
         if let providedAttributedText = attributedText {
             finalAttributedString = providedAttributedText
         } else {
             // Build attributed string from plain text and links
             let attributedString = NSMutableAttributedString(string: text)
             let fullRange = NSRange(location: 0, length: attributedString.length)
-            attributedString.addAttribute(.font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: fullRange)
-            
+            attributedString.addAttribute(
+                .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: fullRange)
+
             let nsText = NSString(string: text)
-            
+
             for word in links {
                 let wordRange = nsText.range(of: word)
                 if wordRange.location != NSNotFound {
                     attributedString.addAttribute(.foregroundColor, value: colorToUIColor(linkColor), range: wordRange)
-                    attributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: wordRange)
-                    attributedString.addAttribute(.font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: wordRange)
+                    attributedString.addAttribute(
+                        .underlineStyle, value: NSUnderlineStyle.single.rawValue, range: wordRange)
+                    attributedString.addAttribute(
+                        .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: wordRange)
                 }
             }
-            
+
             finalAttributedString = attributedString
         }
 
@@ -88,7 +91,7 @@ public struct BreadPartnerLinkTextSwitUI: View {
             )
         }
     }
-    
+
     struct UILabelRepresentable: UIViewRepresentable {
         var attributedText: NSAttributedString
         var onTap: (() -> Void)?
@@ -120,7 +123,6 @@ public struct BreadPartnerLinkTextSwitUI: View {
             }
         }
     }
-
 
     public func linkColor(_ color: Color) -> BreadPartnerLinkTextSwitUI {
         var copy = self
@@ -165,10 +167,10 @@ private func colorToUIColor(_ color: Color) -> UIColor {
     default:
         // Try to extract RGBA components (works for custom colors in iOS 14+)
         #if canImport(UIKit)
-        if #available(iOS 14.0, *) {
-            let uiColor = UIColor(color)
-            return uiColor
-        }
+            if #available(iOS 14.0, *) {
+                let uiColor = UIColor(color)
+                return uiColor
+            }
         #endif
         // Fallback to black for unknown colors on iOS 12/13
         return UIColor.black

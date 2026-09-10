@@ -117,7 +117,6 @@ internal struct ContextRequestBody: Codable {
     }
 }
 
-
 extension ContextRequestBody {
     func copy(upqParams: String? = nil, upqCheckoutParams: String? = nil) -> ContextRequestBody {
         return ContextRequestBody(

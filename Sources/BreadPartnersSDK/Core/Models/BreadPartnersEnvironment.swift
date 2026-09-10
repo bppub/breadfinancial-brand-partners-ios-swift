@@ -14,7 +14,7 @@
 ///
 /// - `stage`: Use this environment for testing and development.
 /// - `prod`: **Default** Use this environment for production.
-public enum BreadPartnersEnvironment: String, CaseIterable,Sendable {
+public enum BreadPartnersEnvironment: String, CaseIterable, Sendable {
     case stage = "STAGE"
     case prod = "PROD"
     case uat = "UAT"
