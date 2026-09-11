@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 import Testing
-@testable import BreadPartnersSDKCore
+@testable import BreadPartnersCore
 
 @Suite struct RTPSDataTests {
     @Test

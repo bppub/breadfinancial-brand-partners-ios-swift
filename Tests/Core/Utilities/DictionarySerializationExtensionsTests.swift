@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BreadPartnersSDKCore
+@testable import BreadPartnersCore
 
 @Suite struct DictionarySerializationExtensionsTests {
     private struct UnsupportedQueryValue: CustomStringConvertible {
