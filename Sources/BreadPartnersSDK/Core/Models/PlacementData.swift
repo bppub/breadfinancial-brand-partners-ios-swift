@@ -60,8 +60,8 @@ public class PlacementData: @unchecked Sendable {
         self.selectedCardKey = selectedCardKey
         self.upqInSessionToken = upqInSessionToken
         self.financingBuyerId = financingBuyerId
-        self.prequalificationId = financingBuyerId
-        self.prequalCreditLimit = financingBuyerId
+        self.prequalificationId = prequalificationId
+        self.prequalCreditLimit = prequalCreditLimit
     }
 }
 
