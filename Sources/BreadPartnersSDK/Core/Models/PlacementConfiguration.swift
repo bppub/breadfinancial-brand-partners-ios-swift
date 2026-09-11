@@ -16,10 +16,8 @@
 ///   - rtpsData: Specifies the real-time pre-screen configuration for the prescreen flow.
 ///   - popUpStyling: Configures the popup styling for each element rendered within the popup.
 public struct PlacementConfiguration: @unchecked Sendable {
-    package let data: PlacementConfigurationData
-
-    public var placementData: PlacementData? { data.placementData }
-    public var rtpsData: RTPSData? { data.rtpsData }
+    public var placementData: PlacementData?
+    public var rtpsData: RTPSData?
     public var popUpStyling: PopUpStyling?
 
     public init(
@@ -27,10 +25,8 @@ public struct PlacementConfiguration: @unchecked Sendable {
         rtpsData: RTPSData? = nil,
         popUpStyling: PopUpStyling? = nil
     ) {
-        self.data = PlacementConfigurationData(
-            placementData: placementData,
-            rtpsData: rtpsData
-        )
+        self.placementData = placementData
+        self.rtpsData = rtpsData
         self.popUpStyling = popUpStyling
     }
 }
