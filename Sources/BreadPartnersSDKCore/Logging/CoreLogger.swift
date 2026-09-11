@@ -1,7 +1,6 @@
 import Foundation
 
 package final class CoreLogger: @unchecked Sendable {
-    package var isEnabled = false
     package var sink: @Sendable (String) -> Void
 
     package init(sink: @escaping @Sendable (String) -> Void = { _ in }) {
@@ -13,8 +12,6 @@ package final class CoreLogger: @unchecked Sendable {
         separator: String = " ",
         terminator: String = "\n"
     ) {
-        guard isEnabled else { return }
-
         let message = items.map(String.init(describing:)).joined(separator: separator)
         Swift.print(message, terminator: terminator)
         sink(message)

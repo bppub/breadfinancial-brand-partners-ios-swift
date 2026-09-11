@@ -10,20 +10,9 @@ import Testing
     private struct NonDisplayableHeaderValue {}
 
     @Test
-    func disabledLoggerDoesNotEmit() {
+    func loggerJoinsItemsAndEmitsOnce() {
         let box = MessageBox()
         let logger = CoreLogger { box.messages.append($0) }
-
-        logger.emit(["hidden"])
-
-        #expect(box.messages.isEmpty)
-    }
-
-    @Test
-    func enabledLoggerJoinsItemsAndEmitsOnce() {
-        let box = MessageBox()
-        let logger = CoreLogger { box.messages.append($0) }
-        logger.isEnabled = true
 
         logger.emit(["value", 42], separator: " | ")
 
@@ -33,7 +22,6 @@ import Testing
     @Test
     func defaultSinkAcceptsEmittedMessage() {
         let logger = CoreLogger()
-        logger.isEnabled = true
 
         logger.emit(["default sink"])
     }

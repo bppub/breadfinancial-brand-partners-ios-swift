@@ -31,7 +31,6 @@ internal class Logger: NSObject, @unchecked Sendable {
 
     func setLogging(enabled: Bool) {
         self.isLoggingEnabled = enabled
-        coreLogger.isEnabled = enabled
     }
 
     func setCallback(_ newCallback: @escaping (BreadPartnerEvents) -> Void) {
@@ -44,15 +43,21 @@ internal class Logger: NSObject, @unchecked Sendable {
     nonisolated public func debugPrint(
         _ items: Any..., separator: String = " ", terminator: String = "\n"
     ) {
+        guard isLoggingEnabled else { return }
+
         coreLogger.emit(items, separator: separator, terminator: terminator)
     }
+
+    // Core Logs
 
     func printLog(
         _ items: Any..., separator: String = " ", terminator: String = "\n"
     ) {
         guard isLoggingEnabled else { return }
+
         debugPrint(items)
     }
+
     func logRequestDetails(
         url: URL,
         method: String,
@@ -88,6 +93,32 @@ internal class Logger: NSObject, @unchecked Sendable {
             )
         )
     }
+
+    func logLoadingURL(url: URL) {
+        guard isLoggingEnabled else { return }
+
+        debugPrint(coreLogger.loadingURLMessage(url))
+    }
+
+    func logReCaptchaToken(token: String) {
+        guard isLoggingEnabled else { return }
+
+        debugPrint(coreLogger.reCaptchaTokenMessage(token))
+    }
+
+    func logApplicationResultDetails(_ payload: [String: Any]) {
+        guard isLoggingEnabled else { return }
+
+        debugPrint(coreLogger.applicationResultMessage(payload))
+    }
+
+    func printWebAnchorLogs(data: String) {
+        guard isLoggingEnabled else { return }
+
+        debugPrint(coreLogger.webAnchorsMessage(data))
+    }
+
+    // UI Logs
 
     func logTextPlacementModelDetails(_ model: TextPlacementModel) {
         guard isLoggingEnabled else { return }
@@ -154,29 +185,4 @@ internal class Logger: NSObject, @unchecked Sendable {
         let message = lines.joined(separator: "\n")
         debugPrint(message)
     }
-
-    func logLoadingURL(url: URL) {
-        guard isLoggingEnabled else { return }
-
-        debugPrint(coreLogger.loadingURLMessage(url))
-    }
-
-    func logReCaptchaToken(token: String) {
-        guard isLoggingEnabled else { return }
-
-        debugPrint(coreLogger.reCaptchaTokenMessage(token))
-    }
-
-    func logApplicationResultDetails(_ payload: [String: Any]) {
-        guard isLoggingEnabled else { return }
-
-        debugPrint(coreLogger.applicationResultMessage(payload))
-    }
-
-    func printWebAnchorLogs(data: String) {
-        guard isLoggingEnabled else { return }
-
-        debugPrint(coreLogger.webAnchorsMessage(data))
-    }
-
 }
