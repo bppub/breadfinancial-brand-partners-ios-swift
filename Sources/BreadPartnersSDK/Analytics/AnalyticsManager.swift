@@ -60,7 +60,7 @@ internal actor AnalyticsManager {
     private func createAnalyticsPlacementPayload(
         name: String, placementResponse: PlacementsResponse
     ) async -> Analytics.Payload {
-        let timestamp = await CommonUtils().getCurrentTimestamp()
+        let timestamp = formattedUTCTimestamp(for: Date())
 
         return await Analytics.Payload(
             name: name,
@@ -93,7 +93,7 @@ internal actor AnalyticsManager {
                 browserCtx: Analytics.BrowserCtx(
                     library: Analytics.Library(
                         name: "bread-partners-sdk-ios", version: "0.0.1"),
-                    userAgent: await CommonUtils().getUserAgent(),
+                    userAgent: await DeviceInformationProvider.userAgent,
                     page: Analytics.Page(
                         path: "ToDo",
                         url: nil

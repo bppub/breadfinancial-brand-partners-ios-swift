@@ -150,10 +150,10 @@ extension BreadPartnersSDK {
                 body: rtpsRequestBuilt
             )
 
-            let preScreenLookupResponse: RTPSResponse =
-                try await CommonUtils().decodeJSON(
-                    from: response, to: RTPSResponse.self
-                )
+            let preScreenLookupResponse: RTPSResponse = try ResponseDecoder.decode(
+                response,
+                as: RTPSResponse.self
+            )
             let returnResultType = preScreenLookupResponse.returnCode
             let prescreenResult = getPrescreenResult(
                 from: returnResultType ?? "10")
@@ -245,18 +245,20 @@ extension BreadPartnersSDK {
 
             let webURL: String?
             if placementsConfiguration.rtpsData?.customerAcceptedOffer == true {
-                webURL = await CommonUtils().buildBpsWebURL(
-                    integrationKey: integrationKey,
-                    merchantConfiguration: merchantConfiguration,
-                    placementConfiguration: placementsConfiguration
-                )?.absoluteString
+                webURL =
+                    WebURLBuilder.buildBPSWebURL(
+                        integrationKey: integrationKey,
+                        merchantConfiguration: merchantConfiguration,
+                        placementConfiguration: placementsConfiguration
+                    )?.absoluteString
             } else {
-                webURL = await CommonUtils().buildRTPSWebURL(
-                    integrationKey: integrationKey,
-                    merchantConfiguration: merchantConfiguration,
-                    rtpsData: placementsConfiguration.rtpsData!,
-                    prescreenId: placementsConfiguration.rtpsData!.prescreenId
-                )?.absoluteString
+                webURL =
+                    WebURLBuilder.buildRTPSWebURL(
+                        integrationKey: integrationKey,
+                        merchantConfiguration: merchantConfiguration,
+                        rtpsData: placementsConfiguration.rtpsData!,
+                        prescreenId: placementsConfiguration.rtpsData!.prescreenId
+                    )?.absoluteString
             }
 
             let request = PlacementRequest(
@@ -308,11 +310,10 @@ extension BreadPartnersSDK {
         _ response: AnySendable
     ) async {
         do {
-            let responseModel: PlacementsResponse =
-                try await CommonUtils().decodeJSON(
-                    from: response,
-                    to: PlacementsResponse.self
-                )
+            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
+                response,
+                as: PlacementsResponse.self
+            )
             if responseModel.placements?.isEmpty ?? true {
                 return callback(
                     .sdkError(
