@@ -53,6 +53,7 @@ internal class Logger: NSObject, @unchecked Sendable {
         guard isLoggingEnabled else { return }
         debugPrint(items)
     }
+
     func logRequestDetails(
         url: URL,
         method: String,
