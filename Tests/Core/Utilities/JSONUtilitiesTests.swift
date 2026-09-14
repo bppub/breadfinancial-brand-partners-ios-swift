@@ -40,14 +40,16 @@ import Testing
 
     @Test
     func rejectsUnsupportedPayload() {
-        do {
-            let _: TestValue = try decodeJSON(from: "not-json", to: TestValue.self)
-            Issue.record("Expected unsupported payload to throw")
-        } catch let error as NSError {
-            #expect(error.domain == "JSONDecodingError")
-            #expect(error.code == 1)
-            #expect(error.localizedDescription == "Unsupported JSON structure")
+        let error = #expect(throws: NSError.self) {
+            let _: TestValue = try decodeJSON(
+                from: "not-json",
+                to: TestValue.self
+            )
         }
+
+        #expect(error?.domain == "JSONDecodingError")
+        #expect(error?.code == 1)
+        #expect(error?.localizedDescription == "Unsupported JSON structure")
     }
 
     @Test
