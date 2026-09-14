@@ -1,6 +1,6 @@
 import Testing
 @testable import BreadPartners
-@preconcurrency import RecaptchaEnterprise
+import RecaptchaEnterprise
 
 @Suite struct RecaptchaClientFactoryTests {
     private enum TestError: Error {

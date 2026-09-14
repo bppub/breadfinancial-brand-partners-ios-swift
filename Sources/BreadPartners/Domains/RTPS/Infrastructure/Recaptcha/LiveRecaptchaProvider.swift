@@ -1,5 +1,5 @@
 import BreadPartnersCore
-@preconcurrency import RecaptchaEnterprise
+import RecaptchaEnterprise
 
 package actor LiveRecaptchaProvider: RecaptchaProviding {
     private let logger: Logger

@@ -1,4 +1,4 @@
-@preconcurrency import RecaptchaEnterprise
+import RecaptchaEnterprise
 
 package protocol RecaptchaClientLoader: Sendable {
     func fetchClient(siteKey: String) async throws -> any RecaptchaVendorClient

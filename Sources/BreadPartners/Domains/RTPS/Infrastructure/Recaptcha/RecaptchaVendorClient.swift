@@ -1,4 +1,4 @@
-@preconcurrency import RecaptchaEnterprise
+import RecaptchaEnterprise
 
 package protocol RecaptchaVendorClient: Sendable {
     func execute(
