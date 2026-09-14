@@ -43,8 +43,6 @@ package actor LiveRecaptchaProvider: RecaptchaProviding {
             return
         }
 
-        do {
-            recaptchaClient = try await clientFactory.makeClient(siteKey: siteKey)
-        }
+        recaptchaClient = try await clientFactory.makeClient(siteKey: siteKey)
     }
 }
