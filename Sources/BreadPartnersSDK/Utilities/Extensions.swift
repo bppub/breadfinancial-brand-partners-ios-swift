@@ -55,17 +55,6 @@ extension UILabel {
     }
 }
 
-extension Optional where Wrapped == String {
-    func takeIfNotEmpty() -> String? {
-        guard let self = self,
-            !self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        else {
-            return nil
-        }
-        return self
-    }
-}
-
 extension String {
     /// Converts an HTML string to NSAttributedString with formatting preserved
     func htmlToAttributedString() -> NSAttributedString? {

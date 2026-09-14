@@ -21,8 +21,8 @@ extension BreadPartnersSDK {
         do {
             let response = try await APIClient(logger: logger).request(
                 urlString: apiUrl, method: .GET, body: nil)
-            brandConfiguration = try await CommonUtils().decodeJSON(
-                from: response, to: BrandConfigResponse.self)
+            brandConfiguration = try ResponseDecoder.decode(
+                response, as: BrandConfigResponse.self)
             return
         } catch {
         }
@@ -127,17 +127,17 @@ extension BreadPartnersSDK {
             ) -> Void
     ) async {
         do {
-            let responseModel: PlacementsResponse =
-                try await CommonUtils().decodeJSON(
-                    from: response,
-                    to: PlacementsResponse.self
-                )
+            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
+                response,
+                as: PlacementsResponse.self
+            )
 
             /// Opens the overlay automatically to simulate user behavior of manually tapping the placement.
             if openPlacementExperience {
-                let responseModel: PlacementsResponse =
-                    try await CommonUtils().decodeJSON(
-                        from: response, to: PlacementsResponse.self)
+                let responseModel: PlacementsResponse = try ResponseDecoder.decode(
+                    response,
+                    as: PlacementsResponse.self
+                )
                 guard
                     let popupPlacementHTMLContent = responseModel
                         .placementContent?
