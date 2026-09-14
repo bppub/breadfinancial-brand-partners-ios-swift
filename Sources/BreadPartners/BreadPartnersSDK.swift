@@ -28,8 +28,13 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
     var sdkEnvironment: BreadPartnersEnvironment = .stage
     var brandConfiguration: BrandConfigResponse?
+
+    // This will eventually live in RTPS Service.
     internal var rtpsDependencies = RTPSDependencies(
-        recaptcha: LiveRecaptchaProvider()
+        recaptcha: LiveRecaptchaProvider(),
+        network: LiveRTPSNetworkClient(logger: Logger()),
+        requestBuilder: RTPSRequestBuilder(),
+        responseDecoder: LiveRTPSResponseDecoder()
     )
     private var isInitialized: Bool = false
 
@@ -64,6 +69,14 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         self.isLoggingEnabled = enableLog
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
+
+        // This will eventually live in RTPS Service.
+        rtpsDependencies = RTPSDependencies(
+            recaptcha: LiveRecaptchaProvider(),
+            network: LiveRTPSNetworkClient(logger: logger),
+            requestBuilder: RTPSRequestBuilder(),
+            responseDecoder: LiveRTPSResponseDecoder()
+        )
         isInitialized = true
         return await fetchBrandConfig(logger: logger)
     }
