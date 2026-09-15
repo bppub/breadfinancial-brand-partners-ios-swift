@@ -1,5 +1,4 @@
 import BreadPartnersCore
-import RecaptchaEnterprise
 
 package actor LiveRecaptchaProvider: RecaptchaProviding {
     private let logger: Logger
@@ -20,7 +19,9 @@ package actor LiveRecaptchaProvider: RecaptchaProviding {
         timeout: Double,
         debug: Bool
     ) async throws -> String {
-        try await fetchRecaptchaClient(siteKey: siteKey)
+        if recaptchaClient == nil {
+            recaptchaClient = try await clientFactory.makeClient(siteKey: siteKey)
+        }
 
         guard let recaptchaClient else {
             return ""
@@ -36,13 +37,5 @@ package actor LiveRecaptchaProvider: RecaptchaProviding {
         }
 
         return token
-    }
-
-    private func fetchRecaptchaClient(siteKey: String) async throws {
-        guard recaptchaClient == nil else {
-            return
-        }
-
-        recaptchaClient = try await clientFactory.makeClient(siteKey: siteKey)
     }
 }

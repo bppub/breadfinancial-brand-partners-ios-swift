@@ -1,12 +1,17 @@
 import RecaptchaEnterprise
 
-// This functionality must be integration tested.
 protocol RecaptchaClientProviding: Sendable {
     func execute(
         action: String,
         timeout: Double
     ) async throws -> String
 }
+
+protocol RecaptchaClientFactory: Sendable {
+    func makeClient(siteKey: String) async throws -> (any RecaptchaClientProviding)?
+}
+
+// Live Recaptcha functionality must be tested via integration testing.
 
 final class LiveRecaptchaClient: RecaptchaClientProviding, @unchecked Sendable {
     private let client: RecaptchaClient
@@ -24,10 +29,6 @@ final class LiveRecaptchaClient: RecaptchaClientProviding, @unchecked Sendable {
             withTimeout: timeout
         )
     }
-}
-
-protocol RecaptchaClientFactory: Sendable {
-    func makeClient(siteKey: String) async throws -> (any RecaptchaClientProviding)?
 }
 
 struct LiveRecaptchaClientFactory: RecaptchaClientFactory {
