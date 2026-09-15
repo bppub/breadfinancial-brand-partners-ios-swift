@@ -11,14 +11,11 @@ import Testing
 
     @Test
     func decodesResponseData() throws {
-        let response = RTPSNetworkResponse(
-            data: Data(#"{"id":42,"message":"approved"}"#.utf8),
-            statusCode: 200
-        )
+        let data = Data(#"{"id":42,"message":"approved"}"#.utf8)
 
         let value = try LiveRTPSResponseDecoder().decode(
             TestResponse.self,
-            from: response
+            from: data
         )
 
         #expect(value == TestResponse(id: 42, message: "approved"))
@@ -26,13 +23,10 @@ import Testing
 
     @Test
     func propagatesDecodingErrors() {
-        let response = RTPSNetworkResponse(
-            data: Data(#"{"id":"not-an-int","message":"failed"}"#.utf8),
-            statusCode: 200
-        )
+        let data = Data(#"{"id":"not-an-int","message":"failed"}"#.utf8)
 
         #expect(throws: DecodingError.self) {
-            try LiveRTPSResponseDecoder().decode(TestResponse.self, from: response)
+            try LiveRTPSResponseDecoder().decode(TestResponse.self, from: data)
         }
     }
 }
