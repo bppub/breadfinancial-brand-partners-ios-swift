@@ -30,18 +30,6 @@ package struct RTPSNetworkRequest: Sendable {
     }
 }
 
-package struct RTPSNetworkResponse: Sendable {
-    package let data: Data
-    package let statusCode: Int
-    package let headers: [String: String]
-
-    package init(data: Data, statusCode: Int, headers: [String: String] = [:]) {
-        self.data = data
-        self.statusCode = statusCode
-        self.headers = headers
-    }
-}
-
 package protocol RTPSNetworkClient: Sendable {
-    func send(_ request: RTPSNetworkRequest) async throws -> RTPSNetworkResponse
+    func send(_ request: RTPSNetworkRequest) async throws -> Data
 }
