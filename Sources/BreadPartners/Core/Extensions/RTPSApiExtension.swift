@@ -309,7 +309,7 @@ extension BreadPartnersSDK {
             @Sendable @escaping (
                 BreadPartnerEvents
             ) -> Void,
-        _ response: RTPSNetworkResponse
+        _ response: Data
     ) async {
         do {
             let responseModel: PlacementsResponse = try rtpsDependencies.responseDecoder.decode(
