@@ -11,7 +11,6 @@
 //------------------------------------------------------------------------------
 
 import Foundation
-import RecaptchaEnterprise
 
 extension BreadPartnersSDK {
     /// This method does bot behavior check using the Recaptcha v3 SDK,
@@ -24,9 +23,9 @@ extension BreadPartnersSDK {
             for: merchantConfiguration.env ?? BreadPartnersEnvironment.prod
         )
 
-        let token = try await RecaptchaManager.shared.executeReCaptcha(
+        let token = try await rtpsDependencies.recaptcha.execute(
             siteKey: siteKey ?? "",
-            action: .init(customAction: "checkout"),
+            action: "checkout",
             timeout: 10000,
             debug: logger.isLoggingEnabled
         )
