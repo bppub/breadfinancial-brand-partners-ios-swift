@@ -1,0 +1,40 @@
+{
+  "configurations" : [
+    {
+      "id" : "EDBC836F-B728-440D-9BA0-96252D6D9A3B",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "BreadPartners",
+          "name" : "BreadPartners"
+        }
+      ]
+    },
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersCoreTests",
+        "name" : "BreadPartnersCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersTests",
+        "name" : "BreadPartnersTests"
+      }
+    }
+  ],
+  "version" : 1
+}
