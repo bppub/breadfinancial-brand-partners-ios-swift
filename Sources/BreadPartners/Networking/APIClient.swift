@@ -11,13 +11,10 @@
 //------------------------------------------------------------------------------
 
 import Foundation
+import BreadPartnersCore
 
 struct AnySendable: @unchecked Sendable {
     let value: Any
-}
-/// Enum for HTTP Method Types.
-internal enum HTTPMethod: String, Sendable {
-    case GET, POST, PUT, DELETE, OPTIONS
 }
 
 /// A utility class for making HTTP API requests.

@@ -11,7 +11,7 @@ package struct LiveRTPSNetworkClient: RTPSNetworkClient {
     package func send(_ request: RTPSNetworkRequest) async throws -> Data {
         return try await APIClient(logger: logger).requestData(
             urlString: request.url.absoluteString,
-            method: HTTPMethod(rawValue: request.method.rawValue) ?? .POST,
+            method: request.method,
             headers: request.headers,
             cookies: request.cookies,
             body: request.body

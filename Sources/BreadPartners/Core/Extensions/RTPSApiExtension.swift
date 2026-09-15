@@ -141,7 +141,7 @@ extension BreadPartnersSDK {
             let response = try await rtpsDependencies.network.send(
                 RTPSNetworkRequest(
                     url: url,
-                    method: .post,
+                    method: .POST,
                     headers: headers,
                     cookies: cookies,
                     body: try JSONEncoder().encode(rtpsRequestBuilt)
@@ -274,7 +274,7 @@ extension BreadPartnersSDK {
             let response = try await rtpsDependencies.network.send(
                 RTPSNetworkRequest(
                     url: url,
-                    method: .post,
+                    method: .POST,
                     body: try JSONEncoder().encode(request)
                 )
             )
