@@ -1,23 +1,23 @@
 import Foundation
 
-package enum RTPSHTTPMethod: String, Sendable {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-    case options = "OPTIONS"
+package enum HTTPMethod: String, Sendable {
+    case GET
+    case POST
+    case PUT
+    case DELETE
+    case OPTIONS
 }
 
 package struct RTPSNetworkRequest: Sendable {
     package let url: URL
-    package let method: RTPSHTTPMethod
+    package let method: HTTPMethod
     package let headers: [String: String]
     package let cookies: String?
     package let body: Data?
 
     package init(
         url: URL,
-        method: RTPSHTTPMethod,
+        method: HTTPMethod,
         headers: [String: String] = [:],
         cookies: String? = nil,
         body: Data? = nil
