@@ -8,8 +8,8 @@ import Testing
     }
 
     private struct Network: RTPSNetworkClient {
-        func send(_ request: RTPSNetworkRequest) async throws -> RTPSNetworkResponse {
-            RTPSNetworkResponse(data: Data(), statusCode: 200)
+        func send(_ request: RTPSNetworkRequest) async throws -> Data {
+            Data()
         }
     }
 
@@ -22,7 +22,7 @@ import Testing
     }
 
     private struct Decoder: RTPSResponseDecoding {
-        func decode<T: Decodable>(_ type: T.Type, from response: RTPSNetworkResponse) throws -> T {
+        func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
             fatalError("unused")
         }
     }

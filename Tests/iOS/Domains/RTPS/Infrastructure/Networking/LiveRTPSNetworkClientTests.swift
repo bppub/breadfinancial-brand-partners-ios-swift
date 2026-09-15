@@ -3,12 +3,12 @@ import Foundation
 import Testing
 @testable import BreadPartners
 
-@Suite struct LiveRTPSNetworkClientTests {
+@Suite(.serialized) struct LiveRTPSNetworkClientTests {
     @Test
     func sendsRequestAndConvertsJSONResponse() async throws {
         let responseData = Data(#"{"returnCode":"01","prescreenId":42}"#.utf8)
-        NetworkURLProtocol.response = (responseData, 200, ["Content-Type": "application/json"])
         NetworkURLProtocol.reset()
+        NetworkURLProtocol.response = (responseData, 200, ["Content-Type": "application/json"])
         URLProtocol.registerClass(NetworkURLProtocol.self)
         defer {
             URLProtocol.unregisterClass(NetworkURLProtocol.self)
@@ -18,16 +18,19 @@ import Testing
         let requestBody = Data(#"{"prescreenId":"42"}"#.utf8)
         let request = RTPSNetworkRequest(
             url: URL(string: "https://example.com/rtps")!,
-            method: .post,
+            method: .POST,
             headers: ["X-Client-Key": "integration-key"],
             cookies: "session=abc",
             body: requestBody
         )
 
-        let response = try await LiveRTPSNetworkClient(logger: Logger()).send(request)
+        let data = try await LiveRTPSNetworkClient(logger: Logger()).send(request)
 
-        #expect(response.data == responseData)
-        #expect(response.statusCode == 200)
+        let responseJSON = try JSONSerialization.jsonObject(with: data)
+        let expectedJSON = try JSONSerialization.jsonObject(with: responseData)
+        #expect((responseJSON as? [String: Any])?.keys.sorted() == (expectedJSON as? [String: Any])?.keys.sorted())
+        #expect((responseJSON as? [String: Any])?["returnCode"] as? String == "01")
+        #expect((responseJSON as? [String: Any])?["prescreenId"] as? Int == 42)
         #expect(NetworkURLProtocol.lastRequest?.url?.absoluteString == "https://example.com/rtps")
         #expect(NetworkURLProtocol.lastRequest?.httpMethod == "POST")
         #expect(NetworkURLProtocol.lastRequest?.value(forHTTPHeaderField: "X-Client-Key") == "integration-key")
@@ -37,8 +40,8 @@ import Testing
 
     @Test
     func sendsRequestWithoutBody() async throws {
-        NetworkURLProtocol.response = (Data(#"{"ok":true}"#.utf8), 200, ["Content-Type": "application/json"])
         NetworkURLProtocol.reset()
+        NetworkURLProtocol.response = (Data(#"{"ok":true}"#.utf8), 200, ["Content-Type": "application/json"])
         URLProtocol.registerClass(NetworkURLProtocol.self)
         defer {
             URLProtocol.unregisterClass(NetworkURLProtocol.self)
@@ -47,7 +50,7 @@ import Testing
 
         let request = RTPSNetworkRequest(
             url: URL(string: "https://example.com/rtps")!,
-            method: .get
+            method: .GET
         )
 
         _ = try await LiveRTPSNetworkClient(logger: Logger()).send(request)
@@ -72,7 +75,23 @@ private final class NetworkURLProtocol: URLProtocol {
 
     override func startLoading() {
         Self.lastRequest = request
-        Self.lastBody = request.httpBody
+        if let body = request.httpBody {
+            Self.lastBody = body
+        } else if let bodyStream = request.httpBodyStream {
+            bodyStream.open()
+            defer { bodyStream.close() }
+
+            var body = Data()
+            var buffer = [UInt8](repeating: 0, count: 1024)
+            while bodyStream.hasBytesAvailable {
+                let bytesRead = bodyStream.read(&buffer, maxLength: buffer.count)
+                guard bytesRead > 0 else { break }
+                body.append(buffer, count: bytesRead)
+            }
+            Self.lastBody = body
+        } else {
+            Self.lastBody = nil
+        }
 
         let (data, statusCode, headers) = Self.response
         let response = HTTPURLResponse(
