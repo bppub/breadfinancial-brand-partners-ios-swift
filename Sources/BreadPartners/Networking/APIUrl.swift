@@ -78,4 +78,12 @@ internal actor APIUrl {
             return "\(rtpsBaseURL)/api/virtual_lookup"
         }
     }
+
+    nonisolated var foundationURL: URL {
+        guard let url = URL(string: url) else {
+            preconditionFailure("APIUrl produced an invalid URL: \(url)")
+        }
+
+        return url
+    }
 }
