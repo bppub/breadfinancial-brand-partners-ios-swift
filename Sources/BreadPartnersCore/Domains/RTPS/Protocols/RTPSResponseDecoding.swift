@@ -1,6 +1,8 @@
+import Foundation
+
 package protocol RTPSResponseDecoding: Sendable {
     func decode<T: Decodable>(
         _ type: T.Type,
-        from response: RTPSNetworkResponse
+        from data: Data
     ) throws -> T
 }
