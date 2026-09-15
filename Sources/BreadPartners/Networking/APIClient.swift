@@ -11,25 +11,25 @@
 //------------------------------------------------------------------------------
 
 import Foundation
+import BreadPartnersCore
 
 struct AnySendable: @unchecked Sendable {
     let value: Any
-}
-/// Enum for HTTP Method Types.
-internal enum HTTPMethod: String, Sendable {
-    case GET, POST, PUT, DELETE, OPTIONS
 }
 
 /// A utility class for making HTTP API requests.
 internal class APIClient: @unchecked Sendable {
 
     init(
-        logger: Logger
+        logger: Logger,
+        session: URLSession = .shared
     ) {
         self.logger = logger
+        self.session = session
     }
 
     var logger: Logger = Logger()
+    private let session: URLSession
 
     /// Generic API call function
     ///
@@ -46,6 +46,83 @@ internal class APIClient: @unchecked Sendable {
         cookies: String? = nil,
         body: Any? = nil,
     ) async throws -> AnySendable {
+        let encodedBody = try encodeBody(body)
+        let data = try await requestData(
+            urlString: urlString,
+            method: method,
+            headers: headers,
+            cookies: cookies,
+            body: encodedBody
+        )
+
+        do {
+            if let jsonDict = try JSONSerialization.jsonObject(
+                with: data, options: []) as? [String: Any]
+            {
+                return AnySendable(value: jsonDict)
+            } else {
+                throw NSError(
+                    domain: "BreadPartners", code: 0,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"]
+                )
+            }
+        } catch {
+            throw NSError(
+                domain: "DecodingError", code: 500,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Failed to decode the server response."
+                ])
+        }
+    }
+
+    private func encodeBody(_ body: Any?) throws -> Data? {
+        guard let body else { return nil }
+
+        do {
+            let unwrappedBody = (body as? AnySendable)?.value ?? body
+
+            if let bodyData = unwrappedBody as? Data {
+                return bodyData
+            }
+
+            if let bodyDictionary = unwrappedBody as? [String: Any] {
+                return try JSONSerialization.data(
+                    withJSONObject: bodyDictionary,
+                    options: [])
+            }
+
+            if let bodyCodable = unwrappedBody as? Encodable {
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .useDefaultKeys
+                return try encoder.encode(bodyCodable)
+            }
+
+            throw NSError(
+                domain: "UnsupportedBodyType", code: 400,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "The request body type is not supported. Type: \(type(of: unwrappedBody))"
+                ]
+            )
+        } catch {
+            throw NSError(
+                domain: "SerializationError", code: 500,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Failed to serialize the request body."
+                ]
+            )
+        }
+    }
+
+    func requestData(
+        urlString: String,
+        method: HTTPMethod = .POST,
+        headers: [String: String]? = nil,
+        cookies: String? = nil,
+        body: Data? = nil,
+    ) async throws -> Data {
         // Validate the URL
         guard let url = URL(string: urlString) else {
             throw NSError(
@@ -78,41 +155,7 @@ internal class APIClient: @unchecked Sendable {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        // Add body if provided
-        if let body = body {
-            do {
-                let jsonData: Data
-
-                let unwrappedBody = (body as? AnySendable)?.value ?? body
-
-                if let bodyDictionary = unwrappedBody as? [String: Any] {
-                    jsonData = try JSONSerialization.data(
-                        withJSONObject: bodyDictionary, options: [])
-                } else if let bodyCodable = unwrappedBody as? Encodable {
-                    let encoder = JSONEncoder()
-                    encoder.keyEncodingStrategy = .useDefaultKeys
-                    jsonData = try encoder.encode(bodyCodable)
-                } else {
-                    throw NSError(
-                        domain: "UnsupportedBodyType", code: 400,
-                        userInfo: [
-                            NSLocalizedDescriptionKey:
-                                "The request body type is not supported. Type: \(type(of: unwrappedBody))"
-                        ]
-                    )
-                }
-
-                request.httpBody = jsonData
-            } catch {
-                throw NSError(
-                    domain: "SerializationError", code: 500,
-                    userInfo: [
-                        NSLocalizedDescriptionKey:
-                            "Failed to serialize the request body."
-                    ]
-                )
-            }
-        }
+        request.httpBody = body
 
         // Log the request details
         logger.logRequestDetails(
@@ -121,7 +164,7 @@ internal class APIClient: @unchecked Sendable {
             headers: updatedHeaders,
             body: request.httpBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NSError(
@@ -185,27 +228,6 @@ internal class APIClient: @unchecked Sendable {
                 ])
         }
 
-        // Decode the response data
-        do {
-
-            if let jsonDict = try JSONSerialization.jsonObject(
-                with: data, options: []) as? [String: Any]
-            {
-                return AnySendable(value: jsonDict)
-            } else {
-                throw NSError(
-                    domain: "BreadPartners", code: 0,
-                    userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"]
-                )
-            }
-        } catch {
-            throw NSError(
-                domain: "DecodingError", code: 500,
-                userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "Failed to decode the server response."
-                ])
-        }
-
+        return data
     }
 }

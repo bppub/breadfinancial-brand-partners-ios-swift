@@ -12,34 +12,37 @@
 
 import Foundation
 
-/// Represents a request model for an RTPS.
-internal struct RTPSRequest: Codable {
-    let urlPath: String?
-    let firstName: String?
-    let lastName: String?
-    let address1: String?
-    let city: String?
-    let state: String?
-    let zip: String?
-    let storeNumber: String?
-    let location: String?
-    let channel: String?
-    let subchannel: String?
-    var reCaptchaToken: String?
-    let mockResponse: String?
-    let overrideConfig: OverrideConfig?
-    let prescreenId: String?
-    let customerAcceptedOffer: Bool?
-    let platform: String
-    let alternativePhone: String?
-    let mobilePhone: String?
-    let emailAddress: String?
+package struct RTPSRequest: Codable, Sendable {
+    package let urlPath: String?
+    package let firstName: String?
+    package let lastName: String?
+    package let address1: String?
+    package let city: String?
+    package let state: String?
+    package let zip: String?
+    package let storeNumber: String?
+    package let location: String?
+    package let channel: String?
+    package let subchannel: String?
+    package let reCaptchaToken: String?
+    package let mockResponse: String?
+    package let overrideConfig: OverrideConfig?
+    package let prescreenId: String?
+    package let customerAcceptedOffer: Bool?
+    package let platform: String
+    package let alternativePhone: String?
+    package let mobilePhone: String?
+    package let emailAddress: String?
 
-    struct OverrideConfig: Codable {
-        let enhancedPresentment: Bool?
+    package struct OverrideConfig: Codable, Sendable, Equatable {
+        package let enhancedPresentment: Bool?
+
+        package init(enhancedPresentment: Bool?) {
+            self.enhancedPresentment = enhancedPresentment
+        }
     }
 
-    init(
+    package init(
         urlPath: String? = nil,
         firstName: String? = nil,
         lastName: String? = nil,
@@ -67,7 +70,7 @@ internal struct RTPSRequest: Codable {
         self.city = city
         self.state = state
         self.zip = zip
-        self.storeNumber = storeNumber ?? "8883"
+        self.storeNumber = storeNumber ?? CoreDefaults.defaultStoreNumber
         self.location = location
         self.channel = channel
         self.subchannel = subchannel
