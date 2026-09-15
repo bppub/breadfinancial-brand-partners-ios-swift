@@ -21,12 +21,15 @@ struct AnySendable: @unchecked Sendable {
 internal class APIClient: @unchecked Sendable {
 
     init(
-        logger: Logger
+        logger: Logger,
+        session: URLSession = .shared
     ) {
         self.logger = logger
+        self.session = session
     }
 
     var logger: Logger = Logger()
+    private let session: URLSession
 
     /// Generic API call function
     ///
@@ -161,7 +164,7 @@ internal class APIClient: @unchecked Sendable {
             headers: updatedHeaders,
             body: request.httpBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NSError(
