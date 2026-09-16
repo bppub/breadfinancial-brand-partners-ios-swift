@@ -104,8 +104,8 @@ import Testing
         #expect(placement.selectedCardKey == "selected-card")
         #expect(placement.upqInSessionToken == "session-token")
         #expect(placement.financingBuyerId == "buyer-id")
-        #expect(placement.prequalificationId == "buyer-id")
-        #expect(placement.prequalCreditLimit == "buyer-id")
+        #expect(placement.prequalificationId == "prequalification-id")
+        #expect(placement.prequalCreditLimit == "5000")
     }
 }
 
