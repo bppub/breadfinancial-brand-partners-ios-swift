@@ -10,7 +10,7 @@
 //  © 2025 Bread Financial
 //------------------------------------------------------------------------------
 
-@preconcurrency import WebKit
+import WebKit
 import QuickLook
 
 /// Manages WebView interactions and events within the SDK.

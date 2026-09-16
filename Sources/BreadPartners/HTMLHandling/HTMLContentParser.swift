@@ -11,7 +11,7 @@
 //------------------------------------------------------------------------------
 
 import Foundation
-@preconcurrency import SwiftSoup
+import SwiftSoup
 
 /// Actor responsible for extracting structured data from HTML using SwiftSoup.
 internal actor HTMLContentParser {
