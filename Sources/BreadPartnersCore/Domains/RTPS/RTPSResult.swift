@@ -21,8 +21,6 @@ package enum RTPSResult: Sendable, Equatable {
     }
 }
 
-package typealias PrescreenResult = RTPSResult
-
 package func getPrescreenResult(from apiResponse: String) -> RTPSResult {
     RTPSResult(returnCode: apiResponse)
 }
