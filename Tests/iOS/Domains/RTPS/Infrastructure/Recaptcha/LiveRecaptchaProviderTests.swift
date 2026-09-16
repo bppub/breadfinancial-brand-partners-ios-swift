@@ -170,11 +170,12 @@ import Testing
     func executeLogsTokenWhenDebugIsEnabled() async throws {
         let client = ClientSpy(result: .success("token-123"))
         let factory = FactorySpy(client: client)
-        let events = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { events.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let provider = LiveRecaptchaProvider(logger: logger, clientFactory: factory)
+        #expect(eventBox.events.count == 0)
 
         _ = try await provider.execute(
             siteKey: "site-key",
@@ -183,8 +184,8 @@ import Testing
             debug: true
         )
 
-        #expect(events.events.count == 1)
-        guard case let .onSDKEventLog(message)? = events.events.first else {
+        #expect(eventBox.events.count == 1)
+        guard case let .onSDKEventLog(message)? = eventBox.events.first else {
             Issue.record("Expected a reCAPTCHA token log event")
             return
         }
@@ -195,10 +196,10 @@ import Testing
     func executeDoesNotLogTokenWhenDebugIsDisabled() async throws {
         let client = ClientSpy(result: .success("token-123"))
         let factory = FactorySpy(client: client)
-        let events = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { events.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let provider = LiveRecaptchaProvider(logger: logger, clientFactory: factory)
 
         _ = try await provider.execute(
@@ -208,6 +209,6 @@ import Testing
             debug: false
         )
 
-        #expect(events.events.isEmpty)
+        #expect(eventBox.events.isEmpty)
     }
 }

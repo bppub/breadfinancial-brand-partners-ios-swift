@@ -9,26 +9,27 @@ import Testing
 
     @Test
     func disabledLoggerDoesNotEmitEvent() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.debugPrint("hidden")
 
-        #expect(box.events.isEmpty)
+        #expect(eventBox.events.isEmpty)
     }
 
     @Test
     func enabledLoggerEmitsJoinedMessage() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
+        #expect(eventBox.events.count == 0)
 
         logger.debugPrint("value", 42, separator: " | ")
 
-        #expect(box.events.count == 1)
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        #expect(eventBox.events.count == 1)
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -37,10 +38,10 @@ import Testing
 
     @Test
     func requestLoggingEmitsOneFormattedEvent() throws {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/request"))
 
         logger.logRequestDetails(
@@ -50,8 +51,8 @@ import Testing
             body: Data(#"{"id":1}"#.utf8)
         )
 
-        #expect(box.events.count == 1)
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        #expect(eventBox.events.count == 1)
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -63,45 +64,45 @@ import Testing
     @Test
     func replacingCallbackStopsUsingPreviousCallback() {
         let logger = Logger()
-        let firstBox = EventBox()
-        let secondBox = EventBox()
+        let firstEventBox = EventBox()
+        let secondEventBox = EventBox()
         logger.setLogging(enabled: true)
 
-        logger.setCallback { firstBox.events.append($0) }
+        logger.setCallback { firstEventBox.events.append($0) }
         logger.debugPrint("one")
 
-        logger.setCallback { secondBox.events.append($0) }
+        logger.setCallback { secondEventBox.events.append($0) }
         logger.debugPrint("two")
 
-        #expect(firstBox.events.count == 1)
-        #expect(secondBox.events.count == 1)
+        #expect(firstEventBox.events.count == 1)
+        #expect(secondEventBox.events.count == 1)
     }
 
     @Test
     func printLogRespectsLoggingFlag() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.printLog("hidden")
-        #expect(box.events.isEmpty)
+        #expect(eventBox.events.isEmpty)
 
         logger.setLogging(enabled: true)
         logger.printLog("visible")
-        #expect(box.events.count == 1)
+        #expect(eventBox.events.count == 1)
     }
 
     @Test
     func requestLoggingUsesNoBodyWhenBodyIsNil() throws {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/request"))
 
         logger.logRequestDetails(url: url, method: "GET", headers: nil, body: nil)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -111,10 +112,10 @@ import Testing
 
     @Test
     func responseLoggingIncludesStatusUrlAndBody() throws {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/response"))
 
         logger.logResponseDetails(
@@ -124,7 +125,7 @@ import Testing
             body: Data(#"{"ok":true}"#.utf8)
         )
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -136,10 +137,10 @@ import Testing
 
     @Test
     func textPlacementLoggingIncludesModelFields() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let model = TextPlacementModel(
             actionType: "SHOW_OVERLAY",
             actionTarget: "modal",
@@ -151,7 +152,7 @@ import Testing
 
         logger.logTextPlacementModelDetails(model)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -163,10 +164,10 @@ import Testing
 
     @Test
     func textPlacementLoggingUsesNAForMissingFields() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let model = TextPlacementModel(
             actionType: nil,
             actionTarget: nil,
@@ -178,7 +179,7 @@ import Testing
 
         logger.logTextPlacementModelDetails(model)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -192,10 +193,10 @@ import Testing
 
     @Test
     func popupPlacementLoggingIncludesPrimaryActionAndDynamicBody() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let model = PopupPlacementModel(
             overlayType: "EMBEDDED_OVERLAY",
             location: "checkout",
@@ -222,7 +223,7 @@ import Testing
 
         logger.logPopupPlacementModelDetails(model)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -239,10 +240,10 @@ import Testing
 
     @Test
     func popupPlacementLoggingHandlesEmptyDynamicBody() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let model = PopupPlacementModel(
             overlayType: "EMBEDDED_OVERLAY",
             location: nil,
@@ -260,7 +261,7 @@ import Testing
 
         logger.logPopupPlacementModelDetails(model)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -270,10 +271,10 @@ import Testing
 
     @Test
     func popupPlacementLoggingUsesNAForMissingActionTypeAndButtonText() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let model = PopupPlacementModel(
             overlayType: "EMBEDDED_OVERLAY",
             location: nil,
@@ -294,7 +295,7 @@ import Testing
 
         logger.logPopupPlacementModelDetails(model)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -304,15 +305,15 @@ import Testing
 
     @Test
     func loadingURLLoggingEmitsURL() throws {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/loading"))
 
         logger.logLoadingURL(url: url)
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -322,14 +323,14 @@ import Testing
 
     @Test
     func recaptchaTokenLoggingEmitsToken() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.logReCaptchaToken(token: "token-123")
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -339,17 +340,17 @@ import Testing
 
     @Test
     func applicationResultLoggingEmitsPayloadFields() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.logApplicationResultDetails([
             "applicationId": "app-1",
             "status": "approved",
         ])
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -361,14 +362,14 @@ import Testing
 
     @Test
     func applicationResultLoggingUsesNAForMissingFields() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.logApplicationResultDetails([:])
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -384,14 +385,14 @@ import Testing
 
     @Test
     func webAnchorLoggingEmitsAnchorData() {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
         logger.setLogging(enabled: true)
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
 
         logger.printWebAnchorLogs(data: "Anchor Tags: <a href=\"/help\">")
 
-        guard case let .onSDKEventLog(logs)? = box.events.first else {
+        guard case let .onSDKEventLog(logs)? = eventBox.events.first else {
             Issue.record("Expected an SDK log event")
             return
         }
@@ -401,9 +402,9 @@ import Testing
 
     @Test
     func loggerMethodsDoNotEmitWhenDisabled() throws {
-        let box = EventBox()
+        let eventBox = EventBox()
         let logger = Logger()
-        logger.setCallback { box.events.append($0) }
+        logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/disabled"))
 
         logger.printLog("hidden")
@@ -440,6 +441,6 @@ import Testing
         logger.logApplicationResultDetails(["applicationId": "hidden-app"])
         logger.printWebAnchorLogs(data: "hidden-anchors")
 
-        #expect(box.events.isEmpty)
+        #expect(eventBox.events.isEmpty)
     }
 }
