@@ -29,4 +29,22 @@ import Testing
             try LiveRTPSResponseDecoder().decode(TestResponse.self, from: data)
         }
     }
+
+    @Test
+    func propagatesMalformedJSONErrors() {
+        let data = Data(#"{"id":42,"message":"approved""#.utf8)
+
+        #expect(throws: DecodingError.self) {
+            try LiveRTPSResponseDecoder().decode(TestResponse.self, from: data)
+        }
+    }
+
+    @Test
+    func propagatesMissingRequiredValueErrors() {
+        let data = Data(#"{"id":42}"#.utf8)
+
+        #expect(throws: DecodingError.self) {
+            try LiveRTPSResponseDecoder().decode(TestResponse.self, from: data)
+        }
+    }
 }
