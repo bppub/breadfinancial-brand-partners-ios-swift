@@ -26,18 +26,22 @@ internal enum APIUrlType {
 }
 
 internal actor APIUrl {
-
     nonisolated(unsafe) static var currentEnvironment: BreadPartnersEnvironment = .prod
 
     private let baseURL: String
     private let rtpsBaseURL: String
     private let urlType: APIUrlType
 
-    /// Initializer for APIUrl with a configurable URL type
-    init(urlType: APIUrlType) {
+    /// Adding a transitional environment handler to allow for testing of the current behavior.
+    /// In future updates, this will become a core SDK Dependency and current/setEnvironment will go away
+    /// in favor of direct initialization. The current implementation is not testable in isolation.
+    init(
+        urlType: APIUrlType,
+        environment: BreadPartnersEnvironment? = nil
+    ) {
         self.urlType = urlType
 
-        switch APIUrl.currentEnvironment {
+        switch environment ?? APIUrl.currentEnvironment {
         case .stage:
             self.baseURL = "https://brands.kmsmep.com"
             self.rtpsBaseURL = "https://acquire1stage.comenity.net"
@@ -80,6 +84,7 @@ internal actor APIUrl {
     }
 
     nonisolated var foundationURL: URL {
+        // This guard is not unit-testabile as it only fails with invalid configuration.
         guard let url = URL(string: url) else {
             preconditionFailure("APIUrl produced an invalid URL: \(url)")
         }
