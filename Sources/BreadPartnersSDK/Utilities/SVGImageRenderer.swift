@@ -42,7 +42,8 @@ enum SVGImageRenderer {
     static func image(from data: Data, targetSize: CGSize) -> UIImage? {
         guard isSVG(data: data) else { return nil }
 
-        let parser = SVGDocumentParser()
+        let styleSheet = SVGStyleSheetParser.parse(from: data)
+        let parser = SVGDocumentParser(styleSheet: styleSheet)
         guard let document = parser.parse(data: data), !document.shapes.isEmpty else {
             return nil
         }
@@ -195,6 +196,16 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
     private var suppressStack: [Bool] = [false]
     private var didParseError = false
 
+    /// Class name -> CSS declarations (e.g. "st0" -> ["fill": "#CF202F"]),
+    /// parsed ahead of time from any `<style>` blocks. Illustrator-exported
+    /// SVGs commonly define colors this way (`class="st0"`) rather than
+    /// with a direct `fill`/`style` attribute on each element.
+    private let styleSheet: [String: [String: String]]
+
+    init(styleSheet: [String: [String: String]] = [:]) {
+        self.styleSheet = styleSheet
+    }
+
     func parse(data: Data) -> SVGDocument? {
         let parser = XMLParser(data: data)
         parser.delegate = self
@@ -209,23 +220,19 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
         qualifiedName qName: String?,
         attributes attributeDict: [String: String] = [:]
     ) {
+        let effectiveAttributes = resolvedAttributes(attributeDict)
         let currentStyle = styleStack.last ?? SVGStyle()
-        let mergedStyle = currentStyle.merging(attributes: attributeDict)
-        let localTransform = SVGTransformParser.transform(from: attributeDict["transform"])
+        let mergedStyle = currentStyle.merging(attributes: effectiveAttributes)
+        let localTransform = SVGTransformParser.transform(from: effectiveAttributes["transform"])
         let combinedTransform = localTransform.concatenating(transformStack.last ?? .identity)
         let parentSuppressed = suppressStack.last ?? false
         let suppressed = parentSuppressed || Self.nonRenderingElements.contains(elementName.lowercased())
 
-        switch elementName {
-        case "svg":
-            parseSVGRoot(attributes: attributeDict)
-        case "g", "svg", "symbol":
-            break
-        default:
-            break
+        if elementName == "svg" {
+            parseSVGRoot(attributes: effectiveAttributes)
         }
 
-        if !suppressed, let path = SVGShapeFactory.path(for: elementName, attributes: attributeDict) {
+        if !suppressed, let path = SVGShapeFactory.path(for: elementName, attributes: effectiveAttributes) {
             var mutableTransform = combinedTransform
             let transformedPath = path.copy(using: &mutableTransform) ?? path
             document.shapes.append(SVGShape(path: transformedPath, style: mergedStyle))
@@ -234,6 +241,23 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
         styleStack.append(mergedStyle)
         transformStack.append(combinedTransform)
         suppressStack.append(suppressed)
+    }
+
+    /// Merges any CSS-class-derived properties (lower priority) underneath
+    /// this element's own direct attributes (higher priority), matching
+    /// basic CSS cascade order: inline attributes/style win over classes.
+    private func resolvedAttributes(_ attributeDict: [String: String]) -> [String: String] {
+        guard let classAttribute = attributeDict["class"], !styleSheet.isEmpty else {
+            return attributeDict
+        }
+        var classDerivedAttributes: [String: String] = [:]
+        for className in classAttribute.split(separator: " ") {
+            if let declarations = styleSheet[String(className)] {
+                classDerivedAttributes.merge(declarations) { _, new in new }
+            }
+        }
+        guard !classDerivedAttributes.isEmpty else { return attributeDict }
+        return classDerivedAttributes.merging(attributeDict) { _, new in new }
     }
 
     func parser(
@@ -811,4 +835,60 @@ private enum SVGColorParser {
         "grey": UIColor.gray.cgColor,
         "transparent": UIColor.clear.cgColor,
     ]
+}
+
+// MARK: - Minimal CSS "<style>" block parsing (class selectors only)
+
+/// Parses simple class-selector CSS rules out of any `<style>` blocks in the
+/// document, e.g. Adobe Illustrator's common export pattern:
+/// ```
+/// <style type="text/css">.st0{fill:#CF202F;}</style>
+/// ...
+/// <path class="st0" d="..."/>
+/// ```
+/// Only flat class selectors (`.name { prop: value; ... }`, optionally
+/// comma-separated) are supported — no combinators, media queries,
+/// pseudo-classes, or specificity rules. This covers the vast majority of
+/// vector logo exports, which rely on `<style>` purely to avoid repeating
+/// `fill="#..."` on every path.
+private enum SVGStyleSheetParser {
+    static func parse(from data: Data) -> [String: [String: String]] {
+        guard let text = String(data: data, encoding: .utf8) else { return [:] }
+
+        var result: [String: [String: String]] = [:]
+        var searchStart = text.startIndex
+        while let styleTagRange = text.range(of: "<style", range: searchStart..<text.endIndex),
+              let tagCloseRange = text.range(of: ">", range: styleTagRange.upperBound..<text.endIndex),
+              let styleEndRange = text.range(of: "</style>", range: tagCloseRange.upperBound..<text.endIndex) {
+            let cssText = text[tagCloseRange.upperBound..<styleEndRange.lowerBound]
+            parseRules(String(cssText), into: &result)
+            searchStart = styleEndRange.upperBound
+        }
+        return result
+    }
+
+    private static func parseRules(_ css: String, into result: inout [String: [String: String]]) {
+        for block in css.split(separator: "}") {
+            guard let braceIndex = block.firstIndex(of: "{") else { continue }
+            let selectorsText = block[block.startIndex..<braceIndex]
+            let declarationsText = block[block.index(after: braceIndex)...]
+
+            var declarations: [String: String] = [:]
+            for declaration in declarationsText.split(separator: ";") {
+                let parts = declaration.split(separator: ":", maxSplits: 1)
+                guard parts.count == 2 else { continue }
+                let key = parts[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                let value = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                declarations[key] = value
+            }
+            guard !declarations.isEmpty else { continue }
+
+            for rawSelector in selectorsText.split(separator: ",") {
+                let selector = rawSelector.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard selector.hasPrefix(".") else { continue }
+                let className = String(selector.dropFirst())
+                result[className, default: [:]].merge(declarations) { _, new in new }
+            }
+        }
+    }
 }
