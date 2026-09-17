@@ -21,8 +21,7 @@ public extension UIImageView {
                 guard let data = try? Data(contentsOf: url) else {
                     return (nil as UIImage?, false)
                 }
-                // SVG logos are rendered with a small, dependency-free parser
-                // (no WebKit/JavaScript execution risk for remote content).
+                
                 if let svgImage = SVGImageRenderer.image(from: data, targetSize: targetSize) {
                     return (svgImage as UIImage?, true)
                 }
