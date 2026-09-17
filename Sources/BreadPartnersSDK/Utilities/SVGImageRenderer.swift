@@ -3,20 +3,11 @@
 //  Author(s):     Bread Financial
 //  Date:          17 September 2026
 //
-//  Descriptions:  A minimal, dependency-free SVG parser and rasterizer used
-//  to render brand/partner logos delivered as SVG. Only the common subset of
-//  SVG needed for flat, single-color vector logos is supported: <svg>, <g>,
-//  <path>, <rect>, <circle>, <ellipse>, <line>, <polygon>, <polyline>,
-//  "transform" (translate/scale/rotate/matrix/skewX/skewY), and basic
-//  "fill"/"stroke"/"opacity" styling. Gradients, filters, clip-paths, text,
-//  <use>/<defs> references, CSS <style> blocks, and animations are
-//  intentionally out of scope, since they are not needed for static logos
-//  and would meaningfully increase the surface area of this file.
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing UI components and functionalities to integrate Bread Financial
+//  services into partner applications.
 //
-//  This intentionally avoids WKWebView (no JavaScript execution risk from
-//  untrusted, partner-supplied SVG content) and third-party dependencies.
-//
-//  © 2025 Bread Financial
+//  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
 import UIKit
@@ -637,7 +628,7 @@ private enum SVGArcConverter {
             let cosTheta = cos(theta), sinTheta = sin(theta)
             let cosNext = cos(nextTheta), sinNext = sin(nextTheta)
 
-            func ellipsePoint(_ t: Double, _ cosT: Double, _ sinT: Double) -> CGPoint {
+            func ellipsePoint(_ cosT: Double, _ sinT: Double) -> CGPoint {
                 let x = cosPhi * rx * cosT - sinPhi * ry * sinT + cx
                 let y = sinPhi * rx * cosT + cosPhi * ry * sinT + cy
                 return CGPoint(x: x, y: y)
@@ -648,7 +639,7 @@ private enum SVGArcConverter {
                 return CGPoint(x: x, y: y)
             }
 
-            let p2 = ellipsePoint(nextTheta, cosNext, sinNext)
+            let p2 = ellipsePoint(cosNext, sinNext)
             let tangent1 = ellipseTangent(cosTheta, sinTheta)
             let tangent2 = ellipseTangent(cosNext, sinNext)
 
