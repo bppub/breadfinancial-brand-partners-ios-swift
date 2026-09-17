@@ -3,7 +3,7 @@
 //  Author(s):     Bread Financial
 //  Date:          4 December 2025
 //
-//  Descriptions:  This file is part of the BreadPartnersSDK for iOS,
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
@@ -24,7 +24,8 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
     private let logger: Logger
     private var calledCaptchaCompleted: Bool = false
     private var hasFinisedLoading: Bool = false
-    
+    private var hasRemovedCookieObserver: Bool = false
+
     
     init(htmlContent: String,
          originalURL: String,
@@ -45,8 +46,22 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
     }
     
     deinit {
-        // Important: Remove the observer manually
+        guard Thread.isMainThread else { return }
+        MainActor.assumeIsolated {
+            removeCookieObserver()
+        }
+    }
+
+    @MainActor
+    private func removeCookieObserver() {
+        guard !hasRemovedCookieObserver else { return }
+        hasRemovedCookieObserver = true
         webView.configuration.websiteDataStore.httpCookieStore.remove(self)
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        removeCookieObserver()
     }
 
     override func viewDidLoad() {
@@ -67,14 +82,9 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
 
         let config = WKWebViewConfiguration()
         
-        if #available(iOS 14.0, *) {
-            let preferences = WKWebpagePreferences()
-            preferences.allowsContentJavaScript = true
-            config.defaultWebpagePreferences = preferences
-        } else {
-            // For iOS versions below 14.0, JavaScript is enabled by default
-            config.preferences.javaScriptEnabled = true
-        }
+        let preferences = WKWebpagePreferences()
+        preferences.allowsContentJavaScript = true
+        config.defaultWebpagePreferences = preferences
 
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self

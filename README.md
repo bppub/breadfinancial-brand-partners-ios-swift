@@ -73,7 +73,7 @@ We will provide a brief description of what issues were fixed and what new capab
 
 ## Integrate iOS Mobile SDK via Swift Package Manager
 
-To integrate `BreadPartnersSDK` into your Xcode project using Swift Package Manager (SPM), follow these steps:
+To integrate `BreadPartners` into your Xcode project using Swift Package Manager (SPM), follow these steps:
 
 #### a. Add the Package Dependency
 
@@ -87,10 +87,10 @@ To integrate `BreadPartnersSDK` into your Xcode project using Swift Package Mana
 
 4. Select the appropriate version (or branch) for your project.
 
-5. Import the `BreadPartnersSDK` to whichever class you need to utilize the SDK in:
+5. Import the `BreadPartners` to whichever class you need to utilize the SDK in:
 
     ```swift
-    import BreadPartnersSDK
+    import BreadPartners
     ```
 
 ---
