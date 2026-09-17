@@ -117,15 +117,9 @@ extension BreadPartnersSDK {
                 logger.printLog("Skipping reCaptcha token generation for virtual lookup call.")
             }
 
-            let apiUrl = APIUrl(
+            let url = APIUrl(
                 urlType: isPrescreen ? .prescreen : .virtualLookup
-            ).url
-
-            let requestBuilder = RTPSRequestBuilder(
-                merchantConfiguration: merchantConfiguration,
-                rtpsData: placementsConfiguration.rtpsData!,
-                reCaptchaToken: reCaptchaToken
-            )
+            ).foundationURL
 
             let headers: [String: String] = [
                 Constants.headerClientKey: integrationKey,
@@ -139,19 +133,24 @@ extension BreadPartnersSDK {
                 logger.printLog("No Cookies")
             }
 
-            let rtpsRequestBuilt = requestBuilder.build()
+            let rtpsRequestBuilt = rtpsDependencies.requestBuilder.build(
+                merchantConfiguration: merchantConfiguration,
+                rtpsData: placementsConfiguration.rtpsData!,
+                recaptchaToken: reCaptchaToken)
 
-            let response = try await APIClient(logger: logger).request(
-                urlString: apiUrl,
-                method: .POST,
-                headers: headers,
-                cookies: cookies,
-                body: rtpsRequestBuilt
+            let response = try await rtpsDependencies.network.send(
+                RTPSNetworkRequest(
+                    url: url,
+                    method: .POST,
+                    headers: headers,
+                    cookies: cookies,
+                    body: try JSONEncoder().encode(rtpsRequestBuilt)
+                )
             )
 
-            let preScreenLookupResponse: RTPSResponse = try ResponseDecoder.decode(
-                response,
-                as: RTPSResponse.self
+            let preScreenLookupResponse: RTPSResponse = try rtpsDependencies.responseDecoder.decode(
+                RTPSResponse.self,
+                from: response
             )
             let returnResultType = preScreenLookupResponse.returnCode
             let prescreenResult = getPrescreenResult(
@@ -240,7 +239,7 @@ extension BreadPartnersSDK {
             ) -> Void
     ) async {
         do {
-            let apiUrl = APIUrl(urlType: .generatePlacements).url
+            let url = APIUrl(urlType: .generatePlacements).foundationURL
 
             let webURL: String?
             if placementsConfiguration.rtpsData?.customerAcceptedOffer == true {
@@ -272,8 +271,12 @@ extension BreadPartnersSDK {
                 ], brandId: integrationKey
             )
 
-            let response = try await APIClient(logger: logger).request(
-                urlString: apiUrl, method: .POST, body: request
+            let response = try await rtpsDependencies.network.send(
+                RTPSNetworkRequest(
+                    url: url,
+                    method: .POST,
+                    body: try JSONEncoder().encode(request)
+                )
             )
             await handleRTPSPlacementResponse(
                 merchantConfiguration: merchantConfiguration,
@@ -306,12 +309,12 @@ extension BreadPartnersSDK {
             @Sendable @escaping (
                 BreadPartnerEvents
             ) -> Void,
-        _ response: AnySendable
+        _ response: Data
     ) async {
         do {
-            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
-                response,
-                as: PlacementsResponse.self
+            let responseModel: PlacementsResponse = try rtpsDependencies.responseDecoder.decode(
+                PlacementsResponse.self,
+                from: response
             )
             if responseModel.placements?.isEmpty ?? true {
                 return callback(
