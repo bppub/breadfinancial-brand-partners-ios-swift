@@ -181,7 +181,8 @@ enum RTPSFixtures {
         integrationKey: String = "integration-key",
         siteKey: String = "site-key",
         cookies: String? = nil,
-        isLoggingEnabled: Bool = false
+        isLoggingEnabled: Bool = false,
+        log: @escaping @Sendable (String) -> Void = { _ in }
     ) -> RTPSServiceInput {
         RTPSServiceInput(
             merchantConfiguration: merchantConfiguration,
@@ -191,7 +192,8 @@ enum RTPSFixtures {
             prescreenURL: URLs.prescreen,
             virtualLookupURL: URLs.virtualLookup,
             cookies: cookies,
-            isLoggingEnabled: isLoggingEnabled
+            isLoggingEnabled: isLoggingEnabled,
+            log: log
         )
     }
 
