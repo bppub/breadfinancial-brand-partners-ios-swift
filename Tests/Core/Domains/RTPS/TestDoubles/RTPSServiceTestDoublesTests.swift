@@ -135,6 +135,21 @@ import Testing
     }
 
     @Test
+    func stubResponseDecoderRejectsUnsupportedResponseTypes() {
+        let decoder = StubRTPSResponseDecoder()
+
+        do {
+            _ = try decoder.decode(String.self, from: Data())
+            Issue.record("Expected the decoder to reject an unsupported response type")
+        } catch {
+            let nsError = error as NSError
+            #expect(nsError.domain == "StubRTPSResponseDecoder")
+            #expect(nsError.code == 1)
+            #expect(nsError.localizedDescription == "No response configured")
+        }
+    }
+
+    @Test
     func stubResponseDecoderCanThrowAConfiguredFailure() {
         let decoder = StubRTPSResponseDecoder(
             failure: NSError(domain: "Decoding", code: 1)
