@@ -7,7 +7,7 @@ import Testing
     func storesInjectedDependencies() {
         let recaptcha = StubRecaptchaProvider()
         let network = SpyRTPSNetworkClient()
-        let requestBuilder = SpyRTPSRequestBuilder()
+        let requestBuilder = StubRTPSRequestBuilder()
         let responseDecoder = StubRTPSResponseDecoder()
 
         let dependencies = RTPSDependencies(
@@ -19,7 +19,7 @@ import Testing
 
         #expect(dependencies.recaptcha is StubRecaptchaProvider)
         #expect(dependencies.network is SpyRTPSNetworkClient)
-        #expect(dependencies.requestBuilder is SpyRTPSRequestBuilder)
+        #expect(dependencies.requestBuilder is StubRTPSRequestBuilder)
         #expect(dependencies.responseDecoder is StubRTPSResponseDecoder)
     }
 }
