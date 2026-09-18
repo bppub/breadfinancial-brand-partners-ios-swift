@@ -152,9 +152,8 @@ extension BreadPartnersSDK {
                 RTPSResponse.self,
                 from: response
             )
-            let returnResultType = preScreenLookupResponse.returnCode
-            let prescreenResult = getPrescreenResult(
-                from: returnResultType ?? "10")
+
+            let prescreenResult = RTPSResult(returnCode: preScreenLookupResponse.returnCode)
             logger.printLog("PreScreenID:Result: \(prescreenResult )")
 
             // Since this call runs in the background without user interaction,
