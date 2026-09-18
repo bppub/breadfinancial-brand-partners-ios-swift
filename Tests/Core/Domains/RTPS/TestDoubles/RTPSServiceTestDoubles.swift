@@ -3,8 +3,7 @@ import Foundation
 @testable import BreadPartnersCore
 
 actor StubRecaptchaProvider: RecaptchaProviding {
-    private let token: String
-    private let failure: NSError?
+    private let result: Result<String, NSError>
 
     private(set) var callCount = 0
     private(set) var lastSiteKey: String?
@@ -12,9 +11,8 @@ actor StubRecaptchaProvider: RecaptchaProviding {
     private(set) var lastTimeout: Double?
     private(set) var lastDebug: Bool?
 
-    init(token: String = "recaptcha-token", failure: NSError? = nil) {
-        self.token = token
-        self.failure = failure
+    init(result: Result<String, NSError> = .success("recaptcha-token")) {
+        self.result = result
     }
 
     func execute(siteKey: String, action: String, timeout: Double, debug: Bool) async throws -> String {
@@ -24,11 +22,12 @@ actor StubRecaptchaProvider: RecaptchaProviding {
         lastTimeout = timeout
         lastDebug = debug
 
-        if let failure {
-            throw failure
+        switch result {
+        case .success(let token):
+            return token
+        case .failure(let error):
+            throw error
         }
-
-        return token
     }
 }
 
@@ -54,10 +53,15 @@ actor SpyRTPSNetworkClient: RTPSNetworkClient {
     }
 }
 
-/// `RTPSRequestBuilding.build` is synchronous, so the spy locks instead of using actor isolation.
-final class SpyRTPSRequestBuilder: RTPSRequestBuilding, @unchecked Sendable {
+/// `RTPSRequestBuilding.build` is synchronous, so the stub locks while recording tokens.
+final class StubRTPSRequestBuilder: RTPSRequestBuilding, @unchecked Sendable {
     private let lock = NSLock()
     private var tokens: [String?] = []
+    private let request: RTPSRequest
+
+    init(request: RTPSRequest = RTPSRequest()) {
+        self.request = request
+    }
 
     var receivedTokens: [String?] {
         lock.lock()
@@ -74,24 +78,36 @@ final class SpyRTPSRequestBuilder: RTPSRequestBuilding, @unchecked Sendable {
         tokens.append(recaptchaToken)
         lock.unlock()
 
-        return RTPSRequestBuilder().build(
-            merchantConfiguration: merchantConfiguration,
-            rtpsData: rtpsData,
-            recaptchaToken: recaptchaToken
-        )
+        return request
     }
 }
 
-/// Decodes real JSON so `RTPSResponse` parsing stays exercised, or throws a preset failure.
 struct StubRTPSResponseDecoder: RTPSResponseDecoding {
+    let response: RTPSResponse
     var failure: NSError?
+
+    init(
+        response: RTPSResponse = RTPSFixtures.Response.neutral(),
+        failure: NSError? = nil
+    ) {
+        self.response = response
+        self.failure = failure
+    }
 
     func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         if let failure {
             throw failure
         }
 
-        return try JSONDecoder().decode(type, from: data)
+        guard type == RTPSResponse.self, let response = response as? T else {
+            throw NSError(
+                domain: "StubRTPSResponseDecoder",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "No response configured"]
+            )
+        }
+
+        return response
     }
 }
 
@@ -150,17 +166,33 @@ enum RTPSFixtures {
     }
 
     enum Response {
-        static func json(
+        static func neutral() -> RTPSResponse {
+            RTPSResponse()
+        }
+
+        static func approved(
+            prescreenId: Int64 = 9001,
+            cardType: String = "storeCard"
+        ) -> RTPSResponse {
+            RTPSResponse(
+                returnCode: "01",
+                prescreenId: prescreenId,
+                cardType: cardType
+            )
+        }
+
+        static func model(
             returnCode: String? = "01",
             prescreenId: Int64? = 9001,
             cardType: String? = "storeCard"
-        ) -> Data {
-            var payload: [String: Any] = [:]
-            payload["returnCode"] = returnCode
-            payload["prescreenId"] = prescreenId
-            payload["cardType"] = cardType
-            return (try? JSONSerialization.data(withJSONObject: payload)) ?? Data()
+        ) -> RTPSResponse {
+            RTPSResponse(
+                returnCode: returnCode,
+                prescreenId: prescreenId,
+                cardType: cardType
+            )
         }
+
     }
 
     enum Error {
@@ -200,7 +232,7 @@ enum RTPSFixtures {
     static func dependencies(
         recaptcha: StubRecaptchaProvider = StubRecaptchaProvider(),
         network: SpyRTPSNetworkClient = SpyRTPSNetworkClient(),
-        requestBuilder: SpyRTPSRequestBuilder = SpyRTPSRequestBuilder(),
+        requestBuilder: StubRTPSRequestBuilder = StubRTPSRequestBuilder(),
         responseDecoder: StubRTPSResponseDecoder = StubRTPSResponseDecoder()
     ) -> RTPSDependencies {
         RTPSDependencies(
