@@ -13,26 +13,6 @@
 import Foundation
 
 extension BreadPartnersSDK {
-    /// This method does bot behavior check using the Recaptcha v3 SDK,
-    /// to protect against malicious attacks.
-    private func executeSecurityCheck(
-        merchantConfiguration: MerchantConfiguration,
-        logger: Logger
-    ) async throws -> String {
-        let siteKey = brandConfiguration?.config.getRecaptchaKey(
-            for: merchantConfiguration.env ?? BreadPartnersEnvironment.prod
-        )
-
-        let token = try await rtpsDependencies.recaptcha.execute(
-            siteKey: siteKey ?? "",
-            action: "checkout",
-            timeout: 10000,
-            debug: logger.isLoggingEnabled
-        )
-
-        return token
-    }
-
     /// Makes RTPS (Real-Time Pre-Screen) API calls with conditional reCaptcha token validation.
     ///
     /// This method handles three different flows:
@@ -61,118 +41,30 @@ extension BreadPartnersSDK {
                 BreadPartnerEvents
             ) -> Void
     ) async {
-        do {
-            // Check for Batch Prescreen Flow when prescreen id has to be entered by user.
-            if (placementsConfiguration.rtpsData?.customerAcceptedOffer == true) {
-                return await fetchRTPSData(
-                    merchantConfiguration: merchantConfiguration,
-                    placementsConfiguration: placementsConfiguration,
-                    splitTextAndAction: splitTextAndAction,
-                    openPlacementExperience: openPlacementExperience,
-                    forSwiftUI: forSwiftUI,
-                    logger: logger,
-                    callback: callback)
-            }
+        let siteKey = brandConfiguration?.config.getRecaptchaKey(
+            for: merchantConfiguration.env ?? BreadPartnersEnvironment.prod
+        )
 
-            // Check if it is a regular RTPS flow or Batch Prescreen (prescreenId is known).
-            let isPrescreen = placementsConfiguration.rtpsData?.prescreenId == nil
-
-            // Validate required fields for prescreen requests
-            if isPrescreen {
-                let buyer = merchantConfiguration.buyer
-                let billingAddress = buyer?.billingAddress
-
-                // Check if firstname, lastname, and complete address are provided
-                guard let givenName = buyer?.givenName, !givenName.isEmpty,
-                    let familyName = buyer?.familyName, !familyName.isEmpty,
-                    let address1 = billingAddress?.address1, !address1.isEmpty,
-                    let country = billingAddress?.country, !country.isEmpty,
-                    let locality = billingAddress?.locality, !locality.isEmpty,
-                    let region = billingAddress?.region, !region.isEmpty,
-                    let postalCode = billingAddress?.postalCode, !postalCode.isEmpty
-                else {
-                    logger.printLog("Buyer information is missing or wrong.")
-                    return callback(
-                        .sdkError(
-                            error: NSError(
-                                domain: "", code: 400,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey: Constants.prescreenRequiredFieldsError
-                                ]
-                            )
-                        )
-                    )
-                }
-            }
-
-            // Only obtain reCaptcha token for prescreen requests
-            let reCaptchaToken: String?
-            if isPrescreen {
-                reCaptchaToken = try await executeSecurityCheck(
-                    merchantConfiguration: merchantConfiguration,
-                    logger: logger
-                )
-            } else {
-                reCaptchaToken = nil
-                logger.printLog("Skipping reCaptcha token generation for virtual lookup call.")
-            }
-
-            let url = APIUrl(
-                urlType: isPrescreen ? .prescreen : .virtualLookup
-            ).foundationURL
-
-            let headers: [String: String] = [
-                Constants.headerClientKey: integrationKey,
-                Constants.headerRequestedWithKey: Constants
-                    .headerRequestedWithValue,
-            ]
-
-            if (cookies != nil) {
-                logger.printLog("Attaching cookies to RTPS request: \(cookies!)")
-            } else {
-                logger.printLog("No Cookies")
-            }
-
-            let rtpsRequestBuilt = rtpsDependencies.requestBuilder.build(
+        let outcome = await RTPSService(dependencies: rtpsDependencies).execute(
+            RTPSServiceInput(
                 merchantConfiguration: merchantConfiguration,
-                rtpsData: placementsConfiguration.rtpsData!,
-                recaptchaToken: reCaptchaToken)
+                rtpsData: placementsConfiguration.rtpsData,
+                integrationKey: integrationKey,
+                siteKey: siteKey ?? "",
+                prescreenURL: APIUrl(urlType: .prescreen).foundationURL,
+                virtualLookupURL: APIUrl(urlType: .virtualLookup).foundationURL,
+                cookies: cookies,
+                isLoggingEnabled: logger.isLoggingEnabled,
+                log: { logger.printLog($0) }
+            ))
 
-            let response = try await rtpsDependencies.network.send(
-                RTPSNetworkRequest(
-                    url: url,
-                    method: .POST,
-                    headers: headers,
-                    cookies: cookies,
-                    body: try JSONEncoder().encode(rtpsRequestBuilt)
-                )
-            )
+        switch outcome {
+        case .noAction:
+            return
 
-            let preScreenLookupResponse: RTPSResponse = try rtpsDependencies.responseDecoder.decode(
-                RTPSResponse.self,
-                from: response
-            )
-
-            let prescreenResult = RTPSResult(returnCode: preScreenLookupResponse.returnCode)
-            logger.printLog("PreScreenID:Result: \(prescreenResult )")
-
-            // Since this call runs in the background without user interaction,
-            // if the result is not "approved"(in case of regular prescreen call) and not "account found" (in case of lookup call)
-            // or prescreenId is nill (in case user is approved, but already has an account),
-            // we simply return without taking any further action.
-            if (prescreenResult != .approved && prescreenResult != .accountFound)
-                || preScreenLookupResponse.prescreenId == nil
-            {
-                return
-            }
-
-            // Map response data back to configurations.
-            placementsConfiguration.rtpsData!.prescreenId =
-                preScreenLookupResponse.prescreenId
-            placementsConfiguration.rtpsData?.cardType = preScreenLookupResponse.cardType
-
-            await fetchRTPSData(
-                merchantConfiguration: preScreenLookupResponse.updateMerchantConfiguration(merchantConfiguration),
+        case .skipToPlacements:
+            return await fetchRTPSData(
+                merchantConfiguration: merchantConfiguration,
                 placementsConfiguration: placementsConfiguration,
                 splitTextAndAction: splitTextAndAction,
                 openPlacementExperience: openPlacementExperience,
@@ -180,46 +72,68 @@ extension BreadPartnersSDK {
                 logger: logger,
                 callback: callback)
 
-        } catch let error as NSError {
-            if error.domain == Constants.incapsulaChallenge {
-                guard let htmlContent = error.userInfo[Constants.htmlContent] as? String,
-                    let url = error.userInfo[Constants.url] as? String
-                else {
-                    return callback(.sdkError(error: error))
-                }
+        case let .proceedToPlacements(response):
+            placementsConfiguration.rtpsData?.prescreenId = response.prescreenId
+            placementsConfiguration.rtpsData?.cardType = response.cardType
+            await fetchRTPSData(
+                merchantConfiguration: response.updateMerchantConfiguration(merchantConfiguration),
+                placementsConfiguration: placementsConfiguration,
+                splitTextAndAction: splitTextAndAction,
+                openPlacementExperience: openPlacementExperience,
+                forSwiftUI: forSwiftUI,
+                logger: logger,
+                callback: callback)
 
-                let challengeController = ChallengeController(
-                    htmlContent: htmlContent,
-                    originalURL: url,
-                    callback: callback,
-                    onComplete: { cookie in
-                        Task {
-                            await self.rtpsCall(
-                                merchantConfiguration: merchantConfiguration,
-                                placementsConfiguration: placementsConfiguration,
-                                splitTextAndAction: splitTextAndAction,
-                                openPlacementExperience: openPlacementExperience,
-                                forSwiftUI: forSwiftUI,
-                                logger: logger,
-                                cookies: cookie,
-                                callback: callback
-                            )
-                        }
-                    },
-                    logger: logger
+        case let .challenge(htmlContent, url):
+            let challengeController = ChallengeController(
+                htmlContent: htmlContent,
+                originalURL: url,
+                callback: callback,
+                onComplete: { cookie in
+                    Task {
+                        await self.rtpsCall(
+                            merchantConfiguration: merchantConfiguration,
+                            placementsConfiguration: placementsConfiguration,
+                            splitTextAndAction: splitTextAndAction,
+                            openPlacementExperience: openPlacementExperience,
+                            forSwiftUI: forSwiftUI,
+                            logger: logger,
+                            cookies: cookie,
+                            callback: callback
+                        )
+                    }
+                },
+                logger: logger
+            )
+
+            return callback(.renderPopupView(view: challengeController))
+
+        case .failure(.missingRequiredFields):
+            callback(
+                .sdkError(
+                    error: NSError(
+                        domain: "", code: 400,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: Constants.prescreenRequiredFieldsError
+                        ]
+                    )
                 )
+            )
 
-                return callback(.renderPopupView(view: challengeController))
-            } else {
-                return callback(
-                    .sdkError(
-                        error: NSError(
-                            domain: "", code: 500,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: Constants.apiError(
-                                    message: error.localizedDescription)
-                            ])))
-            }
+        case let .failure(.api(message)):
+            callback(
+                .sdkError(
+                    error: NSError(
+                        domain: "", code: 500,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: Constants.apiError(message: message)
+                        ]
+                    )
+                )
+            )
+
+        case let .failure(.underlying(error)):
+            callback(.sdkError(error: error))
         }
     }
 
@@ -253,8 +167,7 @@ extension BreadPartnersSDK {
                     WebURLBuilder.buildRTPSWebURL(
                         integrationKey: integrationKey,
                         merchantConfiguration: merchantConfiguration,
-                        rtpsData: placementsConfiguration.rtpsData!,
-                        prescreenId: placementsConfiguration.rtpsData!.prescreenId
+                        rtpsData: placementsConfiguration.rtpsData,
                     )?.absoluteString
             }
 
