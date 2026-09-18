@@ -19,7 +19,7 @@ import Testing
             RTPSFixtures.input(rtpsData: RTPSData(customerAcceptedOffer: true))
         )
 
-        #expect(isSkipToPlacements(outcome))
+        #expect(RTPSOutcomeMatches.skipToPlacements(outcome))
         await #expect(recaptcha.callCount == 0)
         await #expect(network.requests.isEmpty)
     }
@@ -27,12 +27,11 @@ import Testing
     @Test
     func virtualLookupSkipsRecaptcha() async {
         let recaptcha = StubRecaptchaProvider()
-        let builder = SpyRTPSRequestBuilder()
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let builder = StubRTPSRequestBuilder()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
                 recaptcha: recaptcha,
-                network: network,
+                network: SpyRTPSNetworkClient(),
                 requestBuilder: builder
             )
         )
@@ -45,13 +44,12 @@ import Testing
 
     @Test
     func prescreenRequestsTokenOnceAndForwardsItToTheBuilder() async {
-        let recaptcha = StubRecaptchaProvider(token: "token-123")
-        let builder = SpyRTPSRequestBuilder()
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let recaptcha = StubRecaptchaProvider(result: .success("token-123"))
+        let builder = StubRTPSRequestBuilder()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
                 recaptcha: recaptcha,
-                network: network,
+                network: SpyRTPSNetworkClient(),
                 requestBuilder: builder
             )
         )
@@ -71,8 +69,14 @@ import Testing
     @Test
     func virtualLookupLogsThatRecaptchaWasSkipped() async {
         let log = LogCapture()
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.approved()
+                )
+            )
+        )
 
         _ = await service.execute(
             RTPSFixtures.input(
@@ -110,7 +114,7 @@ import Testing
             )
         )
 
-        #expect(isMissingRequiredFields(outcome))
+        #expect(RTPSOutcomeMatches.missingRequiredFields(outcome))
         await #expect(recaptcha.callCount == 0)
         await #expect(network.requests.isEmpty)
         #expect(log.recordedMessages == ["Buyer information is missing or wrong."])
@@ -118,7 +122,7 @@ import Testing
 
     @Test
     func virtualLookupSkipsValidation() async {
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let network = SpyRTPSNetworkClient()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(
@@ -128,7 +132,7 @@ import Testing
             )
         )
 
-        #expect(isMissingRequiredFields(outcome) == false)
+        #expect(RTPSOutcomeMatches.missingRequiredFields(outcome) == false)
         await #expect(network.requests.count == 1)
     }
 
@@ -136,7 +140,7 @@ import Testing
 
     @Test
     func prescreenSelectsPrescreenEndpoint() async {
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let network = SpyRTPSNetworkClient()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
@@ -146,7 +150,7 @@ import Testing
 
     @Test
     func virtualLookupSelectsLookupEndpoint() async {
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let network = SpyRTPSNetworkClient()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(RTPSFixtures.input(rtpsData: RTPSData(prescreenId: 42)))
@@ -156,7 +160,7 @@ import Testing
 
     @Test
     func sendsIntegrationKeyAndRequestedWithHeaders() async {
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let network = SpyRTPSNetworkClient()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(
@@ -172,7 +176,7 @@ import Testing
 
     @Test
     func forwardsCookiesWhenPresent() async {
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
+        let network = SpyRTPSNetworkClient()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(
@@ -186,188 +190,237 @@ import Testing
 
     @Test
     func approvedResponseProceedsToPlacements() async {
-        let network = SpyRTPSNetworkClient(
-            responseData: RTPSFixtures.Response.json(returnCode: "01", prescreenId: 9001)
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.model(returnCode: "01", prescreenId: 9001)
+                )
+            )
         )
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(proceedResponse(outcome)?.prescreenId == 9001)
-        #expect(proceedResponse(outcome)?.cardType == "storeCard")
+        #expect(RTPSOutcomeMatches.proceedResponse(outcome)?.prescreenId == 9001)
+        #expect(RTPSOutcomeMatches.proceedResponse(outcome)?.cardType == "storeCard")
     }
 
     @Test
     func accountFoundResponseProceedsToPlacements() async {
-        let network = SpyRTPSNetworkClient(
-            responseData: RTPSFixtures.Response.json(returnCode: "0", prescreenId: 55)
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.model(returnCode: "0", prescreenId: 55)
+                )
+            )
         )
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData(prescreenId: 55)))
 
-        #expect(proceedResponse(outcome)?.prescreenId == 55)
+        #expect(RTPSOutcomeMatches.proceedResponse(outcome)?.prescreenId == 55)
     }
 
     @Test(arguments: ["10", "11", "12", "unknown"])
     func nonApprovedReturnCodeProducesNoAction(returnCode: String) async {
-        let network = SpyRTPSNetworkClient(
-            responseData: RTPSFixtures.Response.json(returnCode: returnCode, prescreenId: 9001)
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.model(
+                        returnCode: returnCode,
+                        prescreenId: 9001
+                    )
+                )
+            )
         )
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(isNoAction(outcome))
+        #expect(RTPSOutcomeMatches.noAction(outcome))
     }
 
     @Test
     func missingReturnCodeDefaultsToNoAction() async {
-        let network = SpyRTPSNetworkClient(
-            responseData: RTPSFixtures.Response.json(returnCode: nil, prescreenId: 9001)
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.model(returnCode: nil, prescreenId: 9001)
+                )
+            )
         )
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(isNoAction(outcome))
+        #expect(RTPSOutcomeMatches.noAction(outcome))
     }
 
     @Test
     func approvedWithoutPrescreenIdProducesNoAction() async {
-        let network = SpyRTPSNetworkClient(
-            responseData: RTPSFixtures.Response.json(returnCode: "01", prescreenId: nil)
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    response: RTPSFixtures.Response.model(returnCode: "01", prescreenId: nil)
+                )
+            )
         )
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(isNoAction(outcome))
+        #expect(RTPSOutcomeMatches.noAction(outcome))
     }
 
     // MARK: - Failure classification
 
     @Test
     func networkFailureBecomesTypedApiFailure() async {
-        let failure = NSError(
-            domain: "Network",
-            code: 500,
-            userInfo: [NSLocalizedDescriptionKey: "request timed out"]
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(
+                    failure: NSError(
+                        domain: "Network",
+                        code: 500,
+                        userInfo: [NSLocalizedDescriptionKey: "request timed out"]
+                    )
+                )
+            )
         )
-        let network = SpyRTPSNetworkClient(failure: failure)
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(apiMessage(outcome) == "request timed out")
+        #expect(RTPSOutcomeMatches.apiMessage(outcome) == "request timed out")
     }
 
     @Test
     func decodeFailureBecomesTypedApiFailure() async {
-        let decoder = StubRTPSResponseDecoder(
-            failure: NSError(
-                domain: "Decoding",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "malformed payload"]
-            )
-        )
-        let network = SpyRTPSNetworkClient(responseData: RTPSFixtures.Response.json())
         let service = RTPSService(
-            dependencies: RTPSFixtures.dependencies(network: network, responseDecoder: decoder)
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(),
+                responseDecoder: StubRTPSResponseDecoder(
+                    failure: NSError(
+                        domain: "Decoding",
+                        code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "malformed payload"]
+                    )
+                )
+            )
         )
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(apiMessage(outcome) == "malformed payload")
+        #expect(RTPSOutcomeMatches.apiMessage(outcome) == "malformed payload")
     }
 
     @Test
     func recaptchaFailureBecomesTypedApiFailure() async {
-        let recaptcha = StubRecaptchaProvider(
-            failure: NSError(
-                domain: "Recaptcha",
-                code: 7,
-                userInfo: [NSLocalizedDescriptionKey: "token unavailable"]
-            )
-        )
         let network = SpyRTPSNetworkClient()
         let service = RTPSService(
-            dependencies: RTPSFixtures.dependencies(recaptcha: recaptcha, network: network)
+            dependencies: RTPSFixtures.dependencies(
+                recaptcha: StubRecaptchaProvider(
+                    result: .failure(
+                        NSError(
+                            domain: "Recaptcha",
+                            code: 7,
+                            userInfo: [NSLocalizedDescriptionKey: "token unavailable"]
+                        )
+                    )
+                ),
+                network: network
+            )
         )
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(apiMessage(outcome) == "token unavailable")
+        #expect(RTPSOutcomeMatches.apiMessage(outcome) == "token unavailable")
         await #expect(network.requests.isEmpty)
     }
 
     @Test
     func incapsulaErrorBecomesChallenge() async {
-        let network = SpyRTPSNetworkClient(failure: RTPSFixtures.Error.incapsula())
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(failure: RTPSFixtures.Error.incapsula())
+            )
+        )
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(challengePayload(outcome)?.htmlContent == "<html>challenge</html>")
-        #expect(challengePayload(outcome)?.originalURL == "https://challenge.test")
+        #expect(RTPSOutcomeMatches.challengePayload(outcome)?.htmlContent == "<html>challenge</html>")
+        #expect(RTPSOutcomeMatches.challengePayload(outcome)?.originalURL == "https://challenge.test")
     }
 
     @Test
     func incapsulaErrorWithoutHTMLFallsBackToUnderlyingFailure() async {
-        let network = SpyRTPSNetworkClient(failure: RTPSFixtures.Error.incapsula(htmlContent: nil))
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(
+                    failure: RTPSFixtures.Error.incapsula(htmlContent: nil)
+                )
+            )
+        )
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(underlyingError(outcome)?.domain == "IncapsulaChallenge")
+        #expect(RTPSOutcomeMatches.underlyingError(outcome)?.domain == "IncapsulaChallenge")
     }
 
     @Test
     func incapsulaErrorWithoutURLFallsBackToUnderlyingFailure() async {
-        let network = SpyRTPSNetworkClient(failure: RTPSFixtures.Error.incapsula(url: nil))
-        let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
+        let service = RTPSService(
+            dependencies: RTPSFixtures.dependencies(
+                network: SpyRTPSNetworkClient(
+                    failure: RTPSFixtures.Error.incapsula(url: nil)
+                )
+            )
+        )
 
         let outcome = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
 
-        #expect(underlyingError(outcome)?.domain == "IncapsulaChallenge")
+        #expect(RTPSOutcomeMatches.underlyingError(outcome)?.domain == "IncapsulaChallenge")
     }
 }
 
 // MARK: - Outcome matchers
 
-private func isSkipToPlacements(_ outcome: RTPSOutcome) -> Bool {
-    if case .skipToPlacements = outcome { return true }
-    return false
-}
-
-private func isNoAction(_ outcome: RTPSOutcome) -> Bool {
-    if case .noAction = outcome { return true }
-    return false
-}
-
-private func isMissingRequiredFields(_ outcome: RTPSOutcome) -> Bool {
-    if case .failure(.missingRequiredFields) = outcome { return true }
-    return false
-}
-
-private func proceedResponse(_ outcome: RTPSOutcome) -> RTPSResponse? {
-    if case .proceedToPlacements(let response) = outcome { return response }
-    return nil
-}
-
-private func challengePayload(_ outcome: RTPSOutcome) -> (htmlContent: String, originalURL: String)? {
-    if case .challenge(let htmlContent, let originalURL) = outcome {
-        return (htmlContent, originalURL)
+private enum RTPSOutcomeMatches {
+    static func skipToPlacements(_ outcome: RTPSOutcome) -> Bool {
+        if case .skipToPlacements = outcome { return true }
+        return false
     }
-    return nil
-}
 
-private func apiMessage(_ outcome: RTPSOutcome) -> String? {
-    if case .failure(.api(let message)) = outcome { return message }
-    return nil
-}
+    static func noAction(_ outcome: RTPSOutcome) -> Bool {
+        if case .noAction = outcome { return true }
+        return false
+    }
 
-private func underlyingError(_ outcome: RTPSOutcome) -> NSError? {
-    if case .failure(.underlying(let error)) = outcome { return error }
-    return nil
+    static func missingRequiredFields(_ outcome: RTPSOutcome) -> Bool {
+        if case .failure(.missingRequiredFields) = outcome { return true }
+        return false
+    }
+
+    static func proceedResponse(_ outcome: RTPSOutcome) -> RTPSResponse? {
+        if case .proceedToPlacements(let response) = outcome { return response }
+        return nil
+    }
+
+    static func challengePayload(
+        _ outcome: RTPSOutcome
+    ) -> (htmlContent: String, originalURL: String)? {
+        if case .challenge(let htmlContent, let originalURL) = outcome {
+            return (htmlContent, originalURL)
+        }
+        return nil
+    }
+
+    static func apiMessage(_ outcome: RTPSOutcome) -> String? {
+        if case .failure(.api(let message)) = outcome { return message }
+        return nil
+    }
+
+    static func underlyingError(_ outcome: RTPSOutcome) -> NSError? {
+        if case .failure(.underlying(let error)) = outcome { return error }
+        return nil
+    }
 }
