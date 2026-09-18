@@ -5,22 +5,20 @@ package enum RTPSResult: Sendable, Equatable {
     case makeOffer
     case acknowledge
 
-    package init(returnCode: String?) {
-        switch returnCode {
-        case "0":
-            self = .accountFound
-        case "01":
-            self = .approved
-        case "11":
-            self = .makeOffer
-        case "12":
-            self = .acknowledge
-        default:
-            self = .noHit
-        }
-    }
-}
+    private static let returnCodeMap: [String: RTPSResult] = [
+        "0": .accountFound,
+        "01": .approved,
+        "10": .noHit,
+        "11": .makeOffer,
+        "12": .acknowledge,
+    ]
 
-package func getPrescreenResult(from apiResponse: String) -> RTPSResult {
-    RTPSResult(returnCode: apiResponse)
+    package init(returnCode: String?) {
+        guard let returnCode else {
+            self = .noHit
+            return
+        }
+
+        self = Self.returnCodeMap[returnCode] ?? .noHit
+    }
 }

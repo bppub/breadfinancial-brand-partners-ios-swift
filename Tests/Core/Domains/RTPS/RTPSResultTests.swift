@@ -12,7 +12,6 @@ import Testing
     ])
     func mapsReturnCodes(code: String, expected: RTPSResult) {
         #expect(RTPSResult(returnCode: code) == expected)
-        #expect(getPrescreenResult(from: code) == expected)
     }
 
     @Test

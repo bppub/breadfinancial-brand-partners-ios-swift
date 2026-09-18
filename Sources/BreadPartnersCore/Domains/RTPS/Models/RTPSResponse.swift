@@ -29,6 +29,40 @@ package struct RTPSResponse: Codable, Sendable {
     package let errorMessage: String?
     package let errorCode: Int?
 
+    package init(
+        returnCode: String? = nil,
+        prescreenId: Int64? = nil,
+        firstName: String? = nil,
+        middleInitial: String? = nil,
+        lastName: String? = nil,
+        address1: String? = nil,
+        address2: String? = nil,
+        city: String? = nil,
+        state: String? = nil,
+        zip: String? = nil,
+        cardType: String? = nil,
+        isExpired: Bool? = nil,
+        hasExistingAccount: Bool? = nil,
+        errorMessage: String? = nil,
+        errorCode: Int? = nil
+    ) {
+        self.returnCode = returnCode
+        self.prescreenId = prescreenId
+        self.firstName = firstName
+        self.middleInitial = middleInitial
+        self.lastName = lastName
+        self.address1 = address1
+        self.address2 = address2
+        self.city = city
+        self.state = state
+        self.zip = zip
+        self.cardType = cardType
+        self.isExpired = isExpired
+        self.hasExistingAccount = hasExistingAccount
+        self.errorMessage = errorMessage
+        self.errorCode = errorCode
+    }
+
     package init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         prescreenId = try container.decodeIfPresent(Int64.self, forKey: .prescreenId)
