@@ -48,7 +48,7 @@ extension BreadPartnersSDK {
         let outcome = await RTPSService(dependencies: rtpsDependencies).execute(
             RTPSServiceInput(
                 merchantConfiguration: merchantConfiguration,
-                rtpsData: placementsConfiguration.rtpsData,
+                rtpsData: placementsConfiguration.rtpsData ?? RTPSData(),
                 integrationKey: integrationKey,
                 siteKey: siteKey ?? "",
                 prescreenURL: APIUrl(urlType: .prescreen).foundationURL,
