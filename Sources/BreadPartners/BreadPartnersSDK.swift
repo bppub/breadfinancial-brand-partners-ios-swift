@@ -28,6 +28,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
     var sdkEnvironment: BreadPartnersEnvironment = .stage
     var brandConfiguration: BrandConfigResponse?
+    internal var dependencies = SDKDependencies.live()
 
     // This will eventually live in RTPS Service.
     internal var rtpsDependencies = RTPSDependencies(
@@ -64,6 +65,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         enableLog: Bool
     ) async {
         await APIUrl.setEnvironment(environment)
+        dependencies = SDKDependencies.live(environment: environment)
         self.sdkEnvironment = environment
         self.integrationKey = integrationKey
         self.isLoggingEnabled = enableLog
