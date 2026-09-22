@@ -154,21 +154,24 @@ extension BreadPartnersSDK {
         do {
             let url = dependencies.endpointProvider.url(for: .generatePlacements)
 
-            let webURL: String?
+            let webURL: URL?
             if placementsConfiguration.rtpsData?.customerAcceptedOffer == true {
                 webURL =
                     WebURLBuilder.buildBPSWebURL(
+                        environment: sdkEnvironment,
                         integrationKey: integrationKey,
-                        merchantConfiguration: merchantConfiguration,
-                        placementConfiguration: placementsConfiguration
-                    )?.absoluteString
+                        rtpsData: placementsConfiguration.rtpsData,
+                        placementData: placementsConfiguration.placementData,
+                        merchantConfiguration: merchantConfiguration
+                    )
             } else {
                 webURL =
                     WebURLBuilder.buildRTPSWebURL(
+                        environment: sdkEnvironment,
                         integrationKey: integrationKey,
-                        merchantConfiguration: merchantConfiguration,
                         rtpsData: placementsConfiguration.rtpsData,
-                    )?.absoluteString
+                        merchantConfiguration: merchantConfiguration,
+                    )
             }
 
             let request = PlacementRequest(
@@ -177,7 +180,7 @@ extension BreadPartnersSDK {
                         context: ContextRequestBody(
                             ENV: merchantConfiguration.env?.rawValue,
                             LOCATION: "RTPS-Approval",
-                            embeddedUrl: webURL
+                            embeddedUrl: webURL?.absoluteString
                         )
                     )
                 ], brandId: integrationKey
