@@ -9,8 +9,8 @@ struct WebURLBuilderTests {
         let url = WebURLBuilder.buildRTPSWebURL(
             environment: .prod,
             integrationKey: "integration-key",
+            rtpsData: nil,
             merchantConfiguration: MerchantConfiguration(),
-            rtpsData: nil
         )
 
         #expect(url != nil)
@@ -48,8 +48,8 @@ struct WebURLBuilderTests {
             WebURLBuilder.buildRTPSWebURL(
                 environment: .stage,
                 integrationKey: "integration-key",
+                rtpsData: rtpsData,
                 merchantConfiguration: merchantConfiguration,
-                rtpsData: rtpsData
             )
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
@@ -74,8 +74,8 @@ struct WebURLBuilderTests {
             WebURLBuilder.buildRTPSWebURL(
                 environment: .prod,
                 integrationKey: "",
+                rtpsData: nil,
                 merchantConfiguration: MerchantConfiguration(),
-                rtpsData: nil
             )
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
