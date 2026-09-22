@@ -116,7 +116,9 @@ struct RTPSApiExtensionTests {
         let requests = await network.requests
         #expect(requests.count == 2)
         #expect(requests[1].method == .POST)
-        #expect(requests[1].url == APIUrl(urlType: .generatePlacements).foundationURL)
+        #expect(
+            requests[1].url == sdk.dependencies.endpointProvider.url(for: .generatePlacements)
+        )
         #expect(events.containsSDKError)
     }
 
