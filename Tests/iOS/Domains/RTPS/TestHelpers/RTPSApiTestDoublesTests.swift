@@ -6,6 +6,21 @@ import Testing
 @Suite
 struct RTPSApiTestDoublesTests {
     @Test
+    func recaptchaStubUsesDefaultSuccessfulResult() async throws {
+        let recaptcha = RecaptchaStub()
+
+        let token = try await recaptcha.execute(
+            siteKey: "default-site-key",
+            action: "default-action",
+            timeout: 1,
+            debug: false
+        )
+
+        #expect(token == "test-token")
+        await #expect(recaptcha.callCount == 1)
+    }
+
+    @Test
     func recaptchaStubReturnsConfiguredTokenAndRecordsArguments() async throws {
         let recaptcha = RecaptchaStub(result: .success("configured-token"))
 
@@ -90,6 +105,18 @@ struct RTPSApiTestDoublesTests {
     }
 
     @Test
+    func networkSpyReturnsEmptyDataWhenQueueIsExhausted() async throws {
+        let network = NetworkSpy(outcomes: [])
+        let request = RTPSNetworkRequest(
+            url: RTPSApiFixtures.URLs.prescreen,
+            method: .POST
+        )
+
+        #expect(try await network.send(request) == Data())
+        #expect(await network.requestCount == 1)
+    }
+
+    @Test
     func responseDecoderReturnsConfiguredResponsesInOrder() throws {
         let rtpsResponse = RTPSApiFixtures.Response.approved
         let placementsResponse = RTPSApiFixtures.Response.emptyPlacements
@@ -124,14 +151,57 @@ struct RTPSApiTestDoublesTests {
     }
 
     @Test
+    func responseDecoderRejectsAPlacementResponseWhenRTPSIsRequested() {
+        let decoder = ResponseDecoderStub(
+            responses: [.placements(RTPSApiFixtures.Response.emptyPlacements)]
+        )
+
+        do {
+            _ = try decoder.decode(RTPSResponse.self, from: Data())
+            Issue.record("Expected the response decoder to reject a placement response")
+        } catch {
+            let nsError = error as NSError
+            #expect(nsError.domain == "ResponseDecoderStub")
+            #expect(nsError.code == 2)
+        }
+    }
+
+    @Test
+    func responseDecoderThrowsWhenResponseQueueIsEmpty() {
+        let decoder = ResponseDecoderStub(responses: [])
+
+        do {
+            _ = try decoder.decode(RTPSResponse.self, from: Data())
+            Issue.record("Expected the response decoder to reject an empty queue")
+        } catch {
+            let nsError = error as NSError
+            #expect(nsError.domain == "ResponseDecoderStub")
+            #expect(nsError.code == 1)
+            #expect(nsError.localizedDescription == "No response configured")
+        }
+    }
+
+    @Test
     func eventCaptureRecordsEventsAndReportsSDKErrors() {
         let capture = EventCapture()
 
+        #expect(capture.first == nil)
+        #expect(capture.eventCount == 0)
+        #expect(capture.containsSDKError == false)
+
+        capture.record(.textClicked)
         capture.record(.onSDKEventLog(logs: "one"))
         capture.record(.sdkError(error: NSError(domain: "SDK", code: 1)))
 
-        #expect(capture.eventCount == 2)
-        #expect(capture.first != nil)
+        #expect(capture.eventCount == 3)
+        guard let first = capture.first else {
+            Issue.record("Expected EventCapture to preserve the first event")
+            return
+        }
+        if case .textClicked = first {
+        } else {
+            Issue.record("Expected EventCapture to preserve the first event")
+        }
         #expect(capture.containsSDKError)
     }
 }
