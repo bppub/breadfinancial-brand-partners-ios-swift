@@ -35,14 +35,14 @@ internal class Constants {
     static let headerAccessControlRequestHeadersValue = "content-type"
     static let headerAccessControlRequestMethodKey = "Access-Control-Request-Method"
     static let headerAccessControlRequestMethodValue = "POST"
-    static let htmlContent = "htmlContent"
-    static let url = "url"
+    static let htmlContent = NetworkChallengeConstants.htmlContentKey
+    static let url = NetworkChallengeConstants.urlKey
     static func nativeSDKAlertTitle() -> String {
         return "Bread Partner"
     }
 
     static func catchError(message: String) -> String {
-        return "\(error) \(message)"
+        RTPSConstants.catchError(message: message)
     }
 
     static let securityCheckAlertTitle = "Re-CAPTCHA Verification"
@@ -58,10 +58,10 @@ internal class Constants {
         return "Error: \(error)"
     }
 
-    static let error = "Error:"
+    static let error = RTPSConstants.error
 
     static func apiError(message: String) -> String {
-        return "\(error) \(message)"
+        RTPSConstants.apiError(message: message)
     }
     static let consecutivePlacementRequestDataError = "Consecutive placement request data not found"
 
@@ -76,14 +76,13 @@ internal class Constants {
     static let missingPopupPlacementError = "Unhandled popup placement type."
     static let somethingWentWrong = "Something went wrong. Please try again later."
 
-    static let prescreenRequiredFieldsError =
-        "Error: Prescreen requires customer information: firstname, lastname, and complete billing address must be provided in MerchantConfiguration."
+    static let prescreenRequiredFieldsError = RTPSConstants.prescreenRequiredFieldsError
 
     static func unableToLoadWebURL(message: String) -> String {
         return "\(error) Web Url Loading Issue: \(message)"
     }
 
-    static let incapsulaChallenge = "IncapsulaChallenge"
+    static let incapsulaChallenge = NetworkChallengeConstants.domain
     // Confirm Navigation dialog (mirrors Android WebView onJsBeforeUnload system dialog)
     static let confirmNavigationTitle = "Confirm Navigation"
     static let confirmNavigationMessage =
