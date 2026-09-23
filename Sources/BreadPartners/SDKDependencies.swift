@@ -1,11 +1,28 @@
 import BreadPartnersCore
 
 struct SDKDependencies {
-    var endpointProvider: any APIEndpointProviding
+    let logger: Logger
+    let httpClient: any HTTPClient
+    let endpointProvider: any APIEndpointProviding
 
-    static func live(environment: BreadPartnersEnvironment = .prod) -> SDKDependencies {
-        SDKDependencies(
-            endpointProvider: LiveAPIEndpointProvider(environment: environment)
+    init(
+        logger: Logger,
+        httpClient: any HTTPClient,
+        endpointProvider: any APIEndpointProviding,
+    ) {
+        self.logger = logger
+        self.httpClient = httpClient
+        self.endpointProvider = endpointProvider
+    }
+
+    static func live(
+        environment: BreadPartnersEnvironment,
+        logger: Logger
+    ) -> SDKDependencies {
+        return SDKDependencies(
+            logger: logger,
+            httpClient: LiveHTTPClient(logger: logger),
+            endpointProvider: LiveAPIEndpointProvider(environment: environment),
         )
     }
 }

@@ -186,8 +186,8 @@ extension BreadPartnersSDK {
                 ], brandId: integrationKey
             )
 
-            let response = try await rtpsDependencies.network.send(
-                RTPSNetworkRequest(
+            let response = try await rtpsDependencies.httpClient.request(
+                HTTPRequest(
                     url: url,
                     method: .POST,
                     body: try JSONEncoder().encode(request)
