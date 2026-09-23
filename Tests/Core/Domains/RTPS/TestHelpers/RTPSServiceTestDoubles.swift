@@ -31,7 +31,7 @@ actor StubRecaptchaProvider: RecaptchaProviding {
     }
 }
 
-actor SpyRTPSNetworkClient: HTTPClient {
+actor HTTPClientSpy: HTTPClient {
     private let responseData: Data
     private let failure: NSError?
 
@@ -231,7 +231,7 @@ enum RTPSFixtures {
 
     static func dependencies(
         recaptcha: StubRecaptchaProvider = StubRecaptchaProvider(),
-        network: SpyRTPSNetworkClient = SpyRTPSNetworkClient(),
+        network: HTTPClientSpy = HTTPClientSpy(),
         requestBuilder: StubRTPSRequestBuilder = StubRTPSRequestBuilder(),
         responseDecoder: StubRTPSResponseDecoder = StubRTPSResponseDecoder()
     ) -> RTPSDependencies {

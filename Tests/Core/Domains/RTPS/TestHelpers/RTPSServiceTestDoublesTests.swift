@@ -60,7 +60,7 @@ import Testing
     @Test
     func spyNetworkClientStartsWithNoRequestsAndReturnsConfiguredData() async throws {
         let responseData = Data("response".utf8)
-        let network = SpyRTPSNetworkClient(responseData: responseData)
+        let network = HTTPClientSpy(responseData: responseData)
         let request = HTTPRequest(
             url: RTPSFixtures.URLs.prescreen,
             method: .POST,
@@ -87,7 +87,7 @@ import Testing
             url: RTPSFixtures.URLs.prescreen,
             method: .POST
         )
-        let network = SpyRTPSNetworkClient(
+        let network = HTTPClientSpy(
             failure: NSError(domain: "Network", code: 500)
         )
 
