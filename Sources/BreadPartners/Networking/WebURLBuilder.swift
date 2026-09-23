@@ -4,17 +4,16 @@ internal enum WebURLBuilder {
     static func buildRTPSWebURL(
         integrationKey: String,
         merchantConfiguration: MerchantConfiguration,
-        rtpsData: RTPSData,
-        prescreenId: Int64?
+        rtpsData: RTPSData?
     ) -> URL? {
-        let mockResponseValue = rtpsData.mockResponse?.rawValue
+        let mockResponseValue = rtpsData?.mockResponse?.rawValue
         var queryParams: [String: String?] = [
             "mockMO": mockResponseValue.takeIfNotEmpty(),
             "mockPA": mockResponseValue.takeIfNotEmpty(),
             "mockVL": mockResponseValue.takeIfNotEmpty(),
             "embedded": "true",
             "clientKey": integrationKey,
-            "cardType": rtpsData.cardType,
+            "cardType": rtpsData?.cardType,
             "urlPath": "screen name",
             "firstName": merchantConfiguration.buyer?.givenName,
             "lastName": merchantConfiguration.buyer?.familyName,
@@ -23,16 +22,13 @@ internal enum WebURLBuilder {
             "state": merchantConfiguration.buyer?.billingAddress?.region,
             "zip": merchantConfiguration.buyer?.billingAddress?.postalCode,
             "storeNumber": merchantConfiguration.storeNumber,
-            "location": rtpsData.locationType?.rawValue,
-            "channel": rtpsData.channel,
+            "location": rtpsData?.locationType?.rawValue,
+            "channel": rtpsData?.channel,
             "mobilePhone": merchantConfiguration.buyer?.phone,
             "emailAddress": merchantConfiguration.buyer?.email,
             "alternativePhone": merchantConfiguration.buyer?.alternativePhone,
+            "prescreenId": rtpsData?.prescreenId.map(String.init),
         ]
-
-        if let prescreenId {
-            queryParams["prescreenId"] = String(prescreenId)
-        }
 
         guard
             var components = URLComponents(
