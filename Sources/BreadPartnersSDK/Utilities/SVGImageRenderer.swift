@@ -35,7 +35,20 @@ enum SVGImageRenderer {
 
         let styleSheet = SVGStyleSheetParser.parse(from: data)
         let parser = SVGDocumentParser(styleSheet: styleSheet)
-        guard let document = parser.parse(data: data), !document.shapes.isEmpty else {
+        guard let document = parser.parse(data: data) else {
+            return nil
+        }
+
+        if !parser.encounteredNonRenderingElements.isEmpty {
+            let logger = Logger()
+            logger.setLogging(enabled: true)
+            logger.debugPrint(
+                "[SVGImageRenderer] Skipped non-rendering elements: "
+                    + parser.encounteredNonRenderingElements.sorted().joined(separator: ", ")
+            )
+        }
+
+        guard !document.shapes.isEmpty else {
             return nil
         }
 
@@ -187,6 +200,10 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
     private var suppressStack: [Bool] = [false]
     private var didParseError = false
 
+    /// Names of non-rendering elements (e.g. "defs", "clippath") that were
+    /// encountered while parsing, collected for diagnostic logging.
+    private(set) var encounteredNonRenderingElements: Set<String> = []
+
     /// Class name -> CSS declarations (e.g. "st0" -> ["fill": "#CF202F"]),
     /// parsed ahead of time from any `<style>` blocks. Illustrator-exported
     /// SVGs commonly define colors this way (`class="st0"`) rather than
@@ -217,7 +234,12 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
         let localTransform = SVGTransformParser.transform(from: effectiveAttributes["transform"])
         let combinedTransform = localTransform.concatenating(transformStack.last ?? .identity)
         let parentSuppressed = suppressStack.last ?? false
-        let suppressed = parentSuppressed || Self.nonRenderingElements.contains(elementName.lowercased())
+        let isNonRenderingElement = Self.nonRenderingElements.contains(elementName.lowercased())
+        let suppressed = parentSuppressed || isNonRenderingElement
+
+        if isNonRenderingElement {
+            encounteredNonRenderingElements.insert(elementName.lowercased())
+        }
 
         if elementName == "svg" {
             parseSVGRoot(attributes: effectiveAttributes)
@@ -766,7 +788,7 @@ private enum SVGColorParser {
         if trimmed.hasPrefix("rgb") {
             return functionalColor(trimmed)
         }
-        return namedColors[trimmed]
+        return nil
     }
 
     private static func hexColor(_ value: String) -> CGColor? {
@@ -811,21 +833,6 @@ private enum SVGColorParser {
         let alpha: CGFloat = components.count > 3 ? CGFloat(Double(components[3]) ?? 1) : 1
         return UIColor(red: red, green: green, blue: blue, alpha: alpha).cgColor
     }
-
-    /// A small set of CSS named colors commonly seen in brand logos.
-    private static let namedColors: [String: CGColor] = [
-        "black": UIColor.black.cgColor,
-        "white": UIColor.white.cgColor,
-        "red": UIColor.red.cgColor,
-        "green": UIColor(red: 0, green: 0.5, blue: 0, alpha: 1).cgColor,
-        "blue": UIColor.blue.cgColor,
-        "yellow": UIColor.yellow.cgColor,
-        "orange": UIColor.orange.cgColor,
-        "purple": UIColor.purple.cgColor,
-        "gray": UIColor.gray.cgColor,
-        "grey": UIColor.gray.cgColor,
-        "transparent": UIColor.clear.cgColor,
-    ]
 }
 
 // MARK: - Minimal CSS "<style>" block parsing (class selectors only)
