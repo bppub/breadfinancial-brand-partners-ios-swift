@@ -48,8 +48,7 @@ public extension UIImageView {
             }
 
             if Self.isSVG(data: data) {
-                let size = targetSize == .zero ? CGSize(width: 200, height: 200) : targetSize
-                if let image = Self.renderSVG(data: data, size: size) {
+                if let image = Self.renderSVG(data: data, size: targetSize) {
                     self.image = image
                     completion(true)
                 } else {
@@ -89,8 +88,16 @@ public extension UIImageView {
     /// via `UIGraphicsImageRenderer`, which is both simpler and safe to
     /// call off the main thread.
     private static func renderSVG(data: Data, size: CGSize) -> UIImage? {
-        guard size.width > 0, size.height > 0 else { return nil }
         guard let svg = SVG(data: data) else { return nil }
+
+        // When the caller doesn't yet know the final layout box (e.g.
+        // `targetSize` is `.zero` because Auto Layout hasn't run yet),
+        // fall back to the SVG's own intrinsic design size rather than
+        // an arbitrary guess like a hardcoded 200x200 square. `svg.size`
+        // is always correctly proportioned and gives a meaningful,
+        // artwork-derived resolution instead of a made-up magic number.
+        let boundingSize = size.width > 0 && size.height > 0 ? size : svg.size
+        guard boundingSize.width > 0, boundingSize.height > 0 else { return nil }
 
         // Render into a box that preserves the SVG's own aspect ratio
         // (derived from its viewBox/width/height) instead of stretching
@@ -99,7 +106,7 @@ public extension UIImageView {
         // canvas with transparent space, which then gets shrunk again by
         // the UIImageView's `.scaleAspectFit`, making the visible
         // logo/icon look far smaller than intended.
-        let renderSize = aspectFitSize(for: svg.size, within: size)
+        let renderSize = aspectFitSize(for: svg.size, within: boundingSize)
         return svg.rasterize(size: renderSize, scale: UIScreen.main.scale)
     }
 
