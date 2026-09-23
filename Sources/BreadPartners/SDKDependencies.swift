@@ -2,16 +2,16 @@ import BreadPartnersCore
 
 struct SDKDependencies {
     let logger: Logger
-    let httpClient: any HTTPClient
+    let httpClientFactory: any HTTPClientFactory
     let endpointProvider: any APIEndpointProviding
 
     init(
         logger: Logger,
-        httpClient: any HTTPClient,
+        httpClientFactory: any HTTPClientFactory,
         endpointProvider: any APIEndpointProviding,
     ) {
         self.logger = logger
-        self.httpClient = httpClient
+        self.httpClientFactory = httpClientFactory
         self.endpointProvider = endpointProvider
     }
 
@@ -21,7 +21,7 @@ struct SDKDependencies {
     ) -> SDKDependencies {
         return SDKDependencies(
             logger: logger,
-            httpClient: LiveHTTPClient(logger: logger),
+            httpClientFactory: LiveHTTPClientFactory(),
             endpointProvider: LiveAPIEndpointProvider(environment: environment),
         )
     }

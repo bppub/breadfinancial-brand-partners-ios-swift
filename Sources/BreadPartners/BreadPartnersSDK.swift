@@ -33,7 +33,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     // This will eventually live in RTPS Service.
     internal var rtpsDependencies = RTPSDependencies(
         recaptcha: LiveRecaptchaProvider(),
-        httpClient: LiveHTTPClient(logger: Logger()),
+        httpClient: LiveHTTPClientFactory().makeClient(logger: Logger()),
         requestBuilder: RTPSRequestBuilder(),
         responseDecoder: LiveRTPSResponseDecoder()
     )
@@ -77,7 +77,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         // This will eventually live in RTPS Service.
         rtpsDependencies = RTPSDependencies(
             recaptcha: LiveRecaptchaProvider(),
-            httpClient: LiveHTTPClient(logger: logger),
+            httpClient: dependencies.httpClientFactory.makeClient(logger: logger),
             requestBuilder: RTPSRequestBuilder(),
             responseDecoder: LiveRTPSResponseDecoder()
         )
