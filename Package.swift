@@ -19,6 +19,7 @@ let package = Package(
             url:
                 "https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk.git",
             from: "18.9.1"),
+        .package(url: "https://github.com/swhitty/SwiftDraw.git", from: "0.29.0"),
     ],
     targets: [
         .target(
@@ -28,7 +29,8 @@ let package = Package(
                 .product(
                     name: "RecaptchaEnterprise",
                     package: "recaptcha-enterprise-mobile-sdk"),
+                .product(name: "SwiftDraw", package: "SwiftDraw"),
             ]
-        )
+        ),
     ]
 )

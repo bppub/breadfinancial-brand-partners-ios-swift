@@ -109,7 +109,10 @@ extension PopupController {
             false
 
         if let imageURL = URL(string: popupModel.brandLogoUrl) {
-            brandLogo.loadImage(from: imageURL) { success in
+            brandLogo.loadImage(
+                from: imageURL,
+                targetSize: CGSize(width: brandLogoWidthCap, height: brandLogoHeight)
+            ) { success in
                 if success {} else {}
             }
         }
@@ -250,7 +253,7 @@ extension PopupController {
             brandLogo.topAnchor.constraint(
                 equalTo: topRowView.topAnchor, constant: paddingVerticalTen),
             brandLogo.heightAnchor.constraint(equalToConstant: brandLogoHeight),
-            brandLogo.widthAnchor.constraint(lessThanOrEqualToConstant: 150),
+            brandLogo.widthAnchor.constraint(lessThanOrEqualToConstant: brandLogoWidthCap),
 
             dividerTop.topAnchor.constraint(
                 equalTo: brandLogo.bottomAnchor, constant: paddingVerticalTen),

@@ -48,6 +48,7 @@ internal class PopupController: UIViewController,@preconcurrency AppRestartListe
     var paddingVerticalTen: Double = 10
     var paddingVerticalTwenty: Double = 20
     var brandLogoHeight: Double = 50
+    var brandLogoWidthCap: Double = 150
     var webView: WKWebView!
     var webViewManager: BreadFinancialWebViewInterstitial!
     var webViewPlacementModel: PopupPlacementModel!
@@ -132,7 +133,10 @@ internal class PopupController: UIViewController,@preconcurrency AppRestartListe
         }
 
         if let imageURL = URL(string: popupModel.brandLogoUrl) {
-            brandLogo.loadImage(from: imageURL) { success in
+            brandLogo.loadImage(
+                from: imageURL,
+                targetSize: CGSize(width: brandLogoWidthCap, height: brandLogoHeight)
+            ) { success in
                 if success {} else {}
             }
         }
