@@ -61,7 +61,7 @@ import Testing
     func spyNetworkClientStartsWithNoRequestsAndReturnsConfiguredData() async throws {
         let responseData = Data("response".utf8)
         let network = SpyRTPSNetworkClient(responseData: responseData)
-        let request = RTPSNetworkRequest(
+        let request = HTTPRequest(
             url: RTPSFixtures.URLs.prescreen,
             method: .POST,
             headers: ["X-Test": "value"],
@@ -70,7 +70,7 @@ import Testing
         )
 
         await #expect(network.requests.isEmpty)
-        let result = try await network.send(request)
+        let result = try await network.request(request)
 
         #expect(result == responseData)
         let recordedRequest = await network.requests.first
@@ -83,7 +83,7 @@ import Testing
 
     @Test
     func spyNetworkClientRecordsRequestsBeforeThrowingAConfiguredFailure() async {
-        let request = RTPSNetworkRequest(
+        let request = HTTPRequest(
             url: RTPSFixtures.URLs.prescreen,
             method: .POST
         )
@@ -92,7 +92,7 @@ import Testing
         )
 
         do {
-            _ = try await network.send(request)
+            _ = try await network.request(request)
             Issue.record("Expected the configured network failure")
         } catch {
             #expect((error as NSError).domain == "Network")

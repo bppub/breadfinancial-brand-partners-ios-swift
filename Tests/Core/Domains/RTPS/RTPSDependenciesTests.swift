@@ -12,13 +12,13 @@ import Testing
 
         let dependencies = RTPSDependencies(
             recaptcha: recaptcha,
-            network: network,
+            httpClient: network,
             requestBuilder: requestBuilder,
             responseDecoder: responseDecoder
         )
 
         #expect(dependencies.recaptcha is StubRecaptchaProvider)
-        #expect(dependencies.network is SpyRTPSNetworkClient)
+        #expect(dependencies.httpClient is SpyRTPSNetworkClient)
         #expect(dependencies.requestBuilder is StubRTPSRequestBuilder)
         #expect(dependencies.responseDecoder is StubRTPSResponseDecoder)
     }

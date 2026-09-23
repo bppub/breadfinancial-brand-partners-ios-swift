@@ -31,18 +31,18 @@ actor StubRecaptchaProvider: RecaptchaProviding {
     }
 }
 
-actor SpyRTPSNetworkClient: RTPSNetworkClient {
+actor SpyRTPSNetworkClient: HTTPClient {
     private let responseData: Data
     private let failure: NSError?
 
-    private(set) var requests: [RTPSNetworkRequest] = []
+    private(set) var requests: [HTTPRequest] = []
 
     init(responseData: Data = Data(), failure: NSError? = nil) {
         self.responseData = responseData
         self.failure = failure
     }
 
-    func send(_ request: RTPSNetworkRequest) async throws -> Data {
+    func request(_ request: HTTPRequest) async throws -> Data {
         requests.append(request)
 
         if let failure {
@@ -237,7 +237,7 @@ enum RTPSFixtures {
     ) -> RTPSDependencies {
         RTPSDependencies(
             recaptcha: recaptcha,
-            network: network,
+            httpClient: network,
             requestBuilder: requestBuilder,
             responseDecoder: responseDecoder
         )
