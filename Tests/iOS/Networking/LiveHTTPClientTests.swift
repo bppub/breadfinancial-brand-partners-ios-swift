@@ -54,8 +54,12 @@ import Testing
         #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: "Content-Type") == "text/plain")
         #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: "Cookie") == "session=abc")
         #expect(LiveHTTPClientURLProtocol.lastBody == body)
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerOriginKey) == Constants.headerOriginValue)
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerPlatformKey) == Constants.headerPlatformValue)
+        #expect(
+            LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerOriginKey)
+                == Constants.headerOriginValue)
+        #expect(
+            LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerPlatformKey)
+                == Constants.headerPlatformValue)
     }
 
     @Test
@@ -74,7 +78,9 @@ import Testing
     @Test
     func requestRejectsHTTPErrorUsingJSONMessage() async {
         LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (Data(#"{"message":"declined"}"#.utf8), 400, ["Content-Type": "application/json"])
+        LiveHTTPClientURLProtocol.response = (
+            Data(#"{"message":"declined"}"#.utf8), 400, ["Content-Type": "application/json"]
+        )
         defer { LiveHTTPClientURLProtocol.reset() }
 
         await expectNSError(domain: "HTTPError", code: 400, containing: "declined")
