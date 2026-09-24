@@ -788,6 +788,9 @@ private enum SVGColorParser {
         if trimmed.hasPrefix("rgb") {
             return functionalColor(trimmed)
         }
+        if let color = namedColors[trimmed] {
+            return color
+        }
         return nil
     }
 
@@ -833,6 +836,13 @@ private enum SVGColorParser {
         let alpha: CGFloat = components.count > 3 ? CGFloat(Double(components[3]) ?? 1) : 1
         return UIColor(red: red, green: green, blue: blue, alpha: alpha).cgColor
     }
+    
+    /// A small set of CSS named colors commonly seen in brand logos.
+    private static let namedColors: [String: CGColor] = [
+        "black": UIColor.black.cgColor,
+        "white": UIColor.white.cgColor,
+        "transparent": UIColor.clear.cgColor,
+    ]
 }
 
 // MARK: - Minimal CSS "<style>" block parsing (class selectors only)
