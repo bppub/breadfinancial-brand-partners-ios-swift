@@ -83,12 +83,12 @@ struct RTPSApiExtensionTests {
 
         try await waitUntil {
             let requestCount = await httpClient.requestCount
-            return requestCount == 3
+            return requestCount >= 3 && events.containsSDKError
         }
 
         let requests = await httpClient.requests
+        #expect(requests.count == 3)
         #expect(requests[1].cookies?.contains("incap_ses_test=cookie-value") == true)
-        #expect(events.containsSDKError)
     }
 
     @Test
@@ -143,7 +143,7 @@ struct RTPSApiExtensionTests {
     private func waitUntil(
         _ condition: @escaping @Sendable () async -> Bool
     ) async throws {
-        for _ in 0..<50 {
+        for _ in 0..<250 {
             if await condition() { return }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
