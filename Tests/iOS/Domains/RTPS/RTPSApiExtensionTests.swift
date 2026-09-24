@@ -83,10 +83,11 @@ struct RTPSApiExtensionTests {
 
         try await waitUntil {
             let requestCount = await httpClient.requestCount
-            return requestCount == 3
+            return requestCount >= 3 && events.containsSDKError
         }
 
         let requests = await httpClient.requests
+        #expect(requests.count == 3)
         #expect(requests[1].cookies?.contains("incap_ses_test=cookie-value") == true)
     }
 
