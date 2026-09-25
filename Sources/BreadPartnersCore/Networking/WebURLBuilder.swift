@@ -1,13 +1,14 @@
 import Foundation
 
-internal enum WebURLBuilder {
-    static func buildRTPSWebURL(
+package enum WebURLBuilder {
+    package static func buildRTPSWebURL(
+        environment: BreadPartnersEnvironment,
         integrationKey: String,
+        rtpsData: RTPSData?,
         merchantConfiguration: MerchantConfiguration,
-        rtpsData: RTPSData?
     ) -> URL? {
         let mockResponseValue = rtpsData?.mockResponse?.rawValue
-        var queryParams: [String: String?] = [
+        let queryParams: [String: String?] = [
             "mockMO": mockResponseValue.takeIfNotEmpty(),
             "mockPA": mockResponseValue.takeIfNotEmpty(),
             "mockVL": mockResponseValue.takeIfNotEmpty(),
@@ -30,27 +31,20 @@ internal enum WebURLBuilder {
             "prescreenId": rtpsData?.prescreenId.map(String.init),
         ]
 
-        guard
-            var components = URLComponents(
-                string: APIUrl(urlType: .rtpsWebUrl(type: "offer")).url
-            )
-        else {
-            return nil
-        }
-        components.queryItems = queryParams.compactMap { key, value in
-            guard let value, !value.isEmpty else { return nil }
-            return URLQueryItem(name: key, value: value)
-        }
-        return components.url
+        return buildURL(
+            endpoint: .rtpsWebUrl(type: "offer"),
+            queryParams: queryParams,
+            environment: environment
+        )
     }
 
-    static func buildBPSWebURL(
+    package static func buildBPSWebURL(
+        environment: BreadPartnersEnvironment,
         integrationKey: String,
-        merchantConfiguration: MerchantConfiguration,
-        placementConfiguration: PlacementConfiguration
+        rtpsData: RTPSData?,
+        placementData: PlacementData?,
+        merchantConfiguration: MerchantConfiguration
     ) -> URL? {
-        let rtpsData = placementConfiguration.rtpsData
-        let placementData = placementConfiguration.placementData
         let buyer = merchantConfiguration.buyer
         let billingAddress = buyer?.billingAddress
         let order = rtpsData?.order ?? placementData?.order
@@ -113,13 +107,26 @@ internal enum WebURLBuilder {
             "splitPayment": nil,
         ]
 
+        return buildURL(
+            endpoint: .bpsWebUrl,
+            queryParams: queryParams,
+            environment: environment
+        )
+    }
+
+    private static func buildURL(
+        endpoint: APIEndpoint,
+        queryParams: [String: String?],
+        environment: BreadPartnersEnvironment
+    ) -> URL? {
         guard
             var components = URLComponents(
-                string: APIUrl(urlType: .bpsWebUrl).url
+                string: endpoint.url(for: environment)
             )
         else {
             return nil
         }
+
         components.queryItems = queryParams.compactMap { key, value in
             guard let value, !value.isEmpty else { return nil }
             return URLQueryItem(name: key, value: value)
