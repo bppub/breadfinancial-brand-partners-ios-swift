@@ -51,8 +51,8 @@ extension BreadPartnersSDK {
                 rtpsData: placementsConfiguration.rtpsData ?? RTPSData(),
                 integrationKey: integrationKey,
                 siteKey: siteKey ?? "",
-                prescreenURL: APIUrl(urlType: .prescreen).foundationURL,
-                virtualLookupURL: APIUrl(urlType: .virtualLookup).foundationURL,
+                prescreenURL: dependencies.endpointProvider.url(for: .prescreen),
+                virtualLookupURL: dependencies.endpointProvider.url(for: .virtualLookup),
                 cookies: cookies,
                 isLoggingEnabled: logger.isLoggingEnabled,
                 log: { logger.printLog($0) }
@@ -152,7 +152,7 @@ extension BreadPartnersSDK {
             ) -> Void
     ) async {
         do {
-            let url = APIUrl(urlType: .generatePlacements).foundationURL
+            let url = dependencies.endpointProvider.url(for: .generatePlacements)
 
             let webURL: String?
             if placementsConfiguration.rtpsData?.customerAcceptedOffer == true {

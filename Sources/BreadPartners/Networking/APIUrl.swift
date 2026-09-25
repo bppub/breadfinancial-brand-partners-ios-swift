@@ -25,11 +25,11 @@ internal enum APIUrlType {
     case virtualLookup
 }
 
+@available(*, deprecated, message: "Use `LiveAPIEndpointProvider` instead for resolving API URLs.")
 internal actor APIUrl {
     nonisolated(unsafe) static var currentEnvironment: BreadPartnersEnvironment = .prod
 
-    private let baseURL: String
-    private let rtpsBaseURL: String
+    private let environment: BreadPartnersEnvironment
     private let urlType: APIUrlType
 
     /// Adding a transitional environment handler to allow for testing of the current behavior.
@@ -40,18 +40,7 @@ internal actor APIUrl {
         environment: BreadPartnersEnvironment? = nil
     ) {
         self.urlType = urlType
-
-        switch environment ?? APIUrl.currentEnvironment {
-        case .stage:
-            self.baseURL = "https://brands.kmsmep.com"
-            self.rtpsBaseURL = "https://acquire1stage.comenity.net"
-        case .prod:
-            self.baseURL = "https://brands.kmsmep.com"
-            self.rtpsBaseURL = "https://acquire1.comenity.net"
-        case .uat:
-            self.baseURL = "https://brands.kmsmep.com"
-            self.rtpsBaseURL = "https://acquire1uat.comenity.net"
-        }
+        self.environment = environment ?? APIUrl.currentEnvironment
     }
 
     /// Set the environment
@@ -61,26 +50,30 @@ internal actor APIUrl {
 
     /// Generates the correct URL based on the URL type
     nonisolated var url: String {
+        let endpoint: APIEndpoint
+
         switch urlType {
         case .rtpsWebUrl(let type):
-            return "\(rtpsBaseURL)/prescreen/\(type)"
+            endpoint = .rtpsWebUrl(type: type)
         case .bpsWebUrl:
-            return "\(rtpsBaseURL)/batch-prescreen/start"
+            endpoint = .bpsWebUrl
         case .brandStyle(let brandId):
-            return "\(baseURL)/brands/\(brandId)/style"
+            endpoint = .brandStyle(brandId: brandId)
         case .brandConfig(let brandId):
-            return "\(baseURL)/brands/\(brandId)/config"
+            endpoint = .brandConfig(brandId: brandId)
         case .generatePlacements:
-            return "\(baseURL)/generatePlacements"
+            endpoint = .generatePlacements
         case .viewPlacement:
-            return "\(baseURL)/ep/v1/view-placement"
+            endpoint = .viewPlacement
         case .clickPlacement:
-            return "\(baseURL)/ep/v1/click-placement"
+            endpoint = .clickPlacement
         case .prescreen:
-            return "\(rtpsBaseURL)/api/prescreen"
+            endpoint = .prescreen
         case .virtualLookup:
-            return "\(rtpsBaseURL)/api/virtual_lookup"
+            endpoint = .virtualLookup
         }
+
+        return endpoint.url(for: environment)
     }
 
     nonisolated var foundationURL: URL {
