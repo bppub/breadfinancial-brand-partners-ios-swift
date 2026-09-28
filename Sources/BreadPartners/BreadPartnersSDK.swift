@@ -104,11 +104,6 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
-        var mutablePlacementsConfiguration = placementsConfiguration
-
-        if mutablePlacementsConfiguration.popUpStyling == nil {
-            mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
-        }
 
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
@@ -116,7 +111,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: mutablePlacementsConfiguration,
+            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction,
             openPlacementExperience: false,
             forSwiftUI: forSwiftUI,
@@ -148,11 +143,6 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
-        var mutablePlacementsConfiguration = placementsConfiguration
-
-        if mutablePlacementsConfiguration.popUpStyling == nil {
-            mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
-        }
 
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
@@ -165,7 +155,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         await rtpsCall(
             merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: mutablePlacementsConfiguration,
+            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction,
             openPlacementExperience: false,
             forSwiftUI: forSwiftUI,
@@ -190,11 +180,6 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             ) -> Void
     ) async {
         guard checkInitialized(callback: callback) else { return }
-        var mutablePlacementsConfiguration = placementsConfiguration
-
-        if mutablePlacementsConfiguration.popUpStyling == nil {
-            mutablePlacementsConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
-        }
 
         let logger = Logger()
         logger.setLogging(enabled: isLoggingEnabled)
@@ -202,7 +187,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: mutablePlacementsConfiguration,
+            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: false, openPlacementExperience: true,
             forSwiftUI: false,
             logger: logger,

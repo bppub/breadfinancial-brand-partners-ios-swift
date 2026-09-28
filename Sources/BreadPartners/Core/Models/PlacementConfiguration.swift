@@ -29,4 +29,12 @@ public struct PlacementConfiguration: @unchecked Sendable {
         self.rtpsData = rtpsData
         self.popUpStyling = popUpStyling
     }
+
+    func withDefaultPopupStylingIfMissing() -> Self {
+        guard popUpStyling == nil else { return self }
+
+        var updatedConfiguration = self
+        updatedConfiguration.popUpStyling = BreadPartnerDefaults.popupStyle
+        return updatedConfiguration
+    }
 }

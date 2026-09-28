@@ -32,6 +32,30 @@ import UIKit
     }
 
     @Test
+    func withDefaultPopupStylingIfMissingAddsStyleWhenMissing() {
+        let configuration = PlacementConfiguration(rtpsData: RTPSData(prescreenId: 42))
+
+        let updatedConfiguration = configuration.withDefaultPopupStylingIfMissing()
+
+        #expect(updatedConfiguration.rtpsData?.prescreenId == 42)
+        #expect(
+            updatedConfiguration.popUpStyling?.loaderColor
+                == BreadPartnerDefaults.popupStyle.loaderColor
+        )
+        #expect(configuration.popUpStyling == nil)
+    }
+
+    @Test
+    func withDefaultPopupStylingIfMissingPreservesCustomStyle() {
+        let style = PopUpStyling(loaderColor: .red)
+        let configuration = PlacementConfiguration(popUpStyling: style)
+
+        let updatedConfiguration = configuration.withDefaultPopupStylingIfMissing()
+
+        #expect(updatedConfiguration.popUpStyling?.loaderColor == style.loaderColor)
+    }
+
+    @Test
     func popupActionButtonStylePreservesFields() {
         let padding = UIEdgeInsets(top: 8, left: 16, bottom: 12, right: 20)
         let style = PopupActionButtonStyle(
