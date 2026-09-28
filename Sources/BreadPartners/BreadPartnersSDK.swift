@@ -28,7 +28,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
     var sdkEnvironment: BreadPartnersEnvironment = .stage
     var brandConfiguration: BrandConfigResponse?
-    internal var dependencies = SDKDependencies.live(environment: .prod, logger: Logger())
+    internal var dependencies = SDKDependencies.live(environment: .prod)
 
     // This will eventually live in RTPS Service.
     internal var rtpsDependencies = RTPSDependencies(
@@ -68,11 +68,9 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         self.sdkEnvironment = environment
         self.integrationKey = integrationKey
         self.isLoggingEnabled = enableLog
+        self.dependencies = SDKDependencies.live(environment: environment)
 
-        let logger = Logger()
-        logger.setLogging(enabled: isLoggingEnabled)
-
-        dependencies = SDKDependencies.live(environment: environment, logger: logger)
+        let logger = makeLogger()
 
         // This will eventually live in RTPS Service.
         rtpsDependencies = RTPSDependencies(
@@ -105,17 +103,13 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     ) async {
         guard checkInitialized(callback: callback) else { return }
 
-        let logger = Logger()
-        logger.setLogging(enabled: isLoggingEnabled)
-        logger.setCallback(callback)
-
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction,
             openPlacementExperience: false,
             forSwiftUI: forSwiftUI,
-            logger: logger,
+            logger: makeLogger(callback: callback),
             callback: callback
         )
     }
@@ -144,9 +138,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     ) async {
         guard checkInitialized(callback: callback) else { return }
 
-        let logger = Logger()
-        logger.setLogging(enabled: isLoggingEnabled)
-        logger.setCallback(callback)
+        let logger = makeLogger(callback: callback)
 
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
@@ -181,17 +173,30 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     ) async {
         guard checkInitialized(callback: callback) else { return }
 
-        let logger = Logger()
-        logger.setLogging(enabled: isLoggingEnabled)
-        logger.setCallback(callback)
-
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: false, openPlacementExperience: true,
             forSwiftUI: false,
-            logger: logger,
+            logger: makeLogger(callback: callback),
             callback: callback
         )
+    }
+
+    /// Creates and configures a logger instance for the SDK.
+    /// - Parameters:
+    ///   - callback: An optional callback to handle logging events.
+    /// - Returns: A configured `Logger` instance.
+    internal func makeLogger(
+        callback: (@Sendable (BreadPartnerEvents) -> Void)? = nil
+    ) -> Logger {
+        let logger = Logger()
+        logger.setLogging(enabled: isLoggingEnabled)
+
+        if let callback {
+            logger.setCallback(callback)
+        }
+
+        return logger
     }
 }
