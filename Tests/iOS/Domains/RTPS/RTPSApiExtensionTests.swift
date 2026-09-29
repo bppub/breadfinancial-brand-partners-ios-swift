@@ -10,14 +10,14 @@ struct RTPSApiExtensionTests {
     @Test
     func challengeOutcomeRendersChallengeController() async {
         let httpClient = HTTPClientSpy(outcomes: [
-            .failure(RTPSApiFixtures.Error.incapsula)
+            .failure(RTPSTestFixtures.Error.incapsula)
         ])
         let sdk = makeSDK(httpClient: httpClient)
         let events = EventCapture()
 
         await sdk.rtpsCall(
-            merchantConfiguration: RTPSApiFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSApiFixtures.PlacementConfigurationFixture.rtps,
+            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
+            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
             logger: Logger(),
             callback: events.record
         )
@@ -34,22 +34,22 @@ struct RTPSApiExtensionTests {
     @Test
     func challengeCompletionRetriesRTPSRequestWithCookies() async throws {
         let httpClient = HTTPClientSpy(outcomes: [
-            .failure(RTPSApiFixtures.Error.incapsula),
+            .failure(RTPSTestFixtures.Error.incapsula),
             .success(Data()),
             .success(Data()),
         ])
         let decoder = ResponseDecoderStub(
             responses: [
-                .rtps(RTPSApiFixtures.Response.approved),
-                .placements(RTPSApiFixtures.Response.emptyPlacements),
+                .rtps(RTPSTestFixtures.Response.approved),
+                .placements(RTPSTestFixtures.Response.emptyPlacements),
             ]
         )
         let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
         let events = EventCapture()
 
         await sdk.rtpsCall(
-            merchantConfiguration: RTPSApiFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSApiFixtures.PlacementConfigurationFixture.rtps,
+            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
+            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
             logger: Logger(),
             callback: events.record
         )
@@ -99,16 +99,16 @@ struct RTPSApiExtensionTests {
         ])
         let decoder = ResponseDecoderStub(
             responses: [
-                .rtps(RTPSApiFixtures.Response.approved),
-                .placements(RTPSApiFixtures.Response.emptyPlacements),
+                .rtps(RTPSTestFixtures.Response.approved),
+                .placements(RTPSTestFixtures.Response.emptyPlacements),
             ]
         )
         let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
         let events = EventCapture()
 
         await sdk.rtpsCall(
-            merchantConfiguration: RTPSApiFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSApiFixtures.PlacementConfigurationFixture.rtps,
+            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
+            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
             logger: Logger(),
             callback: events.record
         )
@@ -125,7 +125,7 @@ struct RTPSApiExtensionTests {
     private func makeSDK(
         httpClient: HTTPClientSpy,
         decoder: ResponseDecoderStub = ResponseDecoderStub(
-            responses: [.rtps(RTPSApiFixtures.Response.neutral)]
+            responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
     ) -> BreadPartnersSDK {
         let sdk = BreadPartnersSDK()

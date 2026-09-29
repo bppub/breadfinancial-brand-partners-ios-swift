@@ -4,7 +4,7 @@ import Testing
 @testable import BreadPartners
 
 @Suite
-struct RTPSApiTestDoublesTests {
+struct RTPSTestDoublesTests {
     @Test
     func recaptchaStubUsesDefaultSuccessfulResult() async throws {
         let recaptcha = RecaptchaStub()
@@ -69,11 +69,11 @@ struct RTPSApiTestDoublesTests {
             outcomes: [.success(firstData), .success(secondData)]
         )
         let firstRequest = HTTPRequest(
-            url: RTPSApiFixtures.URLs.prescreen,
+            url: RTPSTestFixtures.URLs.prescreen,
             method: .POST
         )
         let secondRequest = HTTPRequest(
-            url: RTPSApiFixtures.URLs.virtualLookup,
+            url: RTPSTestFixtures.URLs.virtualLookup,
             method: .POST
         )
 
@@ -89,7 +89,7 @@ struct RTPSApiTestDoublesTests {
             outcomes: [.failure(NSError(domain: "Network", code: 500))]
         )
         let request = HTTPRequest(
-            url: RTPSApiFixtures.URLs.prescreen,
+            url: RTPSTestFixtures.URLs.prescreen,
             method: .POST
         )
 
@@ -108,7 +108,7 @@ struct RTPSApiTestDoublesTests {
     func HTTPClientSpyReturnsEmptyDataWhenQueueIsExhausted() async throws {
         let httpClient = HTTPClientSpy(outcomes: [])
         let request = HTTPRequest(
-            url: RTPSApiFixtures.URLs.prescreen,
+            url: RTPSTestFixtures.URLs.prescreen,
             method: .POST
         )
 
@@ -118,8 +118,8 @@ struct RTPSApiTestDoublesTests {
 
     @Test
     func responseDecoderReturnsConfiguredResponsesInOrder() throws {
-        let rtpsResponse = RTPSApiFixtures.Response.approved
-        let placementsResponse = RTPSApiFixtures.Response.emptyPlacements
+        let rtpsResponse = RTPSTestFixtures.Response.approved
+        let placementsResponse = RTPSTestFixtures.Response.emptyPlacements
         let decoder = ResponseDecoderStub(
             responses: [
                 .rtps(rtpsResponse),
@@ -137,7 +137,7 @@ struct RTPSApiTestDoublesTests {
     @Test
     func responseDecoderRejectsAnUnexpectedConfiguredResponseType() {
         let decoder = ResponseDecoderStub(
-            responses: [.rtps(RTPSApiFixtures.Response.approved)]
+            responses: [.rtps(RTPSTestFixtures.Response.approved)]
         )
 
         do {
@@ -153,7 +153,7 @@ struct RTPSApiTestDoublesTests {
     @Test
     func responseDecoderRejectsAPlacementResponseWhenRTPSIsRequested() {
         let decoder = ResponseDecoderStub(
-            responses: [.placements(RTPSApiFixtures.Response.emptyPlacements)]
+            responses: [.placements(RTPSTestFixtures.Response.emptyPlacements)]
         )
 
         do {
