@@ -107,39 +107,6 @@ final class ResponseDecoderStub: RTPSResponseDecoding, @unchecked Sendable {
     }
 }
 
-final class EventCapture: @unchecked Sendable {
-    private let lock = NSLock()
-    private var recordedEvents: [BreadPartnerEvents] = []
-
-    var first: BreadPartnerEvents? {
-        lock.lock()
-        defer { lock.unlock() }
-        return recordedEvents.first
-    }
-
-    var containsSDKError: Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        return recordedEvents.contains { event in
-            if case .sdkError = event { return true }
-            return false
-        }
-
-    }
-
-    var eventCount: Int {
-        lock.lock()
-        defer { lock.unlock() }
-        return recordedEvents.count
-    }
-
-    func record(_ event: BreadPartnerEvents) {
-        lock.lock()
-        recordedEvents.append(event)
-        lock.unlock()
-    }
-}
-
 enum RTPSApiFixtures {
     enum URLs {
         static let prescreen = URL(string: "https://rtps.test/api/prescreen")!

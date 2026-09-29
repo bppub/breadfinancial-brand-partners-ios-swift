@@ -3,13 +3,9 @@ import Testing
 @testable import BreadPartners
 
 @Suite struct LoggerTests {
-    private final class EventBox: @unchecked Sendable {
-        var events: [BreadPartnerEvents] = []
-    }
-
     @Test
     func disabledLoggerDoesNotEmitEvent() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setCallback { eventBox.events.append($0) }
 
@@ -20,7 +16,7 @@ import Testing
 
     @Test
     func enabledLoggerEmitsJoinedMessage() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -38,7 +34,7 @@ import Testing
 
     @Test
     func requestLoggingEmitsOneFormattedEvent() throws {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -64,8 +60,8 @@ import Testing
     @Test
     func replacingCallbackStopsUsingPreviousCallback() {
         let logger = Logger()
-        let firstEventBox = EventBox()
-        let secondEventBox = EventBox()
+        let firstEventBox = EventCapture()
+        let secondEventBox = EventCapture()
         logger.setLogging(enabled: true)
 
         logger.setCallback { firstEventBox.events.append($0) }
@@ -80,7 +76,7 @@ import Testing
 
     @Test
     func printLogRespectsLoggingFlag() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setCallback { eventBox.events.append($0) }
 
@@ -94,7 +90,7 @@ import Testing
 
     @Test
     func requestLoggingUsesNoBodyWhenBodyIsNil() throws {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -112,7 +108,7 @@ import Testing
 
     @Test
     func responseLoggingIncludesStatusUrlAndBody() throws {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -137,7 +133,7 @@ import Testing
 
     @Test
     func textPlacementLoggingIncludesModelFields() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -164,7 +160,7 @@ import Testing
 
     @Test
     func textPlacementLoggingUsesNAForMissingFields() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -193,7 +189,7 @@ import Testing
 
     @Test
     func popupPlacementLoggingIncludesPrimaryActionAndDynamicBody() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -240,7 +236,7 @@ import Testing
 
     @Test
     func popupPlacementLoggingHandlesEmptyDynamicBody() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -271,7 +267,7 @@ import Testing
 
     @Test
     func popupPlacementLoggingUsesNAForMissingActionTypeAndButtonText() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -305,7 +301,7 @@ import Testing
 
     @Test
     func loadingURLLoggingEmitsURL() throws {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -323,7 +319,7 @@ import Testing
 
     @Test
     func recaptchaTokenLoggingEmitsToken() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -340,7 +336,7 @@ import Testing
 
     @Test
     func applicationResultLoggingEmitsPayloadFields() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -362,7 +358,7 @@ import Testing
 
     @Test
     func applicationResultLoggingUsesNAForMissingFields() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -385,7 +381,7 @@ import Testing
 
     @Test
     func webAnchorLoggingEmitsAnchorData() {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -402,7 +398,7 @@ import Testing
 
     @Test
     func loggerMethodsDoNotEmitWhenDisabled() throws {
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setCallback { eventBox.events.append($0) }
         let url = try #require(URL(string: "https://example.com/disabled"))

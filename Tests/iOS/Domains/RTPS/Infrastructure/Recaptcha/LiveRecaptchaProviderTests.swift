@@ -41,10 +41,6 @@ import Testing
         }
     }
 
-    private final class EventBox: @unchecked Sendable {
-        var events: [BreadPartnerEvents] = []
-    }
-
     @Test
     func executeForwardsActionTimeoutAndReturnsToken() async throws {
         let client = ClientSpy(result: .success("token-123"))
@@ -170,7 +166,7 @@ import Testing
     func executeLogsTokenWhenDebugIsEnabled() async throws {
         let client = ClientSpy(result: .success("token-123"))
         let factory = FactorySpy(client: client)
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
@@ -196,7 +192,7 @@ import Testing
     func executeDoesNotLogTokenWhenDebugIsDisabled() async throws {
         let client = ClientSpy(result: .success("token-123"))
         let factory = FactorySpy(client: client)
-        let eventBox = EventBox()
+        let eventBox = EventCapture()
         let logger = Logger()
         logger.setLogging(enabled: true)
         logger.setCallback { eventBox.events.append($0) }
