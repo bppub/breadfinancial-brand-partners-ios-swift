@@ -62,58 +62,58 @@ struct RTPSApiTestDoublesTests {
     }
 
     @Test
-    func networkSpyReturnsQueuedDataAndRecordsEachRequest() async throws {
+    func HTTPClientSpyReturnsQueuedDataAndRecordsEachRequest() async throws {
         let firstData = Data("first".utf8)
         let secondData = Data("second".utf8)
-        let network = NetworkSpy(
+        let httpClient = HTTPClientSpy(
             outcomes: [.success(firstData), .success(secondData)]
         )
-        let firstRequest = RTPSNetworkRequest(
+        let firstRequest = HTTPRequest(
             url: RTPSApiFixtures.URLs.prescreen,
             method: .POST
         )
-        let secondRequest = RTPSNetworkRequest(
+        let secondRequest = HTTPRequest(
             url: RTPSApiFixtures.URLs.virtualLookup,
             method: .POST
         )
 
-        #expect(try await network.send(firstRequest) == firstData)
-        #expect(try await network.send(secondRequest) == secondData)
-        #expect(await network.requestCount == 2)
-        #expect(await network.requests.map(\.url) == [firstRequest.url, secondRequest.url])
+        #expect(try await httpClient.request(firstRequest) == firstData)
+        #expect(try await httpClient.request(secondRequest) == secondData)
+        #expect(await httpClient.requestCount == 2)
+        #expect(await httpClient.requests.map(\.url) == [firstRequest.url, secondRequest.url])
     }
 
     @Test
-    func networkSpyThrowsConfiguredFailureAfterRecordingRequest() async {
-        let network = NetworkSpy(
+    func HTTPClientSpyThrowsConfiguredFailureAfterRecordingRequest() async {
+        let httpClient = HTTPClientSpy(
             outcomes: [.failure(NSError(domain: "Network", code: 500))]
         )
-        let request = RTPSNetworkRequest(
+        let request = HTTPRequest(
             url: RTPSApiFixtures.URLs.prescreen,
             method: .POST
         )
 
         do {
-            _ = try await network.send(request)
+            _ = try await httpClient.request(request)
             Issue.record("Expected the configured network failure")
         } catch {
             #expect((error as NSError).domain == "Network")
             #expect((error as NSError).code == 500)
         }
 
-        #expect(await network.requestCount == 1)
+        #expect(await httpClient.requestCount == 1)
     }
 
     @Test
-    func networkSpyReturnsEmptyDataWhenQueueIsExhausted() async throws {
-        let network = NetworkSpy(outcomes: [])
-        let request = RTPSNetworkRequest(
+    func HTTPClientSpyReturnsEmptyDataWhenQueueIsExhausted() async throws {
+        let httpClient = HTTPClientSpy(outcomes: [])
+        let request = HTTPRequest(
             url: RTPSApiFixtures.URLs.prescreen,
             method: .POST
         )
 
-        #expect(try await network.send(request) == Data())
-        #expect(await network.requestCount == 1)
+        #expect(try await httpClient.request(request) == Data())
+        #expect(await httpClient.requestCount == 1)
     }
 
     @Test

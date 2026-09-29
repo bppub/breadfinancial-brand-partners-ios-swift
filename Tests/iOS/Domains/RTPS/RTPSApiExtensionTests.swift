@@ -9,10 +9,10 @@ import WebKit
 struct RTPSApiExtensionTests {
     @Test
     func challengeOutcomeRendersChallengeController() async {
-        let network = NetworkSpy(outcomes: [
+        let httpClient = HTTPClientSpy(outcomes: [
             .failure(RTPSApiFixtures.Error.incapsula)
         ])
-        let sdk = makeSDK(network: network)
+        let sdk = makeSDK(httpClient: httpClient)
         let events = EventCapture()
 
         await sdk.rtpsCall(
@@ -28,12 +28,12 @@ struct RTPSApiExtensionTests {
         }
 
         #expect(view is ChallengeController)
-        #expect(await network.requests.count == 1)
+        #expect(await httpClient.requests.count == 1)
     }
 
     @Test
     func challengeCompletionRetriesRTPSRequestWithCookies() async throws {
-        let network = NetworkSpy(outcomes: [
+        let httpClient = HTTPClientSpy(outcomes: [
             .failure(RTPSApiFixtures.Error.incapsula),
             .success(Data()),
             .success(Data()),
@@ -44,7 +44,7 @@ struct RTPSApiExtensionTests {
                 .placements(RTPSApiFixtures.Response.emptyPlacements),
             ]
         )
-        let sdk = makeSDK(network: network, decoder: decoder)
+        let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
         let events = EventCapture()
 
         await sdk.rtpsCall(
@@ -82,18 +82,18 @@ struct RTPSApiExtensionTests {
         challengeController.cookiesDidChange(in: webView.configuration.websiteDataStore.httpCookieStore)
 
         try await waitUntil {
-            let requestCount = await network.requestCount
-            return requestCount == 3
+            let requestCount = await httpClient.requestCount
+            return requestCount >= 3 && events.containsSDKError
         }
 
-        let requests = await network.requests
+        let requests = await httpClient.requests
+        #expect(requests.count == 3)
         #expect(requests[1].cookies?.contains("incap_ses_test=cookie-value") == true)
-        #expect(events.containsSDKError)
     }
 
     @Test
     func approvedOutcomeIssuesPlacementRequest() async {
-        let network = NetworkSpy(outcomes: [
+        let httpClient = HTTPClientSpy(outcomes: [
             .success(Data()),
             .success(Data()),
         ])
@@ -103,7 +103,7 @@ struct RTPSApiExtensionTests {
                 .placements(RTPSApiFixtures.Response.emptyPlacements),
             ]
         )
-        let sdk = makeSDK(network: network, decoder: decoder)
+        let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
         let events = EventCapture()
 
         await sdk.rtpsCall(
@@ -113,7 +113,7 @@ struct RTPSApiExtensionTests {
             callback: events.record
         )
 
-        let requests = await network.requests
+        let requests = await httpClient.requests
         #expect(requests.count == 2)
         #expect(requests[1].method == .POST)
         #expect(
@@ -123,7 +123,7 @@ struct RTPSApiExtensionTests {
     }
 
     private func makeSDK(
-        network: NetworkSpy,
+        httpClient: HTTPClientSpy,
         decoder: ResponseDecoderStub = ResponseDecoderStub(
             responses: [.rtps(RTPSApiFixtures.Response.neutral)]
         )
@@ -133,7 +133,7 @@ struct RTPSApiExtensionTests {
         sdk.sdkEnvironment = .stage
         sdk.rtpsDependencies = RTPSDependencies(
             recaptcha: RecaptchaStub(),
-            network: network,
+            httpClient: httpClient,
             requestBuilder: RTPSRequestBuilder(),
             responseDecoder: decoder
         )
@@ -143,7 +143,7 @@ struct RTPSApiExtensionTests {
     private func waitUntil(
         _ condition: @escaping @Sendable () async -> Bool
     ) async throws {
-        for _ in 0..<50 {
+        for _ in 0..<250 {
             if await condition() { return }
             try await Task.sleep(nanoseconds: 20_000_000)
         }

@@ -10,7 +10,7 @@ import Testing
     @Test
     func batchPrescreenSkipsRecaptchaAndNetwork() async {
         let recaptcha = StubRecaptchaProvider()
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(recaptcha: recaptcha, network: network)
         )
@@ -31,7 +31,7 @@ import Testing
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
                 recaptcha: recaptcha,
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 requestBuilder: builder
             )
         )
@@ -49,7 +49,7 @@ import Testing
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
                 recaptcha: recaptcha,
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 requestBuilder: builder
             )
         )
@@ -71,7 +71,7 @@ import Testing
         let log = LogCapture()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.approved()
                 )
@@ -101,7 +101,7 @@ import Testing
     ) async {
         let log = LogCapture()
         let recaptcha = StubRecaptchaProvider()
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(recaptcha: recaptcha, network: network)
         )
@@ -122,7 +122,7 @@ import Testing
 
     @Test
     func virtualLookupSkipsValidation() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         let outcome = await service.execute(
@@ -140,7 +140,7 @@ import Testing
 
     @Test
     func prescreenSelectsPrescreenEndpoint() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(RTPSFixtures.input(rtpsData: RTPSData()))
@@ -150,7 +150,7 @@ import Testing
 
     @Test
     func virtualLookupSelectsLookupEndpoint() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(RTPSFixtures.input(rtpsData: RTPSData(prescreenId: 42)))
@@ -160,7 +160,7 @@ import Testing
 
     @Test
     func sendsIntegrationKeyAndRequestedWithHeaders() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(
@@ -176,7 +176,7 @@ import Testing
 
     @Test
     func forwardsCookiesWhenPresent() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(dependencies: RTPSFixtures.dependencies(network: network))
 
         _ = await service.execute(
@@ -192,7 +192,7 @@ import Testing
     func approvedResponseProceedsToPlacements() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.model(returnCode: "01", prescreenId: 9001)
                 )
@@ -209,7 +209,7 @@ import Testing
     func accountFoundResponseProceedsToPlacements() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.model(returnCode: "0", prescreenId: 55)
                 )
@@ -225,7 +225,7 @@ import Testing
     func nonApprovedReturnCodeProducesNoAction(returnCode: String) async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.model(
                         returnCode: returnCode,
@@ -244,7 +244,7 @@ import Testing
     func missingReturnCodeDefaultsToNoAction() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.model(returnCode: nil, prescreenId: 9001)
                 )
@@ -260,7 +260,7 @@ import Testing
     func approvedWithoutPrescreenIdProducesNoAction() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     response: RTPSFixtures.Response.model(returnCode: "01", prescreenId: nil)
                 )
@@ -278,7 +278,7 @@ import Testing
     func networkFailureBecomesTypedApiFailure() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(
+                network: HTTPClientSpy(
                     failure: NSError(
                         domain: "Network",
                         code: 500,
@@ -297,7 +297,7 @@ import Testing
     func decodeFailureBecomesTypedApiFailure() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(),
+                network: HTTPClientSpy(),
                 responseDecoder: StubRTPSResponseDecoder(
                     failure: NSError(
                         domain: "Decoding",
@@ -315,7 +315,7 @@ import Testing
 
     @Test
     func recaptchaFailureBecomesTypedApiFailure() async {
-        let network = SpyRTPSNetworkClient()
+        let network = HTTPClientSpy()
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
                 recaptcha: StubRecaptchaProvider(
@@ -341,7 +341,7 @@ import Testing
     func incapsulaErrorBecomesChallenge() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(failure: RTPSFixtures.Error.incapsula())
+                network: HTTPClientSpy(failure: RTPSFixtures.Error.incapsula())
             )
         )
 
@@ -355,7 +355,7 @@ import Testing
     func incapsulaErrorWithoutHTMLFallsBackToUnderlyingFailure() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(
+                network: HTTPClientSpy(
                     failure: RTPSFixtures.Error.incapsula(htmlContent: nil)
                 )
             )
@@ -370,7 +370,7 @@ import Testing
     func incapsulaErrorWithoutURLFallsBackToUnderlyingFailure() async {
         let service = RTPSService(
             dependencies: RTPSFixtures.dependencies(
-                network: SpyRTPSNetworkClient(
+                network: HTTPClientSpy(
                     failure: RTPSFixtures.Error.incapsula(url: nil)
                 )
             )

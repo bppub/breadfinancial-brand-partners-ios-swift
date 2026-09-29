@@ -8,7 +8,7 @@ package enum HTTPMethod: String, Sendable {
     case OPTIONS
 }
 
-package struct RTPSNetworkRequest: Sendable {
+package struct HTTPRequest: Sendable {
     package let url: URL
     package let method: HTTPMethod
     package let headers: [String: String]
@@ -30,6 +30,6 @@ package struct RTPSNetworkRequest: Sendable {
     }
 }
 
-package protocol RTPSNetworkClient: Sendable {
-    func send(_ request: RTPSNetworkRequest) async throws -> Data
+package protocol HTTPClient: Sendable {
+    func request(_ request: HTTPRequest) async throws -> Data
 }

@@ -38,8 +38,8 @@ package struct RTPSService: Sendable {
                 recaptchaToken: recaptchaToken
             )
 
-            let data = try await dependencies.network.send(
-                RTPSNetworkRequest(
+            let data = try await dependencies.httpClient.request(
+                HTTPRequest(
                     url: isPrescreen ? input.prescreenURL : input.virtualLookupURL,
                     method: .POST,
                     headers: [
