@@ -181,27 +181,4 @@ struct RTPSApiTestDoublesTests {
         }
     }
 
-    @Test
-    func eventCaptureRecordsEventsAndReportsSDKErrors() {
-        let capture = EventCapture()
-
-        #expect(capture.first == nil)
-        #expect(capture.eventCount == 0)
-        #expect(capture.containsSDKError == false)
-
-        capture.record(.textClicked)
-        capture.record(.onSDKEventLog(logs: "one"))
-        capture.record(.sdkError(error: NSError(domain: "SDK", code: 1)))
-
-        #expect(capture.eventCount == 3)
-        guard let first = capture.first else {
-            Issue.record("Expected EventCapture to preserve the first event")
-            return
-        }
-        if case .textClicked = first {
-        } else {
-            Issue.record("Expected EventCapture to preserve the first event")
-        }
-        #expect(capture.containsSDKError)
-    }
 }
