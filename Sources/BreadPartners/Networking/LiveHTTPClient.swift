@@ -3,11 +3,11 @@ import Foundation
 
 internal final class LiveHTTPClient: HTTPClient, @unchecked Sendable {
     private let logger: Logger
-    private let session: URLSession
+    private let session: any HTTPDataLoading
 
     init(
         logger: Logger,
-        session: URLSession = .shared
+        session: any HTTPDataLoading = URLSession.shared
     ) {
         self.logger = logger
         self.session = session
