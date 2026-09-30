@@ -8,6 +8,15 @@ import UIKit
 @MainActor
 struct RTPSUICoordinatorTests {
     @Test
+    func liveUsesLiveFactories() {
+        let coordinator = RTPSUICoordinator.live
+        let dependencies = Mirror(reflecting: coordinator).children.map(\.value)
+
+        #expect(dependencies.contains { $0 is LiveChallengeControllerFactory })
+        #expect(dependencies.contains { $0 is LivePopupFactory })
+    }
+
+    @Test
     func presentChallengeUsesFactoryAndPublishesController() {
         let controller = UIViewController()
         let factory = ChallengeControllerFactorySpy(controller: controller)
