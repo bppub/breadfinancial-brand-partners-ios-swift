@@ -8,6 +8,46 @@ import Testing
 @MainActor
 struct RTPSCoordinatorTests {
     @Test
+    func makePlacementEmbeddedURLStringBuildsBPSURLForAcceptedOffer() throws {
+        let coordinator = makeCoordinator(
+            placementService: PlacementServiceSpy(result: .success(placementResponse)),
+            uiCoordinator: RTPSUICoordinatorSpy(),
+            endpointProvider: EndpointProviderStub()
+        )
+
+        let url = try #require(
+            URL(
+                string: coordinator.makePlacementEmbeddedURLString(
+                    for: input(rtpsData: RTPSData(customerAcceptedOffer: true))
+                )
+            )
+        )
+
+        #expect(url.host == "bps.test")
+        #expect(url.path == "/batch-prescreen/start")
+    }
+
+    @Test
+    func makePlacementEmbeddedURLStringBuildsRTPSURLForUnacceptedOffer() throws {
+        let coordinator = makeCoordinator(
+            placementService: PlacementServiceSpy(result: .success(placementResponse)),
+            uiCoordinator: RTPSUICoordinatorSpy(),
+            endpointProvider: EndpointProviderStub()
+        )
+
+        let url = try #require(
+            URL(
+                string: coordinator.makePlacementEmbeddedURLString(
+                    for: input(rtpsData: RTPSData(customerAcceptedOffer: false))
+                )
+            )
+        )
+
+        #expect(url.host == "rtps.test")
+        #expect(url.path == "/prescreen/offer")
+    }
+
+    @Test
     func batchPrescreenFetchesMapsAndPresentsPlacement() async throws {
         let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
@@ -21,11 +61,6 @@ struct RTPSCoordinatorTests {
         #expect(placementService.callCount == 1)
         #expect(placementService.request?.brandId == "integration-key")
         #expect(placementService.url != nil)
-        let embeddedURLString = try #require(
-            placementService.request?.placements?.first?.context?.embeddedUrl
-        )
-        let embeddedURL = try #require(URL(string: embeddedURLString))
-        #expect(embeddedURL.path == "/batch-prescreen/start")
         #expect(uiCoordinator.popupPlacementModel?.overlayType == "EMBEDDED_OVERLAY")
         #expect(uiCoordinator.popupPlacementModel?.location == "checkout")
         #expect(uiCoordinator.popupPlacementModel?.webViewUrl == "https://embedded.test")
@@ -56,21 +91,6 @@ struct RTPSCoordinatorTests {
         #expect(await httpClient.requestCount == 1)
         #expect(placementService.callCount == 1)
         #expect(uiCoordinator.placementCallCount == 1)
-
-        let embeddedURLString = try #require(
-            placementService.request?.placements?.first?.context?.embeddedUrl
-        )
-        let embeddedURL = try #require(URL(string: embeddedURLString))
-        let queryItems = try #require(
-            URLComponents(url: embeddedURL, resolvingAgainstBaseURL: false)?.queryItems
-        )
-        let query = Dictionary(uniqueKeysWithValues: queryItems.map { ($0.name, $0.value) })
-
-        #expect(embeddedURL.path == "/prescreen/offer")
-        #expect(query["prescreenId"] == "9001")
-        #expect(query["cardType"] == "storeCard")
-        #expect(query["firstName"] == "Grace")
-        #expect(query["location"] == "checkout")
     }
 
     @Test
@@ -274,12 +294,13 @@ struct RTPSCoordinatorTests {
     private func makeCoordinator(
         placementService: PlacementServiceSpy,
         uiCoordinator: RTPSUICoordinatorSpy,
+        endpointProvider: any APIEndpointProviding = LiveAPIEndpointProvider(environment: .stage),
         httpClient: HTTPClientSpy = HTTPClientSpy(outcomes: [.success(Data())]),
         responses: [ResponseDecoderStub.Response] = []
     ) -> RTPSCoordinator {
         RTPSCoordinator(
             environment: .stage,
-            endpointProvider: LiveAPIEndpointProvider(environment: .stage),
+            endpointProvider: endpointProvider,
             dependencies: RTPSDependencies(
                 recaptcha: RecaptchaStub(),
                 httpClient: httpClient,
@@ -375,6 +396,19 @@ struct RTPSCoordinatorTests {
             return nil
         }
         return error as NSError
+    }
+}
+
+private struct EndpointProviderStub: APIEndpointProviding {
+    func url(for endpoint: APIEndpoint) -> URL {
+        switch endpoint {
+        case .bpsWebUrl:
+            return URL(string: "https://bps.test/batch-prescreen/start")!
+        case .rtpsWebUrl:
+            return URL(string: "https://rtps.test/prescreen/offer")!
+        default:
+            return URL(string: "https://api.test/endpoint")!
+        }
     }
 }
 

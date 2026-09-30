@@ -114,24 +114,6 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
         uiCoordinator: any RTPSUICoordinating,
     ) async {
         do {
-            let webURL: URL?
-            if input.placementsConfiguration.rtpsData?.customerAcceptedOffer == true {
-                webURL = WebURLBuilder.buildBPSWebURL(
-                    environment: environment,
-                    integrationKey: input.integrationKey,
-                    rtpsData: input.placementsConfiguration.rtpsData,
-                    placementData: input.placementsConfiguration.placementData,
-                    merchantConfiguration: input.merchantConfiguration
-                )
-            } else {
-                webURL = WebURLBuilder.buildRTPSWebURL(
-                    environment: environment,
-                    integrationKey: input.integrationKey,
-                    rtpsData: input.placementsConfiguration.rtpsData,
-                    merchantConfiguration: input.merchantConfiguration
-                )
-            }
-
             let response = try await placementService.fetch(
                 request: PlacementRequest(
                     placements: [
@@ -139,7 +121,7 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
                             context: ContextRequestBody(
                                 ENV: input.merchantConfiguration.env?.rawValue,
                                 LOCATION: "RTPS-Approval",
-                                embeddedUrl: webURL?.absoluteString
+                                embeddedUrl: makePlacementEmbeddedURLString(for: input)
                             )
                         )
                     ],
@@ -185,5 +167,27 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
                 )
             )
         }
+    }
+
+    func makePlacementEmbeddedURLString(for input: RealTimePrescreenInput) -> String {
+        let placementsConfiguration = input.placementsConfiguration
+        let rtpsData = placementsConfiguration.rtpsData
+
+        if rtpsData?.customerAcceptedOffer == true {
+            return WebURLBuilder.buildBPSWebURL(
+                endpointURL: endpointProvider.url(for: .bpsWebUrl),
+                integrationKey: input.integrationKey,
+                rtpsData: rtpsData,
+                placementData: placementsConfiguration.placementData,
+                merchantConfiguration: input.merchantConfiguration
+            ).absoluteString
+        }
+
+        return WebURLBuilder.buildRTPSWebURL(
+            endpointURL: endpointProvider.url(for: .rtpsWebUrl(type: "offer")),
+            integrationKey: input.integrationKey,
+            rtpsData: rtpsData,
+            merchantConfiguration: input.merchantConfiguration
+        ).absoluteString
     }
 }

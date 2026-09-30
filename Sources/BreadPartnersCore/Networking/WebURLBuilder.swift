@@ -2,11 +2,11 @@ import Foundation
 
 package enum WebURLBuilder {
     package static func buildRTPSWebURL(
-        environment: BreadPartnersEnvironment,
+        endpointURL: URL,
         integrationKey: String,
         rtpsData: RTPSData?,
         merchantConfiguration: MerchantConfiguration,
-    ) -> URL? {
+    ) -> URL {
         let mockResponseValue = rtpsData?.mockResponse?.rawValue
         let queryParams: [String: String?] = [
             "mockMO": mockResponseValue.takeIfNotEmpty(),
@@ -32,19 +32,18 @@ package enum WebURLBuilder {
         ]
 
         return buildURL(
-            endpoint: .rtpsWebUrl(type: "offer"),
-            queryParams: queryParams,
-            environment: environment
+            endpointURL: endpointURL,
+            queryParams: queryParams
         )
     }
 
     package static func buildBPSWebURL(
-        environment: BreadPartnersEnvironment,
+        endpointURL: URL,
         integrationKey: String,
         rtpsData: RTPSData?,
         placementData: PlacementData?,
         merchantConfiguration: MerchantConfiguration
-    ) -> URL? {
+    ) -> URL {
         let buyer = merchantConfiguration.buyer
         let billingAddress = buyer?.billingAddress
         let order = rtpsData?.order ?? placementData?.order
@@ -108,29 +107,29 @@ package enum WebURLBuilder {
         ]
 
         return buildURL(
-            endpoint: .bpsWebUrl,
-            queryParams: queryParams,
-            environment: environment
+            endpointURL: endpointURL,
+            queryParams: queryParams
         )
     }
 
     private static func buildURL(
-        endpoint: APIEndpoint,
-        queryParams: [String: String?],
-        environment: BreadPartnersEnvironment
-    ) -> URL? {
+        endpointURL: URL,
+        queryParams: [String: String?]
+    ) -> URL {
         guard
-            var components = URLComponents(
-                string: endpoint.url(for: environment)
-            )
+            var components = URLComponents(url: endpointURL, resolvingAgainstBaseURL: false)
         else {
-            return nil
+            preconditionFailure("Invalid endpoint URL provided: \(endpointURL)")
         }
 
         components.queryItems = queryParams.compactMap { key, value in
             guard let value, !value.isEmpty else { return nil }
             return URLQueryItem(name: key, value: value)
         }
-        return components.url
+
+        guard let url = components.url else {
+            preconditionFailure("Unable to construct URL from: \(components)")
+        }
+        return url
     }
 }
