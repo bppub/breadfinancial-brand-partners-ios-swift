@@ -18,6 +18,7 @@ struct AnySendable: @unchecked Sendable {
 }
 
 /// A utility class for making HTTP API requests.
+@available(*, deprecated, message: "Use `HTTPClientFactory` to get an instance of `LiveHTTPClient`.")
 internal class APIClient: @unchecked Sendable {
 
     init(
