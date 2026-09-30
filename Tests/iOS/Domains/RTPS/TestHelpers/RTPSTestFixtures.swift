@@ -29,6 +29,23 @@ enum RTPSTestFixtures {
         static let rtps = PlacementConfiguration(rtpsData: RTPSData())
     }
 
+    enum PopupPlacementModelFixture {
+        static let embedded = PopupPlacementModel(
+            overlayType: "EMBEDDED_OVERLAY",
+            location: "checkout",
+            brandLogoUrl: "https://assets.test/logo.png",
+            webViewUrl: "https://embedded.test",
+            overlayTitle: NSAttributedString(string: "Title"),
+            overlaySubtitle: NSAttributedString(string: "Subtitle"),
+            overlayContainerBarHeading: NSAttributedString(string: "Heading"),
+            bodyHeader: NSAttributedString(string: "Body"),
+            primaryActionButtonAttributes: nil,
+            dynamicBodyModel: PopupPlacementModel.DynamicBodyModel(bodyDiv: [:]),
+            disclosure: NSAttributedString(string: "Disclosure"),
+            disclosureHTML: "<p>Disclosure</p>"
+        )
+    }
+
     enum Response {
         static let approved = RTPSResponse(
             returnCode: "01",

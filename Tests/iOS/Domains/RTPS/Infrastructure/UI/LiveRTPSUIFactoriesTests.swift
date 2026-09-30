@@ -24,7 +24,7 @@ struct LiveRTPSUIFactoriesTests {
     func popupFactoryConfiguresEmbeddedPopupController() throws {
         let merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
         let placementsConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps
-        let popupPlacementModel = makePopupPlacementModel()
+        let popupPlacementModel = RTPSTestFixtures.PopupPlacementModelFixture.embedded
         let logger = Logger()
         let events = EventCapture()
 
@@ -56,20 +56,4 @@ struct LiveRTPSUIFactoriesTests {
         }
     }
 
-    private func makePopupPlacementModel() -> PopupPlacementModel {
-        PopupPlacementModel(
-            overlayType: "EMBEDDED_OVERLAY",
-            location: "checkout",
-            brandLogoUrl: "https://assets.test/logo.png",
-            webViewUrl: "https://embedded.test",
-            overlayTitle: NSAttributedString(string: "Title"),
-            overlaySubtitle: NSAttributedString(string: "Subtitle"),
-            overlayContainerBarHeading: NSAttributedString(string: "Heading"),
-            bodyHeader: NSAttributedString(string: "Body"),
-            primaryActionButtonAttributes: nil,
-            dynamicBodyModel: PopupPlacementModel.DynamicBodyModel(bodyDiv: [:]),
-            disclosure: NSAttributedString(string: "Disclosure"),
-            disclosureHTML: "<p>Disclosure</p>"
-        )
-    }
 }
