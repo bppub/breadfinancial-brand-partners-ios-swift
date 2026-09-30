@@ -192,6 +192,26 @@ import Testing
     }
 
     @Test
+    func requestRejectsResponseWithMissingContentType() async {
+        let session = HTTPDataLoadingSpy(
+            responseData: Data("<html>Unavailable</html>".utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: [:]
+            )!
+        )
+
+        await expectNSError(
+            session: session,
+            domain: "InvalidContentType",
+            code: 415,
+            containing: "Server returned  instead of JSON."
+        )
+    }
+
+    @Test
     func requestLogsRequestAndResponseWhenLoggingIsEnabled() async throws {
         let responseData = Data(#"{"ok":true}"#.utf8)
         let session = HTTPDataLoadingSpy(
