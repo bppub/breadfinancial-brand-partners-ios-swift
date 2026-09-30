@@ -5,12 +5,13 @@ import Testing
 @Suite(.serialized) struct LiveHTTPClientTests {
     private let url = URL(string: "https://example.com/api")!
 
-    private func client() -> LiveHTTPClient {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [LiveHTTPClientURLProtocol.self]
+    private func client(
+        session: HTTPDataLoadingSpy,
+        logger: Logger = Logger()
+    ) -> LiveHTTPClient {
         return LiveHTTPClient(
-            logger: Logger(),
-            session: URLSession(configuration: configuration)
+            logger: logger,
+            session: session
         )
     }
 
@@ -31,12 +32,18 @@ import Testing
     @Test
     func requestSendsHTTPFieldsAndPreservesCallerHeaders() async throws {
         let responseData = Data(#"{"ok":true}"#.utf8)
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (responseData, 200, ["Content-Type": "application/json"])
-        defer { LiveHTTPClientURLProtocol.reset() }
+        let session = HTTPDataLoadingSpy(
+            responseData: responseData,
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            )!
+        )
 
         let body = Data(#"{"value":42}"#.utf8)
-        let result = try await client().request(
+        let result = try await client(session: session).request(
             request(
                 headers: [
                     "X-Test": "value",
@@ -48,91 +55,174 @@ import Testing
         )
 
         #expect(result == responseData)
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.url == url)
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.httpMethod == "PUT")
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: "X-Test") == "value")
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: "Content-Type") == "text/plain")
-        #expect(LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: "Cookie") == "session=abc")
-        #expect(LiveHTTPClientURLProtocol.lastBody == body)
+        let capturedRequest = try #require(session.request)
+        #expect(capturedRequest.url == url)
+        #expect(capturedRequest.httpMethod == "PUT")
+        #expect(capturedRequest.value(forHTTPHeaderField: "X-Test") == "value")
+        #expect(capturedRequest.value(forHTTPHeaderField: "Content-Type") == "text/plain")
+        #expect(capturedRequest.value(forHTTPHeaderField: "Cookie") == "session=abc")
+        #expect(capturedRequest.httpBody == body)
         #expect(
-            LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerOriginKey)
+            capturedRequest.value(forHTTPHeaderField: Constants.headerOriginKey)
                 == Constants.headerOriginValue)
         #expect(
-            LiveHTTPClientURLProtocol.lastRequest?.value(forHTTPHeaderField: Constants.headerPlatformKey)
+            capturedRequest.value(forHTTPHeaderField: Constants.headerPlatformKey)
                 == Constants.headerPlatformValue)
     }
 
     @Test
     func requestAllowsNilBodyAndReturnsJSONData() async throws {
         let responseData = Data(#"{"result":"ok"}"#.utf8)
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (responseData, 204, ["Content-Type": "application/json; charset=utf-8"])
-        defer { LiveHTTPClientURLProtocol.reset() }
+        let session = HTTPDataLoadingSpy(
+            responseData: responseData,
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 204,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json; charset=utf-8"]
+            )!
+        )
 
-        let result = try await client().request(request())
+        let result = try await client(session: session).request(request())
 
         #expect(result == responseData)
-        #expect(LiveHTTPClientURLProtocol.lastBody == nil)
+        #expect(session.request?.httpBody == nil)
     }
 
     @Test
     func requestRejectsHTTPErrorUsingJSONMessage() async {
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (
-            Data(#"{"message":"declined"}"#.utf8), 400, ["Content-Type": "application/json"]
+        let session = HTTPDataLoadingSpy(
+            responseData: Data(#"{"message":"declined"}"#.utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 400,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            )!
         )
-        defer { LiveHTTPClientURLProtocol.reset() }
 
-        await expectNSError(domain: "HTTPError", code: 400, containing: "declined")
+        await expectNSError(
+            session: session,
+            domain: "HTTPError",
+            code: 400,
+            containing: "declined"
+        )
     }
 
     @Test
     func requestRejectsHTTPErrorUsingPlainTextAndInvalidUTF8Fallbacks() async {
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (Data("declined".utf8), 500, ["Content-Type": "application/json"])
-        defer { LiveHTTPClientURLProtocol.reset() }
-        await expectNSError(domain: "HTTPError", code: 500, containing: "declined")
+        let session = HTTPDataLoadingSpy(
+            responseData: Data("declined".utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 500,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            )!
+        )
+        await expectNSError(session: session, domain: "HTTPError", code: 500, containing: "declined")
 
-        LiveHTTPClientURLProtocol.response = (Data([0xFF]), 500, ["Content-Type": "application/json"])
-        await expectNSError(domain: "HTTPError", code: 500, containing: "Message is blank")
+        session.responseData = Data([0xFF])
+        await expectNSError(session: session, domain: "HTTPError", code: 500, containing: "Message is blank")
     }
 
     @Test
     func requestRejectsNonHTTPResponse() async {
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.returnsNonHTTPResponse = true
-        defer { LiveHTTPClientURLProtocol.reset() }
+        let session = HTTPDataLoadingSpy(
+            responseData: Data(),
+            response: URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+        )
 
-        await expectNSError(domain: "InvalidResponse", code: 500, containing: "Invalid response")
+        await expectNSError(session: session, domain: "InvalidResponse", code: 500, containing: "Invalid response")
     }
 
     @Test
     func requestRejectsIncapsulaChallenge() async {
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (Data("<html>incap_ses</html>".utf8), 200, ["Content-Type": "text/html"])
-        defer { LiveHTTPClientURLProtocol.reset() }
+        let session = HTTPDataLoadingSpy(
+            responseData: Data("<html>incap_ses</html>".utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "text/html"]
+            )!
+        )
 
-        await expectNSError(domain: "IncapsulaChallenge", code: 403, containing: "Security challenge")
+        await expectNSError(session: session, domain: "IncapsulaChallenge", code: 403, containing: "Security challenge")
+
+        session.responseData = Data("<html>_Incapsula_Resource</html>".utf8)
+        await expectNSError(session: session, domain: "IncapsulaChallenge", code: 403, containing: "Security challenge")
     }
 
     @Test
     func requestRejectsNonJSONContentIncludingMissingContentType() async {
-        LiveHTTPClientURLProtocol.reset()
-        LiveHTTPClientURLProtocol.response = (Data("<html>Unavailable</html>".utf8), 200, ["Content-Type": "text/html"])
-        defer { LiveHTTPClientURLProtocol.reset() }
-        await expectNSError(domain: "InvalidContentType", code: 415, containing: "text/html")
+        let session = HTTPDataLoadingSpy(
+            responseData: Data("<html>Unavailable</html>".utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "text/html"]
+            )!
+        )
+        await expectNSError(session: session, domain: "InvalidContentType", code: 415, containing: "text/html")
 
-        LiveHTTPClientURLProtocol.response = (Data([0xFF]), 200, [:])
-        await expectNSError(domain: "InvalidContentType", code: 415, containing: "Server returned")
+        session.responseData = Data([0xFF])
+        await expectNSError(session: session, domain: "InvalidContentType", code: 415, containing: "Server returned")
+    }
+
+    @Test
+    func requestRejectsResponseWithEmptyContentType() async {
+        let session = HTTPDataLoadingSpy(
+            responseData: Data("<html>Unavailable</html>".utf8),
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": ""]
+            )!
+        )
+
+        await expectNSError(
+            session: session,
+            domain: "InvalidContentType",
+            code: 415,
+            containing: "Server returned  instead of JSON."
+        )
+    }
+
+    @Test
+    func requestLogsRequestAndResponseWhenLoggingIsEnabled() async throws {
+        let responseData = Data(#"{"ok":true}"#.utf8)
+        let session = HTTPDataLoadingSpy(
+            responseData: responseData,
+            response: HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            )!
+        )
+        let eventBox = EventCapture()
+        let logger = Logger()
+        logger.setLogging(enabled: true)
+        logger.setCallback { eventBox.events.append($0) }
+
+        _ = try await client(session: session, logger: logger).request(request())
+
+        #expect(eventBox.events.count == 2)
+        #expect(eventBox.messages.contains { $0.contains("Request Details") })
+        #expect(eventBox.messages.contains { $0.contains("Response Details") })
     }
 
     private func expectNSError(
+        session: HTTPDataLoadingSpy,
         domain: String,
         code: Int,
         containing message: String
     ) async {
         do {
-            _ = try await client().request(request())
+            _ = try await client(session: session).request(request())
             Issue.record("Expected request to throw")
         } catch let error as NSError {
             #expect(error.domain == domain)
@@ -141,68 +231,5 @@ import Testing
         } catch {
             Issue.record("Unexpected error: \(error)")
         }
-    }
-}
-
-private final class LiveHTTPClientURLProtocol: URLProtocol {
-    nonisolated(unsafe) static var response: (Data, Int, [String: String]) = (Data(), 200, [:])
-    nonisolated(unsafe) static var returnsNonHTTPResponse = false
-    nonisolated(unsafe) static var lastRequest: URLRequest?
-    nonisolated(unsafe) static var lastBody: Data?
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        Self.lastRequest = request
-        if let body = request.httpBody {
-            Self.lastBody = body
-        } else if let bodyStream = request.httpBodyStream {
-            bodyStream.open()
-            defer { bodyStream.close() }
-
-            var body = Data()
-            var buffer = [UInt8](repeating: 0, count: 1024)
-            while bodyStream.hasBytesAvailable {
-                let bytesRead = bodyStream.read(&buffer, maxLength: buffer.count)
-                guard bytesRead > 0 else { break }
-                body.append(buffer, count: bytesRead)
-            }
-            Self.lastBody = body
-        } else {
-            Self.lastBody = nil
-        }
-        let (data, statusCode, headers) = Self.response
-
-        if Self.returnsNonHTTPResponse {
-            let response = URLResponse(
-                url: request.url!,
-                mimeType: nil,
-                expectedContentLength: data.count,
-                textEncodingName: nil
-            )
-            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        } else {
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: statusCode,
-                httpVersion: nil,
-                headerFields: headers
-            )!
-            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        }
-
-        client?.urlProtocol(self, didLoad: data)
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override func stopLoading() {}
-
-    static func reset() {
-        response = (Data(), 200, [:])
-        returnsNonHTTPResponse = false
-        lastRequest = nil
-        lastBody = nil
     }
 }
