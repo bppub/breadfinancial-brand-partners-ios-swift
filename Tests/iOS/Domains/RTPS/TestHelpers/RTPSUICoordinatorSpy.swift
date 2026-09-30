@@ -6,7 +6,10 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
     private(set) var failureCallCount = 0
     private(set) var placementCallCount = 0
     private(set) var lastFailure: RTPSServiceFailure?
+    private(set) var challengeHTMLContent: String?
+    private(set) var challengeOriginalURL: String?
     private(set) var popupPlacementModel: PopupPlacementModel?
+    private var challengeCompletion: ((String) -> Void)?
 
     func presentChallenge(
         htmlContent: String,
@@ -16,6 +19,13 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
         onComplete: @escaping (String) -> Void
     ) {
         challengeCallCount += 1
+        challengeHTMLContent = htmlContent
+        challengeOriginalURL = originalURL
+        challengeCompletion = onComplete
+    }
+
+    func completeChallenge(with cookie: String) {
+        challengeCompletion?(cookie)
     }
 
     func presentFailure(

@@ -9,6 +9,7 @@ struct RTPSUICoordinatorSpyTests {
     func challengeRecordsEachInvocationWithoutPublishingEvents() {
         let coordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
+        var completedCookie: String?
 
         coordinator.presentChallenge(
             htmlContent: "challenge",
@@ -22,10 +23,14 @@ struct RTPSUICoordinatorSpyTests {
             originalURL: "https://retry.test",
             callback: events.record,
             logger: Logger(),
-            onComplete: { _ in }
+            onComplete: { completedCookie = $0 }
         )
+        coordinator.completeChallenge(with: "incap_ses=test")
 
         #expect(coordinator.challengeCallCount == 2)
+        #expect(coordinator.challengeHTMLContent == "retry")
+        #expect(coordinator.challengeOriginalURL == "https://retry.test")
+        #expect(completedCookie == "incap_ses=test")
         #expect(events.eventCount == 0)
     }
 
