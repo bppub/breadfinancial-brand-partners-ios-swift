@@ -6,20 +6,17 @@ import WebKit
 
 @Suite(.serialized)
 @MainActor
-struct RTPSApiExtensionTests {
+struct RTPSChallengeIntegrationTests {
     @Test
     func challengeOutcomeRendersChallengeController() async {
         let httpClient = HTTPClientSpy(outcomes: [
             .failure(RTPSTestFixtures.Error.incapsula)
         ])
-        let sdk = makeSDK(httpClient: httpClient)
+        let sdk = makeSDK()
         let events = EventCapture()
 
-        await sdk.rtpsCall(
-            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
-            logger: Logger(),
-            callback: events.record
+        await makeCoordinator(httpClient: httpClient).runFlow(
+            makeRequest(sdk: sdk, callback: events.record)
         )
 
         guard case let .renderPopupView(view) = events.first else {
@@ -44,14 +41,11 @@ struct RTPSApiExtensionTests {
                 .placements(RTPSTestFixtures.Response.emptyPlacements),
             ]
         )
-        let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
+        let sdk = makeSDK()
         let events = EventCapture()
 
-        await sdk.rtpsCall(
-            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
-            logger: Logger(),
-            callback: events.record
+        await makeCoordinator(httpClient: httpClient, decoder: decoder).runFlow(
+            makeRequest(sdk: sdk, callback: events.record)
         )
 
         guard case let .renderPopupView(view) = events.first,
@@ -103,41 +97,67 @@ struct RTPSApiExtensionTests {
                 .placements(RTPSTestFixtures.Response.emptyPlacements),
             ]
         )
-        let sdk = makeSDK(httpClient: httpClient, decoder: decoder)
+        let sdk = makeSDK()
         let events = EventCapture()
 
-        await sdk.rtpsCall(
-            merchantConfiguration: RTPSTestFixtures.MerchantConfigurationFixture.complete,
-            placementsConfiguration: RTPSTestFixtures.PlacementConfigurationFixture.rtps,
-            logger: Logger(),
-            callback: events.record
+        let coordinator = makeCoordinator(httpClient: httpClient, decoder: decoder)
+        await coordinator.runFlow(
+            makeRequest(sdk: sdk, callback: events.record)
         )
 
         let requests = await httpClient.requests
         #expect(requests.count == 2)
         #expect(requests[1].method == .POST)
         #expect(
-            requests[1].url == sdk.dependencies.endpointProvider.url(for: .generatePlacements)
+            requests[1].url == URL(string: "https://brands.kmsmep.com/generatePlacements")
         )
         #expect(events.containsSDKError)
     }
 
-    private func makeSDK(
+    private func makeSDK() -> BreadPartnersSDK {
+        let sdk = BreadPartnersSDK()
+        sdk.integrationKey = "integration-key"
+        sdk.sdkEnvironment = .stage
+        return sdk
+    }
+
+    private func makeCoordinator(
         httpClient: HTTPClientSpy,
         decoder: ResponseDecoderStub = ResponseDecoderStub(
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
-    ) -> BreadPartnersSDK {
-        let sdk = BreadPartnersSDK()
-        sdk.integrationKey = "integration-key"
-        sdk.sdkEnvironment = .stage
-        sdk.rtpsDependencies = RTPSDependencies(
-            recaptcha: RecaptchaStub(),
-            httpClient: httpClient,
-            requestBuilder: RTPSRequestBuilder(),
-            responseDecoder: decoder
+    ) -> RTPSCoordinator {
+        RTPSCoordinator(
+            environment: .stage,
+            endpointProvider: LiveAPIEndpointProvider(environment: .stage),
+            dependencies: RTPSDependencies(
+                recaptcha: RecaptchaStub(),
+                httpClient: httpClient,
+                requestBuilder: RTPSRequestBuilder(),
+                responseDecoder: decoder
+            ),
+            placementService: LivePlacementService(httpClient: httpClient),
+            makeUICoordinator: { RTPSUICoordinator.live }
         )
-        return sdk
+    }
+
+    private func makeRequest(
+        sdk: BreadPartnersSDK,
+        merchantConfiguration: MerchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete,
+        placementsConfiguration: PlacementConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps,
+        callback: @Sendable @escaping (BreadPartnerEvents) -> Void
+    ) -> RealTimePrescreenInput {
+        RealTimePrescreenInput(
+            merchantConfiguration: merchantConfiguration,
+            placementsConfiguration: placementsConfiguration,
+            integrationKey: sdk.integrationKey,
+            brandConfiguration: sdk.brandConfiguration,
+            splitTextAndAction: false,
+            openPlacementExperience: false,
+            forSwiftUI: false,
+            logger: Logger(),
+            callback: callback
+        )
     }
 
     private func waitUntil(

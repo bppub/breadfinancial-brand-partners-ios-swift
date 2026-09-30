@@ -15,12 +15,21 @@ import Foundation
 extension BreadPartnersSDK {
 
     /// Retrieve brand-specific configurations, such as the Recaptcha key.
-    internal func fetchBrandConfig(logger: Logger) async {
+    internal func fetchBrandConfig(httpClient: any HTTPClient) async {
         let apiUrl = APIUrl(urlType: .brandConfig(brandId: integrationKey)).url
 
+        guard let url = URL(string: apiUrl) else {
+            brandConfiguration = nil
+            return
+        }
+
         do {
-            let response = try await APIClient(logger: logger).request(
-                urlString: apiUrl, method: .GET, body: nil)
+            let response = try await httpClient.request(
+                HTTPRequest(
+                    url: url,
+                    method: .GET
+                )
+            )
             brandConfiguration = try ResponseDecoder.decode(
                 response, as: BrandConfigResponse.self)
             return

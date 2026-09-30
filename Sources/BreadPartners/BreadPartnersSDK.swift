@@ -23,36 +23,12 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         return instance
     }()
 
+    internal var dependencies: SDKDependencies?
+    var brandConfiguration: BrandConfigResponse?
+
     var integrationKey: String = ""
     var isLoggingEnabled: Bool = false
-
     var sdkEnvironment: BreadPartnersEnvironment = .stage
-    var brandConfiguration: BrandConfigResponse?
-    internal var dependencies = SDKDependencies.live(environment: .prod)
-
-    // This will eventually live in RTPS Service.
-    internal var rtpsDependencies = RTPSDependencies(
-        recaptcha: LiveRecaptchaProvider(),
-        httpClient: LiveHTTPClientFactory().makeClient(logger: Logger()),
-        requestBuilder: RTPSRequestBuilder(),
-        responseDecoder: LiveRTPSResponseDecoder()
-    )
-    private var isInitialized: Bool = false
-
-    private func checkInitialized(
-        callback: @Sendable @escaping (BreadPartnerEvents) -> Void
-    ) -> Bool {
-        guard isInitialized else {
-            let error = NSError(
-                domain: "BreadPartnersSDK",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "SDK not initialized. Call setup() first."]
-            )
-            callback(.sdkError(error: error))
-            return false
-        }
-        return true
-    }
 
     /// Call this function when the app launches.
     /// - Parameters:
@@ -64,54 +40,37 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         integrationKey: String,
         enableLog: Bool
     ) async {
+        await setup(
+            environment: environment,
+            integrationKey: integrationKey,
+            enableLog: enableLog,
+            dependencies: SDKDependencies.live(environment: environment)
+        )
+    }
+
+    /// Internal setup function that initializes the SDK with the provided dependencies.
+    /// This allows us to inject custom dependencies for testing or advanced configurations.
+    /// - Parameters:
+    ///   - environment: The SDK environment to use.
+    ///   - integrationKey: A unique key specific to the brand.
+    ///   - enableLog: Set this to `true` if you want to see debug logs.
+    ///   - dependencies: The SDK dependencies required for network and other operations.
+    internal func setup(
+        environment: BreadPartnersEnvironment,
+        integrationKey: String,
+        enableLog: Bool,
+        dependencies: SDKDependencies
+    ) async {
         await APIUrl.setEnvironment(environment)
         self.sdkEnvironment = environment
         self.integrationKey = integrationKey
         self.isLoggingEnabled = enableLog
-        self.dependencies = SDKDependencies.live(environment: environment)
+        self.dependencies = dependencies
 
         let logger = makeLogger()
+        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
 
-        // This will eventually live in RTPS Service.
-        rtpsDependencies = RTPSDependencies(
-            recaptcha: LiveRecaptchaProvider(),
-            httpClient: dependencies.httpClientFactory.makeClient(logger: logger),
-            requestBuilder: RTPSRequestBuilder(),
-            responseDecoder: LiveRTPSResponseDecoder()
-        )
-
-        isInitialized = true
-        return await fetchBrandConfig(logger: logger)
-    }
-
-    /// Use this function to display text placements in your app's UI.
-    /// - Parameters:
-    ///   - merchantConfiguration: Provide user account details in this configuration.
-    ///   - placementsConfiguration: Specify the pre-defined placement details required for building the UI.
-    ///   - splitTextAndAction: Set this to `true` if you want the placement to return either text with a link or a combination of text and button.
-    ///   - forSwiftUI: A Boolean flag indicating whether the text view should be created as a SwiftUI-compatible view.
-    ///   - callback: A function that handles user interactions and ongoing events related to the placements.
-    public func registerPlacements(
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        splitTextAndAction: Bool = false,
-        forSwiftUI: Bool = false,
-        callback:
-            @Sendable @escaping (
-                BreadPartnerEvents
-            ) -> Void
-    ) async {
-        guard checkInitialized(callback: callback) else { return }
-
-        await fetchPlacementData(
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
-            splitTextAndAction: splitTextAndAction,
-            openPlacementExperience: false,
-            forSwiftUI: forSwiftUI,
-            logger: makeLogger(callback: callback),
-            callback: callback
-        )
+        return await fetchBrandConfig(httpClient: httpClient)
     }
 
     /// Calls this function to check if the user qualifies for a pre-screen card application.
@@ -136,22 +95,61 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
                 BreadPartnerEvents
             ) -> Void
     ) async {
-        guard checkInitialized(callback: callback) else { return }
+        guard let dependencies = requireDependencies(callback: callback) else { return }
 
         let logger = makeLogger(callback: callback)
+        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
 
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
-            await fetchBrandConfig(logger: logger)
+            await fetchBrandConfig(httpClient: httpClient)
         }
 
-        await rtpsCall(
+        let coordinator = dependencies.rtpsCoordinatorFactory.makeCoordinator(
+            httpClient: httpClient
+        )
+
+        await coordinator.runFlow(
+            RealTimePrescreenInput(
+                merchantConfiguration: merchantConfiguration,
+                placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
+                integrationKey: integrationKey,
+                brandConfiguration: brandConfiguration,
+                splitTextAndAction: splitTextAndAction,
+                openPlacementExperience: false,
+                forSwiftUI: forSwiftUI,
+                logger: logger,
+                callback: callback
+            )
+        )
+    }
+
+    /// Use this function to display text placements in your app's UI.
+    /// - Parameters:
+    ///   - merchantConfiguration: Provide user account details in this configuration.
+    ///   - placementsConfiguration: Specify the pre-defined placement details required for building the UI.
+    ///   - splitTextAndAction: Set this to `true` if you want the placement to return either text with a link or a combination of text and button.
+    ///   - forSwiftUI: A Boolean flag indicating whether the text view should be created as a SwiftUI-compatible view.
+    ///   - callback: A function that handles user interactions and ongoing events related to the placements.
+    public func registerPlacements(
+        merchantConfiguration: MerchantConfiguration,
+        placementsConfiguration: PlacementConfiguration,
+        splitTextAndAction: Bool = false,
+        forSwiftUI: Bool = false,
+        callback:
+            @Sendable @escaping (
+                BreadPartnerEvents
+            ) -> Void
+    ) async {
+        guard requireDependencies(callback: callback) != nil else { return }
+
+        await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction,
             openPlacementExperience: false,
             forSwiftUI: forSwiftUI,
-            logger: logger,
+            logger: makeLogger(callback: callback),
             callback: callback
         )
     }
@@ -171,12 +169,13 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
                 BreadPartnerEvents
             ) -> Void
     ) async {
-        guard checkInitialized(callback: callback) else { return }
+        guard requireDependencies(callback: callback) != nil else { return }
 
         await fetchPlacementData(
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
-            splitTextAndAction: false, openPlacementExperience: true,
+            splitTextAndAction: false,
+            openPlacementExperience: true,
             forSwiftUI: false,
             logger: makeLogger(callback: callback),
             callback: callback
@@ -198,5 +197,20 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         }
 
         return logger
+    }
+
+    private func requireDependencies(
+        callback: @Sendable @escaping (BreadPartnerEvents) -> Void
+    ) -> SDKDependencies? {
+        guard let dependencies else {
+            let error = NSError(
+                domain: "BreadPartnersSDK",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "SDK not initialized. Call setup() first."]
+            )
+            callback(.sdkError(error: error))
+            return nil
+        }
+        return dependencies
     }
 }

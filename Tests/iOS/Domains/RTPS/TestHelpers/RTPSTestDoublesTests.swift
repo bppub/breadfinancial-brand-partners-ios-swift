@@ -62,61 +62,6 @@ struct RTPSTestDoublesTests {
     }
 
     @Test
-    func HTTPClientSpyReturnsQueuedDataAndRecordsEachRequest() async throws {
-        let firstData = Data("first".utf8)
-        let secondData = Data("second".utf8)
-        let httpClient = HTTPClientSpy(
-            outcomes: [.success(firstData), .success(secondData)]
-        )
-        let firstRequest = HTTPRequest(
-            url: RTPSTestFixtures.URLs.prescreen,
-            method: .POST
-        )
-        let secondRequest = HTTPRequest(
-            url: RTPSTestFixtures.URLs.virtualLookup,
-            method: .POST
-        )
-
-        #expect(try await httpClient.request(firstRequest) == firstData)
-        #expect(try await httpClient.request(secondRequest) == secondData)
-        #expect(await httpClient.requestCount == 2)
-        #expect(await httpClient.requests.map(\.url) == [firstRequest.url, secondRequest.url])
-    }
-
-    @Test
-    func HTTPClientSpyThrowsConfiguredFailureAfterRecordingRequest() async {
-        let httpClient = HTTPClientSpy(
-            outcomes: [.failure(NSError(domain: "Network", code: 500))]
-        )
-        let request = HTTPRequest(
-            url: RTPSTestFixtures.URLs.prescreen,
-            method: .POST
-        )
-
-        do {
-            _ = try await httpClient.request(request)
-            Issue.record("Expected the configured network failure")
-        } catch {
-            #expect((error as NSError).domain == "Network")
-            #expect((error as NSError).code == 500)
-        }
-
-        #expect(await httpClient.requestCount == 1)
-    }
-
-    @Test
-    func HTTPClientSpyReturnsEmptyDataWhenQueueIsExhausted() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [])
-        let request = HTTPRequest(
-            url: RTPSTestFixtures.URLs.prescreen,
-            method: .POST
-        )
-
-        #expect(try await httpClient.request(request) == Data())
-        #expect(await httpClient.requestCount == 1)
-    }
-
-    @Test
     func responseDecoderReturnsConfiguredResponsesInOrder() throws {
         let rtpsResponse = RTPSTestFixtures.Response.approved
         let placementsResponse = RTPSTestFixtures.Response.emptyPlacements
