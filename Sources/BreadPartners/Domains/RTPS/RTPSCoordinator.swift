@@ -136,7 +136,6 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
                 merchantConfiguration: input.merchantConfiguration,
                 placementsConfiguration: input.placementsConfiguration,
                 integrationKey: input.integrationKey,
-                brandConfiguration: input.brandConfiguration,
                 logger: input.logger,
                 callback: input.callback
             )

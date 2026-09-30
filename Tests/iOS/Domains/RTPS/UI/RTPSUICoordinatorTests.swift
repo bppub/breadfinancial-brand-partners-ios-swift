@@ -99,7 +99,6 @@ struct RTPSUICoordinatorTests {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             integrationKey: "integration-key",
-            brandConfiguration: nil,
             logger: logger,
             callback: events.record
         )
@@ -188,7 +187,6 @@ private final class PopupFactorySpy: PopupFactory, @unchecked Sendable {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         popupPlacementModel: PopupPlacementModel,
-        brandConfiguration: BrandConfigResponse?,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController {

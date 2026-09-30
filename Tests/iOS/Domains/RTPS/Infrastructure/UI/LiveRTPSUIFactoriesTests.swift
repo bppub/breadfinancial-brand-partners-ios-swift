@@ -33,7 +33,6 @@ struct LiveRTPSUIFactoriesTests {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             popupPlacementModel: popupPlacementModel,
-            brandConfiguration: nil,
             logger: logger,
             callback: events.record
         )
@@ -46,7 +45,6 @@ struct LiveRTPSUIFactoriesTests {
         #expect(controller.popupModel.location == popupPlacementModel.location)
         #expect(controller.popupModel.webViewUrl == popupPlacementModel.webViewUrl)
         #expect(controller.overlayType == .embeddedOverlay)
-        #expect(controller.brandConfiguration == nil)
         #expect(controller.logger === logger)
 
         controller.callback(.textClicked)

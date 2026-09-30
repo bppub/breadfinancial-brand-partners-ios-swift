@@ -64,7 +64,6 @@ struct RTPSUICoordinatorSpyTests {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             integrationKey: "integration-key",
-            brandConfiguration: nil,
             logger: Logger(),
             callback: events.record
         )
@@ -73,7 +72,6 @@ struct RTPSUICoordinatorSpyTests {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             integrationKey: "integration-key",
-            brandConfiguration: nil,
             logger: Logger(),
             callback: events.record
         )

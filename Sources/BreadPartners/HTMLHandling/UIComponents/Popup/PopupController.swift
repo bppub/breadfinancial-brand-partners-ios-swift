@@ -56,7 +56,6 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
 
     var merchantConfiguration: MerchantConfiguration?
     var placementsConfiguration: PlacementConfiguration?
-    var brandConfiguration: BrandConfigResponse?
 
     var logger: Logger = Logger()
     let callback: ((BreadPartnerEvents) -> Void)
@@ -67,14 +66,12 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
         placementConfiguration: PlacementConfiguration,
         popupModel: PopupPlacementModel,
         overlayType: PlacementOverlayType,
-        brandConfiguration: BrandConfigResponse?,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {
         self.integrationKey = integrationKey
         self.merchantConfiguration = merchantConfiguration
         self.placementsConfiguration = placementConfiguration
-        self.brandConfiguration = brandConfiguration
         self.popupModel = popupModel
         self.overlayType = overlayType
         self.logger = logger
