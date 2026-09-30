@@ -72,76 +72,25 @@ final class RTPSUICoordinator: RTPSUICoordinating {
         }
     }
 
-    func presentPlacementResponse(
-        _ response: PlacementsResponse,
+    func presentPlacement(
+        _ popupPlacementModel: PopupPlacementModel,
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         integrationKey: String,
         brandConfiguration: BrandConfigResponse?,
-        splitTextAndAction: Bool,
-        openPlacementExperience: Bool,
-        forSwiftUI: Bool,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
-    ) async {
-        do {
-            guard !(response.placements?.isEmpty ?? true) else {
-                return callback(popupParsingError)
-            }
-
-            guard
-                let content = response.placementContent?.first(where: {
-                    $0.metadata?.templateId?.contains("overlay") == true
-                }),
-                var popupPlacementModel = try await HTMLContentParser()
-                    .extractPopupPlacementModel(
-                        from: content.contentData?.htmlContent ?? ""
-                    )
-            else {
-                return callback(popupParsingError)
-            }
-
-            popupPlacementModel.overlayType = "EMBEDDED_OVERLAY"
-            popupPlacementModel.location = response.placements?.first?.renderContext?.LOCATION
-            popupPlacementModel.webViewUrl = response.placements?.first?.renderContext?.embeddedUrl ?? ""
-
-            let controller = popupFactory.makePopupController(
-                integrationKey: integrationKey,
-                merchantConfiguration: merchantConfiguration,
-                placementsConfiguration: placementsConfiguration,
-                popupPlacementModel: popupPlacementModel,
-                brandConfiguration: brandConfiguration,
-                logger: logger,
-                callback: callback
-            )
-            callback(.textClicked)
-            callback(.renderPopupView(view: controller))
-        } catch {
-            callback(
-                .sdkError(
-                    error: NSError(
-                        domain: "",
-                        code: 500,
-                        userInfo: [
-                            NSLocalizedDescriptionKey: Constants.catchError(
-                                message: error.localizedDescription
-                            )
-                        ]
-                    )
-                )
-            )
-        }
-    }
-
-    private var popupParsingError: BreadPartnerEvents {
-        .sdkError(
-            error: NSError(
-                domain: "",
-                code: 500,
-                userInfo: [
-                    NSLocalizedDescriptionKey: Constants.popupPlacementParsingError
-                ]
-            )
+    ) {
+        let controller = popupFactory.makePopupController(
+            integrationKey: integrationKey,
+            merchantConfiguration: merchantConfiguration,
+            placementsConfiguration: placementsConfiguration,
+            popupPlacementModel: popupPlacementModel,
+            brandConfiguration: brandConfiguration,
+            logger: logger,
+            callback: callback
         )
+        callback(.textClicked)
+        callback(.renderPopupView(view: controller))
     }
 }
