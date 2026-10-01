@@ -5,7 +5,7 @@ struct RealTimePrescreenInput: @unchecked Sendable {
     let merchantConfiguration: MerchantConfiguration
     let placementsConfiguration: PlacementConfiguration
     let integrationKey: String
-    let brandConfiguration: BrandConfigResponse?
+    let brandConfiguration: BrandConfiguration?
     let splitTextAndAction: Bool
     let openPlacementExperience: Bool
     let forSwiftUI: Bool

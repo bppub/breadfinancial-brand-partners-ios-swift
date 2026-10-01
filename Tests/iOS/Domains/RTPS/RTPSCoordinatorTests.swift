@@ -1,6 +1,7 @@
 import BreadPartnersCore
 import Foundation
 import Testing
+import BreadPartnersCore
 
 @testable import BreadPartners
 
@@ -199,9 +200,10 @@ struct RTPSCoordinatorTests {
         let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
-        let brandConfiguration = try JSONDecoder().decode(
-            BrandConfigResponse.self,
-            from: Data(#"{"config":{}}"#.utf8)
+        let brandConfiguration = BrandConfiguration(
+            uatRecaptchaSiteKey: "",
+            stageRecaptchaSiteKey: "",
+            productionRecaptchaSiteKey: ""
         )
         var merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
         merchantConfiguration.env = nil
@@ -315,7 +317,7 @@ struct RTPSCoordinatorTests {
     private func input(
         merchantConfiguration: MerchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete,
         rtpsData: RTPSData? = RTPSData(customerAcceptedOffer: true),
-        brandConfiguration: BrandConfigResponse? = nil,
+        brandConfiguration: BrandConfiguration? = nil,
         logger: Logger = Logger(),
         callback: @escaping @Sendable (BreadPartnerEvents) -> Void = { _ in }
     ) -> RealTimePrescreenInput {
