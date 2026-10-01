@@ -1,7 +1,9 @@
 import Foundation
 
-struct LiveBrandConfigurationResponseDecoder: BrandConfigurationResponseDecoding {
-    func decode(from data: Data) throws -> BrandConfiguration {
+package struct LiveBrandConfigurationResponseDecoder: BrandConfigurationResponseDecoding {
+    package init() {}
+
+    package func decode(from data: Data) throws -> BrandConfiguration {
         let response = try JSONDecoder().decode(
             BrandConfigurationResponse.self,
             from: data
