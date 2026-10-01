@@ -1,11 +1,12 @@
 import Foundation
 import Testing
-@testable import BreadPartners
+
+@testable import BreadPartnersCore
 
 @Suite
 struct LiveAPIEndpointProviderTests {
     @Test
-    func delegatesEndpointResolutionToAPIUrlForEachEnvironment() {
+    func resolvesEndpointsForEachEnvironment() {
         let environments: [(BreadPartnersEnvironment, String, String)] = [
             (.stage, "https://brands.kmsmep.com", "https://acquire1stage.comenity.net"),
             (.prod, "https://brands.kmsmep.com", "https://acquire1.comenity.net"),
