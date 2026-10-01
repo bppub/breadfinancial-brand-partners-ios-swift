@@ -77,7 +77,6 @@ final class RTPSUICoordinator: RTPSUICoordinating {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         integrationKey: String,
-        brandConfiguration: BrandConfigResponse?,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {
@@ -86,7 +85,6 @@ final class RTPSUICoordinator: RTPSUICoordinating {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             popupPlacementModel: popupPlacementModel,
-            brandConfiguration: brandConfiguration,
             logger: logger,
             callback: callback
         )

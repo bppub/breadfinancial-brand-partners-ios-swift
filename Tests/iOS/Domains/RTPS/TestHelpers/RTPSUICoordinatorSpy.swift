@@ -41,7 +41,6 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         integrationKey: String,
-        brandConfiguration: BrandConfigResponse?,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {

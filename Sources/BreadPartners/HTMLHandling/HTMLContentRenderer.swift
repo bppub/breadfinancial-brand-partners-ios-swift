@@ -21,7 +21,6 @@ internal class HTMLContentRenderer {
     var merchantConfiguration: MerchantConfiguration?
     var placementsConfiguration: PlacementConfiguration?
 
-    let brandConfiguration: BrandConfigResponse?
     var splitTextAndAction: Bool = false
     var forSwiftUI: Bool = false
 
@@ -32,7 +31,6 @@ internal class HTMLContentRenderer {
         integrationKey: String,
         merchantConfiguration: MerchantConfiguration?,
         placementsConfiguration: PlacementConfiguration?,
-        brandConfiguration: BrandConfigResponse?,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
         logger: Logger,
@@ -41,7 +39,6 @@ internal class HTMLContentRenderer {
         self.integrationKey = integrationKey
         self.merchantConfiguration = merchantConfiguration
         self.placementsConfiguration = placementsConfiguration
-        self.brandConfiguration = brandConfiguration
         self.splitTextAndAction = splitTextAndAction
         self.forSwiftUI = forSwiftUI
         self.logger = logger
@@ -171,7 +168,6 @@ internal class HTMLContentRenderer {
             placementConfiguration: placementsConfiguration!,
             popupModel: popupPlacementModel,
             overlayType: overlayType,
-            brandConfiguration: brandConfiguration,
             logger: logger,
             callback: callback
         )
