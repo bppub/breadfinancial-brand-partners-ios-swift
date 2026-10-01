@@ -81,12 +81,11 @@ struct RTPSCoordinatorTests {
         let coordinator = makeCoordinator(
             placementService: placementService,
             uiCoordinator: uiCoordinator,
-            httpClient: httpClient,
             responses: [.rtps(response)]
         )
 
         await coordinator.runFlow(
-            input(rtpsData: RTPSData(locationType: .checkout))
+            input(httpClient: httpClient, rtpsData: RTPSData(locationType: .checkout))
         )
 
         #expect(await httpClient.requestCount == 1)
@@ -144,10 +143,9 @@ struct RTPSCoordinatorTests {
         let coordinator = makeCoordinator(
             placementService: placementService,
             uiCoordinator: uiCoordinator,
-            httpClient: httpClient
         )
 
-        await coordinator.runFlow(input(rtpsData: RTPSData()))
+        await coordinator.runFlow(input(httpClient: httpClient, rtpsData: RTPSData()))
 
         #expect(uiCoordinator.challengeCallCount == 1)
         #expect(uiCoordinator.challengeHTMLContent == "<html>challenge</html>")
@@ -210,12 +208,12 @@ struct RTPSCoordinatorTests {
         let coordinator = makeCoordinator(
             placementService: placementService,
             uiCoordinator: uiCoordinator,
-            httpClient: httpClient,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
 
         await coordinator.runFlow(
             input(
+                httpClient: httpClient,
                 merchantConfiguration: merchantConfiguration,
                 rtpsData: nil,
                 brandConfiguration: brandConfiguration
@@ -235,10 +233,10 @@ struct RTPSCoordinatorTests {
         let coordinator = RTPSCoordinator(
             environment: .stage,
             endpointProvider: LiveAPIEndpointProvider(environment: .stage),
-            httpClient: httpClient
+            placementService: LivePlacementService()
         )
 
-        await coordinator.runFlow(input(callback: events.record))
+        await coordinator.runFlow(input(httpClient: httpClient, callback: events.record))
 
         #expect(await httpClient.requestCount == 1)
         #expect(
@@ -297,7 +295,6 @@ struct RTPSCoordinatorTests {
         placementService: PlacementServiceSpy,
         uiCoordinator: RTPSUICoordinatorSpy,
         endpointProvider: any APIEndpointProviding = LiveAPIEndpointProvider(environment: .stage),
-        httpClient: HTTPClientSpy = HTTPClientSpy(outcomes: [.success(Data())]),
         responses: [ResponseDecoderStub.Response] = []
     ) -> RTPSCoordinator {
         RTPSCoordinator(
@@ -305,7 +302,6 @@ struct RTPSCoordinatorTests {
             endpointProvider: endpointProvider,
             dependencies: RTPSDependencies(
                 recaptcha: RecaptchaStub(),
-                httpClient: httpClient,
                 requestBuilder: RTPSRequestBuilder(),
                 responseDecoder: ResponseDecoderStub(responses: responses)
             ),
@@ -315,6 +311,7 @@ struct RTPSCoordinatorTests {
     }
 
     private func input(
+        httpClient: HTTPClientSpy = HTTPClientSpy(outcomes: [.success(Data())]),
         merchantConfiguration: MerchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete,
         rtpsData: RTPSData? = RTPSData(customerAcceptedOffer: true),
         brandConfiguration: BrandConfiguration? = nil,
@@ -322,6 +319,7 @@ struct RTPSCoordinatorTests {
         callback: @escaping @Sendable (BreadPartnerEvents) -> Void = { _ in }
     ) -> RealTimePrescreenInput {
         RealTimePrescreenInput(
+            httpClient: httpClient,
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: PlacementConfiguration(rtpsData: rtpsData),
             integrationKey: "integration-key",
@@ -426,7 +424,8 @@ private final class PlacementServiceSpy: PlacementServicing, @unchecked Sendable
 
     func fetch(
         request: PlacementRequest,
-        from url: URL
+        from url: URL,
+        httpClient: any HTTPClient
     ) async throws -> PlacementsResponse {
         callCount += 1
         self.request = request

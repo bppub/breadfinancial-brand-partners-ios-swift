@@ -4,6 +4,7 @@ import Foundation
 ///
 /// Endpoints and the reCAPTCHA site key are resolved by the SDK target so Core stays platform-neutral.
 package struct RTPSServiceInput: Sendable {
+    package let httpClient: any HTTPClient
     package let merchantConfiguration: MerchantConfiguration
     package let rtpsData: RTPSData
     package let integrationKey: String
@@ -16,6 +17,7 @@ package struct RTPSServiceInput: Sendable {
     package let log: @Sendable (String) -> Void
 
     package init(
+        httpClient: any HTTPClient,
         merchantConfiguration: MerchantConfiguration,
         rtpsData: RTPSData,
         integrationKey: String,
@@ -26,6 +28,7 @@ package struct RTPSServiceInput: Sendable {
         isLoggingEnabled: Bool = false,
         log: @escaping @Sendable (String) -> Void = { _ in }
     ) {
+        self.httpClient = httpClient
         self.merchantConfiguration = merchantConfiguration
         self.rtpsData = rtpsData
         self.integrationKey = integrationKey
