@@ -22,4 +22,16 @@ struct BrandConfigurationDependenciesTests {
             dependencies.responseDecoder is LiveBrandConfigurationResponseDecoder
         )
     }
+
+    @Test
+    func initializerDefaultsToLiveResponseDecoder() {
+        let dependencies = BrandConfigurationDependencies(
+            httpClient: HTTPClientSpy(),
+            endpointProvider: LiveAPIEndpointProvider(environment: .stage)
+        )
+
+        #expect(
+            dependencies.responseDecoder is LiveBrandConfigurationResponseDecoder
+        )
+    }
 }

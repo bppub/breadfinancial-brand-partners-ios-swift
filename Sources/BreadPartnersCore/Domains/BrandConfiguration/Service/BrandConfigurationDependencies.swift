@@ -6,7 +6,8 @@ package struct BrandConfigurationDependencies: Sendable {
     package init(
         httpClient: any HTTPClient,
         endpointProvider: any APIEndpointProviding,
-        responseDecoder: any BrandConfigurationResponseDecoding
+        responseDecoder: any BrandConfigurationResponseDecoding =
+            LiveBrandConfigurationResponseDecoder()
     ) {
         self.httpClient = httpClient
         self.endpointProvider = endpointProvider
