@@ -12,7 +12,7 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
     init(
         environment: BreadPartnersEnvironment,
         endpointProvider: any APIEndpointProviding,
-        httpClient: any HTTPClient,
+        placementService: any PlacementServicing,
         makeUICoordinator: @escaping @MainActor @Sendable () -> any RTPSUICoordinating = {
             RTPSUICoordinator.live
         }
@@ -21,11 +21,10 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
         self.endpointProvider = endpointProvider
         self.rtpsDependencies = RTPSDependencies(
             recaptcha: LiveRecaptchaProvider(),
-            httpClient: httpClient,
             requestBuilder: RTPSRequestBuilder(),
             responseDecoder: LiveRTPSResponseDecoder()
         )
-        self.placementService = LivePlacementService(httpClient: httpClient)
+        self.placementService = placementService
         self.makeUICoordinator = makeUICoordinator
     }
 
@@ -58,6 +57,7 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
 
         let outcome = await RTPSService(dependencies: rtpsDependencies).execute(
             RTPSServiceInput(
+                httpClient: input.httpClient,
                 merchantConfiguration: input.merchantConfiguration,
                 rtpsData: input.placementsConfiguration.rtpsData ?? RTPSData(),
                 integrationKey: input.integrationKey,
@@ -127,7 +127,8 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
                     ],
                     brandId: input.integrationKey
                 ),
-                from: endpointProvider.url(for: .generatePlacements)
+                from: endpointProvider.url(for: .generatePlacements),
+                httpClient: input.httpClient
             )
             let popupPlacementModel = try await popupModelMapper.map(response)
 

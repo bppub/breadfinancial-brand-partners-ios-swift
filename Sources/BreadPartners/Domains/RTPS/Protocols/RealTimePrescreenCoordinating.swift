@@ -2,6 +2,7 @@ import BreadPartnersCore
 import Foundation
 
 struct RealTimePrescreenInput: @unchecked Sendable {
+    let httpClient: any HTTPClient
     let merchantConfiguration: MerchantConfiguration
     let placementsConfiguration: PlacementConfiguration
     let integrationKey: String
@@ -18,6 +19,7 @@ struct RealTimePrescreenInput: @unchecked Sendable {
         updatedPlacementsConfiguration.rtpsData?.cardType = response.cardType
 
         return Self(
+            httpClient: httpClient,
             merchantConfiguration: response.updateMerchantConfiguration(
                 merchantConfiguration
             ),
