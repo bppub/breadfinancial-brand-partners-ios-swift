@@ -111,12 +111,9 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             )
         }
 
-        let coordinator = dependencies.rtpsCoordinatorFactory.makeCoordinator(
-            httpClient: httpClient
-        )
-
-        await coordinator.runFlow(
+        await dependencies.rtpsCoordinator.runFlow(
             RealTimePrescreenInput(
+                httpClient: httpClient,
                 merchantConfiguration: merchantConfiguration,
                 placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
                 integrationKey: integrationKey,

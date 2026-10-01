@@ -25,7 +25,7 @@ struct BreadPartnersSDKTests {
         let dependencies = try #require(sdk.dependencies)
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
-        #expect(dependencies.rtpsCoordinatorFactory is LiveRTPSCoordinatorFactory)
+        #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
         #expect(sdk.sdkEnvironment == .stage)
         #expect(sdk.integrationKey.isEmpty)
         #expect(sdk.isLoggingEnabled)
@@ -106,7 +106,7 @@ struct BreadPartnersSDKTests {
         #expect(input.placementsConfiguration.popUpStyling != nil)
         #expect(await service.requestedBrandIDs == ["brand-key"])
         #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
-        #expect((dependencies.rtpsCoordinatorFactory as? RootCoordinatorFactorySpy)?.makeCount == 1)
+        #expect(await coordinator.runCount == 1)
         #expect(events.eventCount > 0)
     }
 
@@ -165,7 +165,8 @@ struct BreadPartnersSDKTests {
             httpClientFactory: HTTPClientFactorySpy(client: httpClient),
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
-            rtpsCoordinatorFactory: RootCoordinatorFactorySpy(coordinator: coordinator)
+            placementService: LivePlacementService(),
+            rtpsCoordinator: coordinator
         )
     }
 
@@ -192,24 +193,12 @@ private final class HTTPClientFactorySpy: HTTPClientFactory, @unchecked Sendable
     }
 }
 
-private final class RootCoordinatorFactorySpy: RTPSCoordinatorFactory, @unchecked Sendable {
-    let coordinator: any RealTimePrescreenCoordinating
-    private(set) var makeCount = 0
-
-    init(coordinator: any RealTimePrescreenCoordinating) {
-        self.coordinator = coordinator
-    }
-
-    func makeCoordinator(httpClient: any HTTPClient) -> any RealTimePrescreenCoordinating {
-        makeCount += 1
-        return coordinator
-    }
-}
-
 private actor RootCoordinatorSpy: RealTimePrescreenCoordinating {
     private(set) var lastInput: RealTimePrescreenInput?
+    private(set) var runCount = 0
 
     func runFlow(_ input: RealTimePrescreenInput) async {
+        runCount += 1
         lastInput = input
         input.logger.debugPrint("root SDK test event")
     }
