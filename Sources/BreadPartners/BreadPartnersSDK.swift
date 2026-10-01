@@ -67,10 +67,13 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         self.isLoggingEnabled = enableLog
         self.dependencies = dependencies
 
-        let logger = makeLogger()
-        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
-
-        await loadBrandConfiguration(httpClient: httpClient)
+        brandConfiguration = await dependencies.brandConfigurationService.fetch(
+            brandID: integrationKey,
+            httpClient:
+                dependencies.httpClientFactory.makeClient(
+                    logger: makeLogger()
+                )
+        )
     }
 
     /// Calls this function to check if the user qualifies for a pre-screen card application.
@@ -102,7 +105,10 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
-            await loadBrandConfiguration(httpClient: httpClient)
+            brandConfiguration = await dependencies.brandConfigurationService.fetch(
+                brandID: integrationKey,
+                httpClient: httpClient
+            )
         }
 
         let coordinator = dependencies.rtpsCoordinatorFactory.makeCoordinator(
@@ -216,18 +222,5 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             return nil
         }
         return dependencies
-    }
-
-    private func loadBrandConfiguration(
-        httpClient: any HTTPClient
-    ) async {
-        guard let dependencies else { return }
-
-        brandConfiguration = await BrandConfigurationService(
-            dependencies: BrandConfigurationDependencies(
-                httpClient: httpClient,
-                endpointProvider: dependencies.endpointProvider
-            )
-        ).fetch(brandID: integrationKey)
     }
 }

@@ -33,8 +33,12 @@ struct BreadPartnersSDKTests {
 
     @Test
     func setupBuildsDependenciesAndFetchesBrandConfiguration() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [.success(brandConfigurationData)])
-        let dependencies = makeDependencies(httpClient: httpClient)
+        let httpClient = HTTPClientSpy(outcomes: [])
+        let service = BrandConfigurationServiceSpy(results: [brandConfiguration])
+        let dependencies = makeDependencies(
+            httpClient: httpClient,
+            brandConfigurationService: service
+        )
         let sdk = BreadPartnersSDK()
 
         await sdk.setup(
@@ -49,16 +53,8 @@ struct BreadPartnersSDKTests {
         #expect(sdk.isLoggingEnabled)
         #expect(sdk.dependencies != nil)
         #expect(sdk.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
-        #expect(await httpClient.requestCount == 1)
-
-        let request = try #require(await httpClient.requests.first)
-        #expect(request.method == .GET)
-        #expect(
-            request.url
-                == dependencies.endpointProvider.url(
-                    for: .brandConfig(brandId: "brand-key")
-                )
-        )
+        #expect(await service.requestedBrandIDs == ["brand-key"])
+        #expect(await httpClient.requestCount == 0)
     }
 
     @Test
@@ -77,11 +73,13 @@ struct BreadPartnersSDKTests {
 
     @Test
     func silentRTPSRequestCreatesCoordinatorWithActionDependencies() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [.success(brandConfigurationData)])
+        let httpClient = HTTPClientSpy(outcomes: [])
+        let service = BrandConfigurationServiceSpy(results: [brandConfiguration])
         let coordinator = RootCoordinatorSpy()
         let dependencies = makeDependencies(
             httpClient: httpClient,
-            coordinator: coordinator
+            coordinator: coordinator,
+            brandConfigurationService: service
         )
         let sdk = BreadPartnersSDK()
         let events = EventCapture()
@@ -102,10 +100,11 @@ struct BreadPartnersSDKTests {
 
         let input = try #require(await coordinator.lastInput)
         #expect(input.integrationKey == "brand-key")
-        #expect(input.brandConfiguration != nil)
+        #expect(input.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
         #expect(input.splitTextAndAction)
         #expect(input.forSwiftUI)
         #expect(input.placementsConfiguration.popUpStyling != nil)
+        #expect(await service.requestedBrandIDs == ["brand-key"])
         #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
         #expect((dependencies.rtpsCoordinatorFactory as? RootCoordinatorFactorySpy)?.makeCount == 1)
         #expect(events.eventCount > 0)
@@ -113,14 +112,13 @@ struct BreadPartnersSDKTests {
 
     @Test
     func silentRTPSRequestLazilyFetchesBrandConfiguration() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [
-            .failure(testError),
-            .success(brandConfigurationData),
-        ])
+        let httpClient = HTTPClientSpy(outcomes: [])
+        let service = BrandConfigurationServiceSpy(results: [nil, brandConfiguration])
         let coordinator = RootCoordinatorSpy()
         let dependencies = makeDependencies(
             httpClient: httpClient,
-            coordinator: coordinator
+            coordinator: coordinator,
+            brandConfigurationService: service
         )
         let sdk = BreadPartnersSDK()
 
@@ -138,41 +136,45 @@ struct BreadPartnersSDKTests {
         )
 
         #expect(sdk.brandConfiguration != nil)
-        #expect(await httpClient.requestCount == 2)
         #expect(sdk.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
         let input = try #require(await coordinator.lastInput)
         #expect(input.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
-        let requests = await httpClient.requests
-        #expect(
-            requests.last?.url
-                == dependencies.endpointProvider.url(
-                    for: .brandConfig(brandId: "brand-key")
-                )
-        )
+        #expect(await service.requestedBrandIDs == ["brand-key", "brand-key"])
+        #expect(await httpClient.requestCount == 0)
         #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
     }
 
     private func makeDependencies(
         httpClient: HTTPClientSpy,
-        coordinator: RootCoordinatorSpy = RootCoordinatorSpy()
+        coordinator: RootCoordinatorSpy = RootCoordinatorSpy(),
+        brandConfigurationService serviceSpy: BrandConfigurationServiceSpy? = nil
     ) -> SDKDependencies {
-        SDKDependencies(
+        let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
+        let brandConfigurationService: any BrandConfigurationServicing
+        if let serviceSpy {
+            brandConfigurationService = serviceSpy
+        } else {
+            brandConfigurationService = BrandConfigurationService(
+                dependencies: BrandConfigurationDependencies(
+                    endpointProvider: endpointProvider
+                )
+            )
+        }
+
+        return SDKDependencies(
             httpClientFactory: HTTPClientFactorySpy(client: httpClient),
-            endpointProvider: LiveAPIEndpointProvider(environment: .stage),
+            endpointProvider: endpointProvider,
+            brandConfigurationService: brandConfigurationService,
             rtpsCoordinatorFactory: RootCoordinatorFactorySpy(coordinator: coordinator)
         )
     }
 
-    private var brandConfigurationData: Data {
-        Data(
-            """
-            {"config":{"rsk_STAGE_NATIVE_IOS":"stage-key"}}
-            """.utf8
+    private var brandConfiguration: BrandConfiguration {
+        BrandConfiguration(
+            uatRecaptchaSiteKey: "uat-key",
+            stageRecaptchaSiteKey: "stage-key",
+            productionRecaptchaSiteKey: "production-key"
         )
-    }
-
-    private var testError: NSError {
-        NSError(domain: "BreadPartnersSDKTests", code: 1)
     }
 }
 

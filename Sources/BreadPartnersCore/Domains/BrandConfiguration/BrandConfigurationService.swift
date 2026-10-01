@@ -5,9 +5,12 @@ package struct BrandConfigurationService: BrandConfigurationServicing {
         self.dependencies = dependencies
     }
 
-    package func fetch(brandID: String) async -> BrandConfiguration? {
+    package func fetch(
+        brandID: String,
+        httpClient: any HTTPClient
+    ) async -> BrandConfiguration? {
         do {
-            let data = try await dependencies.httpClient.request(
+            let data = try await httpClient.request(
                 HTTPRequest(
                     url: dependencies.endpointProvider.url(
                         for: .brandConfig(brandId: brandID)

@@ -9,6 +9,11 @@ struct SDKDependenciesTests {
     func initializerPreservesDependencies() throws {
         let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
         let httpClientFactory = LiveHTTPClientFactory()
+        let brandConfigurationService = BrandConfigurationService(
+            dependencies: BrandConfigurationDependencies(
+                endpointProvider: endpointProvider
+            )
+        )
         let coordinatorFactory = LiveRTPSCoordinatorFactory(
             environment: .stage,
             endpointProvider: endpointProvider
@@ -17,6 +22,7 @@ struct SDKDependenciesTests {
         let dependencies = SDKDependencies(
             httpClientFactory: httpClientFactory,
             endpointProvider: endpointProvider,
+            brandConfigurationService: brandConfigurationService,
             rtpsCoordinatorFactory: coordinatorFactory
         )
 
@@ -29,6 +35,7 @@ struct SDKDependenciesTests {
 
         #expect(storedHTTPClientFactory === httpClientFactory)
         #expect(storedCoordinatorFactory === coordinatorFactory)
+        #expect(dependencies.brandConfigurationService is BrandConfigurationService)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
                 == endpointProvider.url(for: .prescreen)
@@ -41,6 +48,7 @@ struct SDKDependenciesTests {
 
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
+        #expect(dependencies.brandConfigurationService is BrandConfigurationService)
         #expect(dependencies.rtpsCoordinatorFactory is LiveRTPSCoordinatorFactory)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
