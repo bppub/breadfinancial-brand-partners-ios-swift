@@ -1,5 +1,3 @@
-import BreadPartnersCore
-
 struct BrandConfigurationDependencies: Sendable {
     let httpClient: any HTTPClient
     let endpointProvider: any APIEndpointProviding

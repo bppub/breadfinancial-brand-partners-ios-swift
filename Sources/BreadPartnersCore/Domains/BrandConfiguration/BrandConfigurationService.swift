@@ -1,5 +1,3 @@
-import BreadPartnersCore
-
 struct BrandConfigurationService: BrandConfigurationServicing {
     private let dependencies: BrandConfigurationDependencies
 

@@ -1,5 +1,3 @@
-import BreadPartnersCore
-
 struct LiveBrandConfigurationServiceFactory: BrandConfigurationServiceFactory {
     private let endpointProvider: any APIEndpointProviding
 

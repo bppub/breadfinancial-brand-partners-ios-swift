@@ -1,5 +1,3 @@
-import BreadPartnersCore
-
 struct BrandConfiguration: Equatable, Sendable {
     let uatRecaptchaSiteKey: String
     let stageRecaptchaSiteKey: String
