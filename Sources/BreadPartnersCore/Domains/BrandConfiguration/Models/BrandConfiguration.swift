@@ -1,9 +1,19 @@
-struct BrandConfiguration: Equatable, Sendable {
-    let uatRecaptchaSiteKey: String
-    let stageRecaptchaSiteKey: String
-    let productionRecaptchaSiteKey: String
+package struct BrandConfiguration: Equatable, Sendable {
+    package let uatRecaptchaSiteKey: String
+    package let stageRecaptchaSiteKey: String
+    package let productionRecaptchaSiteKey: String
 
-    func recaptchaSiteKey(for environment: BreadPartnersEnvironment) -> String {
+    package init(
+        uatRecaptchaSiteKey: String,
+        stageRecaptchaSiteKey: String,
+        productionRecaptchaSiteKey: String
+    ) {
+        self.uatRecaptchaSiteKey = uatRecaptchaSiteKey
+        self.stageRecaptchaSiteKey = stageRecaptchaSiteKey
+        self.productionRecaptchaSiteKey = productionRecaptchaSiteKey
+    }
+
+    package func recaptchaSiteKey(for environment: BreadPartnersEnvironment) -> String {
         switch environment {
         case .uat:
             return uatRecaptchaSiteKey
