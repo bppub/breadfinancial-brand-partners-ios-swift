@@ -24,7 +24,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     }()
 
     internal var dependencies: SDKDependencies?
-    var brandConfiguration: BrandConfigResponse?
+    var brandConfiguration: BrandConfiguration?
 
     var integrationKey: String = ""
     var isLoggingEnabled: Bool = false
@@ -70,7 +70,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         let logger = makeLogger()
         let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
 
-        return await fetchBrandConfig(httpClient: httpClient)
+        await loadBrandConfiguration(httpClient: httpClient)
     }
 
     /// Calls this function to check if the user qualifies for a pre-screen card application.
@@ -102,7 +102,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
-            await fetchBrandConfig(httpClient: httpClient)
+            await loadBrandConfiguration(httpClient: httpClient)
         }
 
         let coordinator = dependencies.rtpsCoordinatorFactory.makeCoordinator(
@@ -199,6 +199,10 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         return logger
     }
 
+    /// Checks if the required SDK dependencies are available.
+    /// - Parameters:
+    ///   - callback: A callback to handle the error if dependencies are missing.
+    /// - Returns: The SDK dependencies if available, otherwise `nil`.
     private func requireDependencies(
         callback: @Sendable @escaping (BreadPartnerEvents) -> Void
     ) -> SDKDependencies? {
@@ -212,5 +216,18 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
             return nil
         }
         return dependencies
+    }
+
+    private func loadBrandConfiguration(
+        httpClient: any HTTPClient
+    ) async {
+        guard let dependencies else { return }
+
+        brandConfiguration = await BrandConfigurationService(
+            dependencies: BrandConfigurationDependencies(
+                httpClient: httpClient,
+                endpointProvider: dependencies.endpointProvider
+            )
+        ).fetch(brandID: integrationKey)
     }
 }

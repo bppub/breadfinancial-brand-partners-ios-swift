@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import BreadPartnersCore
 
 @testable import BreadPartners
 
@@ -47,12 +48,17 @@ struct BreadPartnersSDKTests {
         #expect(sdk.integrationKey == "brand-key")
         #expect(sdk.isLoggingEnabled)
         #expect(sdk.dependencies != nil)
-        #expect(sdk.brandConfiguration != nil)
+        #expect(sdk.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
         #expect(await httpClient.requestCount == 1)
 
         let request = try #require(await httpClient.requests.first)
         #expect(request.method == .GET)
-        #expect(request.url == APIUrl(urlType: .brandConfig(brandId: "brand-key"), environment: .stage).foundationURL)
+        #expect(
+            request.url
+                == dependencies.endpointProvider.url(
+                    for: .brandConfig(brandId: "brand-key")
+                )
+        )
     }
 
     @Test
@@ -133,7 +139,16 @@ struct BreadPartnersSDKTests {
 
         #expect(sdk.brandConfiguration != nil)
         #expect(await httpClient.requestCount == 2)
-        #expect(await coordinator.lastInput != nil)
+        #expect(sdk.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
+        let input = try #require(await coordinator.lastInput)
+        #expect(input.brandConfiguration?.stageRecaptchaSiteKey == "stage-key")
+        let requests = await httpClient.requests
+        #expect(
+            requests.last?.url
+                == dependencies.endpointProvider.url(
+                    for: .brandConfig(brandId: "brand-key")
+                )
+        )
         #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
     }
 
@@ -151,7 +166,7 @@ struct BreadPartnersSDKTests {
     private var brandConfigurationData: Data {
         Data(
             """
-            {"config":{"clientName":"test-client"}}
+            {"config":{"rsk_STAGE_NATIVE_IOS":"stage-key"}}
             """.utf8
         )
     }
