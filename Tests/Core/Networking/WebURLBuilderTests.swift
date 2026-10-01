@@ -7,14 +7,13 @@ struct WebURLBuilderTests {
     @Test
     func buildsRTPSWebURLWithoutRTPSData() {
         let url = WebURLBuilder.buildRTPSWebURL(
-            environment: .prod,
+            endpointURL: URL(string: "https://example.com/prescreen/offer")!,
             integrationKey: "integration-key",
             rtpsData: nil,
             merchantConfiguration: MerchantConfiguration(),
         )
 
-        #expect(url != nil)
-        #expect(url?.query?.contains("prescreenId") == false)
+        #expect(url.query?.contains("prescreenId") == false)
     }
 
     @Test
@@ -44,20 +43,18 @@ struct WebURLBuilderTests {
             mockResponse: .success
         )
 
-        let url = try #require(
-            WebURLBuilder.buildRTPSWebURL(
-                environment: .stage,
-                integrationKey: "integration-key",
-                rtpsData: rtpsData,
-                merchantConfiguration: merchantConfiguration,
-            )
+        let url = WebURLBuilder.buildRTPSWebURL(
+            endpointURL: URL(string: "https://example.com/prescreen/offer")!,
+            integrationKey: "integration-key",
+            rtpsData: rtpsData,
+            merchantConfiguration: merchantConfiguration,
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
         let values: [String: String?] = Dictionary(
             uniqueKeysWithValues: query.map { ($0.name, $0.value) }
         )
 
-        #expect(url.host == "acquire1stage.comenity.net")
+        #expect(url.path == "/prescreen/offer")
         #expect(values["clientKey"] == "integration-key")
         #expect(values["mockMO"] == "success")
         #expect(values["cardType"] == "storeCard")
@@ -70,13 +67,11 @@ struct WebURLBuilderTests {
 
     @Test
     func filtersNilAndBlankRTPSValues() throws {
-        let url = try #require(
-            WebURLBuilder.buildRTPSWebURL(
-                environment: .prod,
-                integrationKey: "",
-                rtpsData: nil,
-                merchantConfiguration: MerchantConfiguration(),
-            )
+        let url = WebURLBuilder.buildRTPSWebURL(
+            endpointURL: URL(string: "https://example.com/prescreen/offer")!,
+            integrationKey: "",
+            rtpsData: nil,
+            merchantConfiguration: MerchantConfiguration(),
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
         let names = Set(query.map(\.name))
@@ -106,26 +101,55 @@ struct WebURLBuilderTests {
         placementData.defaultSelectedCardKey = "default"
         placementData.selectedCardKey = "selected"
 
-        let url = try #require(
-            WebURLBuilder.buildBPSWebURL(
-                environment: .uat,
-                integrationKey: "integration-key",
-                rtpsData: rtpsData,
-                placementData: placementData,
-                merchantConfiguration: merchantConfiguration
-            )
+        let url = WebURLBuilder.buildBPSWebURL(
+            endpointURL: URL(string: "https://example.com/batch-prescreen/start")!,
+            integrationKey: "integration-key",
+            rtpsData: rtpsData,
+            placementData: placementData,
+            merchantConfiguration: merchantConfiguration
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
         let values: [String: String?] = Dictionary(
             uniqueKeysWithValues: query.map { ($0.name, $0.value) }
         )
 
-        #expect(url.host == "acquire1uat.comenity.net")
+        #expect(url.path == "/batch-prescreen/start")
         #expect(values["location"] == "checkout")
         #expect(values["channel"] == "rtps-channel")
         #expect(values["subchannel"] == "rtps-subchannel")
         #expect(values["selectedCardKey"] == "selected")
         #expect(values["defaultSelectedCardKey"] == "default")
+    }
+
+    @Test
+    func buildsBPSURLWithNumericValuesMappedToStrings() throws {
+        let rtpsData = RTPSData(
+            order: Order(
+                subTotal: CurrencyValue(value: 10_000),
+                totalPrice: CurrencyValue(value: 12_000),
+                items: [
+                    Item(unitPrice: CurrencyValue(value: 2_000))
+                ]
+            ),
+            prescreenId: 42
+        )
+
+        let url = WebURLBuilder.buildBPSWebURL(
+            endpointURL: URL(string: "https://example.com/batch-prescreen/start")!,
+            integrationKey: "integration-key",
+            rtpsData: rtpsData,
+            placementData: nil,
+            merchantConfiguration: MerchantConfiguration()
+        )
+        let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
+        let values: [String: String?] = Dictionary(
+            uniqueKeysWithValues: query.map { ($0.name, $0.value) }
+        )
+
+        #expect(values["prescreenId"] == "42")
+        #expect(values["cartAmount"] == "10000")
+        #expect(values["productAmount"] == "2000")
+        #expect(values["checkoutAmount"] == "12000")
     }
 
     @Test
@@ -138,14 +162,12 @@ struct WebURLBuilderTests {
         placementData.defaultSelectedCardKey = "default"
         placementData.selectedCardKey = "selected"
 
-        let url = try #require(
-            WebURLBuilder.buildBPSWebURL(
-                environment: .prod,
-                integrationKey: "integration-key",
-                rtpsData: nil,
-                placementData: placementData,
-                merchantConfiguration: merchantConfiguration
-            )
+        let url = WebURLBuilder.buildBPSWebURL(
+            endpointURL: URL(string: "https://example.com/batch-prescreen/start")!,
+            integrationKey: "integration-key",
+            rtpsData: nil,
+            placementData: placementData,
+            merchantConfiguration: merchantConfiguration
         )
         let query = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
         let values: [String: String?] = Dictionary(
