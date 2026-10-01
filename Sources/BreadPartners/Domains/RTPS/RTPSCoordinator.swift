@@ -52,7 +52,7 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
         cookies: String?
     ) async {
         let uiCoordinator = await makeUICoordinator()
-        let siteKey = input.brandConfiguration?.config.getRecaptchaKey(
+        let siteKey = input.brandConfiguration?.recaptchaSiteKey(
             for: input.merchantConfiguration.env ?? .prod
         )
 
