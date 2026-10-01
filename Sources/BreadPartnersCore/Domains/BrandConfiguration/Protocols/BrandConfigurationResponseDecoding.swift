@@ -1,5 +1,5 @@
 import Foundation
 
-protocol BrandConfigurationResponseDecoding: Sendable {
+package protocol BrandConfigurationResponseDecoding: Sendable {
     func decode(from data: Data) throws -> BrandConfiguration
 }

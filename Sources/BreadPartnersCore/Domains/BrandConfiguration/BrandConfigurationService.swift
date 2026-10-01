@@ -1,11 +1,11 @@
-struct BrandConfigurationService: BrandConfigurationServicing {
+package struct BrandConfigurationService: BrandConfigurationServicing {
     private let dependencies: BrandConfigurationDependencies
 
-    init(dependencies: BrandConfigurationDependencies) {
+    package init(dependencies: BrandConfigurationDependencies) {
         self.dependencies = dependencies
     }
 
-    func fetch(brandID: String) async -> BrandConfiguration? {
+    package func fetch(brandID: String) async -> BrandConfiguration? {
         do {
             let data = try await dependencies.httpClient.request(
                 HTTPRequest(
