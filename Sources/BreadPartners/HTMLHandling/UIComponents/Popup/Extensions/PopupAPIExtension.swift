@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 import Foundation
+import BreadPartnersCore
 
 extension PopupController {
 
@@ -58,10 +59,11 @@ extension PopupController {
     /// Handles the API response asynchronously by decoding the response data into a PlacementsResponse model.
     internal func handleResponse(_ response: AnySendable) async {
         do {
-            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
-                response,
-                as: PlacementsResponse.self
+            let responseModel: PlacementsResponse = try BreadPartnersCore.decodeJSON(
+                from: response,
+                to: PlacementsResponse.self
             )
+
             guard
                 let popupPlacementHTMLContent = responseModel.placementContent?
                     .first,

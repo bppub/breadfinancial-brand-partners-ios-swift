@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 import Foundation
+import BreadPartnersCore
 
 extension BreadPartnersSDK {
 
@@ -113,17 +114,13 @@ extension BreadPartnersSDK {
             ) -> Void
     ) async {
         do {
-            let responseModel: PlacementsResponse = try ResponseDecoder.decode(
-                response,
-                as: PlacementsResponse.self
+            let responseModel: PlacementsResponse = try BreadPartnersCore.decodeJSON(
+                from: response,
+                to: PlacementsResponse.self
             )
 
             /// Opens the overlay automatically to simulate user behavior of manually tapping the placement.
             if openPlacementExperience {
-                let responseModel: PlacementsResponse = try ResponseDecoder.decode(
-                    response,
-                    as: PlacementsResponse.self
-                )
                 guard
                     let popupPlacementHTMLContent = responseModel
                         .placementContent?
