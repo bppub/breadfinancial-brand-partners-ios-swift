@@ -1,3 +1,4 @@
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 
@@ -123,7 +124,7 @@ import Testing
 
     @Test
     func virtualLookupSkipsValidation() async {
-        let network = HTTPClientSpy()
+        let network = HTTPClientSpy(outcomes: [.success(Data())])
         let service = RTPSService(dependencies: RTPSFixtures.dependencies())
 
         let outcome = await service.execute(
@@ -142,7 +143,7 @@ import Testing
 
     @Test
     func prescreenSelectsPrescreenEndpoint() async {
-        let network = HTTPClientSpy()
+        let network = HTTPClientSpy(outcomes: [.success(Data())])
         let service = RTPSService(dependencies: RTPSFixtures.dependencies())
 
         _ = await service.execute(
@@ -154,7 +155,7 @@ import Testing
 
     @Test
     func virtualLookupSelectsLookupEndpoint() async {
-        let network = HTTPClientSpy()
+        let network = HTTPClientSpy(outcomes: [.success(Data())])
         let service = RTPSService(dependencies: RTPSFixtures.dependencies())
 
         _ = await service.execute(
@@ -169,7 +170,7 @@ import Testing
 
     @Test
     func sendsIntegrationKeyAndRequestedWithHeaders() async {
-        let network = HTTPClientSpy()
+        let network = HTTPClientSpy(outcomes: [.success(Data())])
         let service = RTPSService(dependencies: RTPSFixtures.dependencies())
 
         _ = await service.execute(
@@ -189,7 +190,7 @@ import Testing
 
     @Test
     func forwardsCookiesWhenPresent() async {
-        let network = HTTPClientSpy()
+        let network = HTTPClientSpy(outcomes: [.success(Data())])
         let service = RTPSService(dependencies: RTPSFixtures.dependencies())
 
         _ = await service.execute(
@@ -297,11 +298,15 @@ import Testing
         let outcome = await service.execute(
             RTPSFixtures.input(
                 httpClient: HTTPClientSpy(
-                    failure: NSError(
-                        domain: "Network",
-                        code: 500,
-                        userInfo: [NSLocalizedDescriptionKey: "request timed out"]
-                    )
+                    outcomes: [
+                        .failure(
+                            NSError(
+                                domain: "Network",
+                                code: 500,
+                                userInfo: [NSLocalizedDescriptionKey: "request timed out"]
+                            )
+                        )
+                    ]
                 ),
                 rtpsData: RTPSData()
             )
@@ -364,7 +369,7 @@ import Testing
 
         let outcome = await service.execute(
             RTPSFixtures.input(
-                httpClient: HTTPClientSpy(failure: RTPSFixtures.Error.incapsula()),
+                httpClient: HTTPClientSpy(outcomes: [.failure(RTPSFixtures.Error.incapsula())]),
                 rtpsData: RTPSData()
             )
         )
@@ -384,7 +389,7 @@ import Testing
         let outcome = await service.execute(
             RTPSFixtures.input(
                 httpClient: HTTPClientSpy(
-                    failure: RTPSFixtures.Error.incapsula(htmlContent: nil)
+                    outcomes: [.failure(RTPSFixtures.Error.incapsula(htmlContent: nil))]
                 ),
                 rtpsData: RTPSData()
             )
@@ -404,7 +409,7 @@ import Testing
         let outcome = await service.execute(
             RTPSFixtures.input(
                 httpClient: HTTPClientSpy(
-                    failure: RTPSFixtures.Error.incapsula(url: nil)
+                    outcomes: [.failure(RTPSFixtures.Error.incapsula(url: nil))]
                 ),
                 rtpsData: RTPSData()
             )

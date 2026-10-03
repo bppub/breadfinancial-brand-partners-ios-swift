@@ -1,3 +1,4 @@
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 
@@ -8,7 +9,7 @@ struct BrandConfigurationServiceTests {
     @Test
     func fetchRequestsEndpointAndReturnsDecodedConfiguration() async throws {
         let expectedConfiguration = BrandConfiguration.fixture
-        let httpClient = HTTPClientSpy(responseData: Data("response".utf8))
+        let httpClient = HTTPClientSpy(outcomes: [.success(Data("response".utf8))])
         let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
         let service = BrandConfigurationService(
             dependencies: BrandConfigurationDependencies(
@@ -40,7 +41,7 @@ struct BrandConfigurationServiceTests {
             await service.fetch(
                 brandID: "brand-key",
                 httpClient: HTTPClientSpy(
-                    failure: NSError(domain: "BrandConfiguration", code: 1)
+                    outcomes: [.failure(NSError(domain: "BrandConfiguration", code: 1))]
                 )
             ) == nil
         )
@@ -53,7 +54,10 @@ struct BrandConfigurationServiceTests {
         )
 
         #expect(
-            await service.fetch(brandID: "brand-key", httpClient: HTTPClientSpy()) == nil
+            await service.fetch(
+                brandID: "brand-key",
+                httpClient: HTTPClientSpy(outcomes: [.success(Data())])
+            ) == nil
         )
     }
 
@@ -78,7 +82,7 @@ struct BrandConfigurationServiceTests {
             )
         )
         let httpClient = HTTPClientSpy(
-            responseData: Data(#"{"config":{"rsk_STAGE_NATIVE_IOS":"stage-key"}}"#.utf8)
+            outcomes: [.success(Data(#"{"config":{"rsk_STAGE_NATIVE_IOS":"stage-key"}}"#.utf8))]
         )
 
         let configuration = await service.fetch(

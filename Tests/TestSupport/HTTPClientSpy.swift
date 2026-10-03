@@ -26,7 +26,7 @@ package actor HTTPClientSpy: HTTPClient {
         requests.count
     }
 
-    package init(outcomes: [Outcome]) {
+    package init(outcomes: [Outcome] = []) {
         self.outcomes = outcomes
     }
 

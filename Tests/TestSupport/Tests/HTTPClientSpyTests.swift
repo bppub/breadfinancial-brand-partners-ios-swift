@@ -6,6 +6,28 @@ import Testing
 @Suite
 struct HTTPClientSpyTests {
     @Test
+    func defaultsToEmptyQueueAndRecordsUnexpectedRequest() async throws {
+        let httpClient = HTTPClientSpy()
+        let request = HTTPRequest(
+            url: try #require(URL(string: "https://api.test/default")),
+            method: .GET
+        )
+
+        #expect(await httpClient.requests.isEmpty)
+        #expect(await httpClient.requestCount == 0)
+
+        do {
+            _ = try await httpClient.request(request)
+            Issue.record("Expected an unexpected-request failure")
+        } catch let error as HTTPClientSpy.Failure {
+            #expect(error == .unexpectedRequest(method: request.method, url: request.url))
+        }
+
+        #expect(await httpClient.requestCount == 1)
+        #expect(await httpClient.requests.first?.url == request.url)
+    }
+
+    @Test
     func returnsQueuedDataAndRecordsEachRequest() async throws {
         let firstData = Data("first".utf8)
         let secondData = Data("second".utf8)
