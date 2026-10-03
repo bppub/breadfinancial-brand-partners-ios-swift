@@ -58,52 +58,6 @@ import Testing
     }
 
     @Test
-    func spyNetworkClientStartsWithNoRequestsAndReturnsConfiguredData() async throws {
-        let responseData = Data("response".utf8)
-        let network = HTTPClientSpy(responseData: responseData)
-        let request = HTTPRequest(
-            url: RTPSFixtures.URLs.prescreen,
-            method: .POST,
-            headers: ["X-Test": "value"],
-            cookies: "cookie=value",
-            body: Data("request".utf8)
-        )
-
-        await #expect(network.requests.isEmpty)
-        let result = try await network.request(request)
-
-        #expect(result == responseData)
-        let recordedRequest = await network.requests.first
-        #expect(recordedRequest?.url == request.url)
-        #expect(recordedRequest?.method == request.method)
-        #expect(recordedRequest?.headers == request.headers)
-        #expect(recordedRequest?.cookies == request.cookies)
-        #expect(recordedRequest?.body == request.body)
-    }
-
-    @Test
-    func spyNetworkClientRecordsRequestsBeforeThrowingAConfiguredFailure() async {
-        let request = HTTPRequest(
-            url: RTPSFixtures.URLs.prescreen,
-            method: .POST
-        )
-        let network = HTTPClientSpy(
-            failure: NSError(domain: "Network", code: 500)
-        )
-
-        do {
-            _ = try await network.request(request)
-            Issue.record("Expected the configured network failure")
-        } catch {
-            #expect((error as NSError).domain == "Network")
-            #expect((error as NSError).code == 500)
-            let recordedRequest = await network.requests.first
-            #expect(recordedRequest?.url == request.url)
-            #expect(recordedRequest?.method == request.method)
-        }
-    }
-
-    @Test
     func stubRequestBuilderReturnsConfiguredRequestAndRecordsTheToken() {
         let request = RTPSRequest(
             urlPath: "/custom",

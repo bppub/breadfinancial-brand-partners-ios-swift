@@ -1,4 +1,5 @@
 import BreadPartnersCore
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 import BreadPartnersCore

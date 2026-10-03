@@ -35,6 +35,15 @@ jobs:
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
 
+      - name: Run BreadPartnersTestSupport Tests
+        run: |
+          xcodebuild test \
+            -scheme BreadPartnersTestSupportTests \
+            -destination 'platform=macOS' \
+            -resultBundlePath TestSupportResults.xcresult \
+            -enableCodeCoverage YES \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Run BreadPartnersCore Tests
         run: |
           xcodebuild test \

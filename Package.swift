@@ -27,6 +27,12 @@ let package = Package(
             dependencies: []
         ),
         .target(
+            name: "BreadPartnersTestSupport",
+            dependencies: ["BreadPartnersCore"],
+            path: "Tests/TestSupport",
+            exclude: ["Tests"]
+        ),
+        .target(
             name: "BreadPartners",
             dependencies: [
                 "BreadPartnersCore",
@@ -37,13 +43,18 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "BreadPartnersTestSupportTests",
+            dependencies: ["BreadPartnersCore", "BreadPartnersTestSupport"],
+            path: "Tests/TestSupport/Tests"
+        ),
+        .testTarget(
             name: "BreadPartnersCoreTests",
-            dependencies: ["BreadPartnersCore"],
+            dependencies: ["BreadPartnersCore", "BreadPartnersTestSupport"],
             path: "Tests/Core"
         ),
         .testTarget(
             name: "BreadPartnersTests",
-            dependencies: ["BreadPartners"],
+            dependencies: ["BreadPartners", "BreadPartnersTestSupport"],
             path: "Tests/iOS"
         ),
     ]

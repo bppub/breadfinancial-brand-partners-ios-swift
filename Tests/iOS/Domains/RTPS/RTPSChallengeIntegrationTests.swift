@@ -1,3 +1,4 @@
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 import WebKit
