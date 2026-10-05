@@ -1,68 +1,53 @@
-//------------------------------------------------------------------------------
-//  File:          PlacementRequest.swift
-//  Author(s):     Bread Financial
-//  Date:          27 March 2025
-//
-//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
-//  providing UI components and functionalities to integrate Bread Financial
-//  services into partner applications.
-//
-//  © 2025 Bread Financial
-//------------------------------------------------------------------------------
-
 import Foundation
 
-/// Represents the request for placements.
-internal struct PlacementRequest: Codable {
-    let placements: [PlacementRequestBody]?
-    let brandId: String?
+package struct PlacementRequest: Codable, Sendable {
+    package let placements: [PlacementRequestBody]?
+    package let brandId: String?
 
-    public init(placements: [PlacementRequestBody]? = nil, brandId: String? = nil) {
+    package init(placements: [PlacementRequestBody]? = nil, brandId: String? = nil) {
         self.placements = placements
         self.brandId = brandId
     }
 }
 
-/// Represents individual placement request body.
-internal struct PlacementRequestBody: Codable {
-    let id: String?
-    let context: ContextRequestBody?
+package struct PlacementRequestBody: Codable, Sendable {
+    package let id: String?
+    package let context: ContextRequestBody?
 
-    public init(id: String? = nil, context: ContextRequestBody? = nil) {
+    package init(id: String? = nil, context: ContextRequestBody? = nil) {
         self.id = id
         self.context = context
     }
 }
 
-/// Represents the context for a placement request.
-internal struct ContextRequestBody: Codable {
-    let SDK_TID: String?
-    let ENV: String?
-    let RTPS_ID: String?
-    let BUYER_ID: String?
-    let PREQUAL_ID: String?
-    let PREQUAL_CREDIT_LIMIT: String?
-    let LOCATION: String?
-    let PRICE: Int64?
-    let EXISTING_CH: Bool?
-    let CARDHOLDER_TIER: String?
-    let STORE_NUMBER: String?
-    let LOYALTY_ID: String?
-    let OVERRIDE_KEY: String?
-    let CLIENT_VAR_1: String?
-    let CLIENT_VAR_2: String?
-    let CLIENT_VAR_3: String?
-    let CLIENT_VAR_4: String?
-    let DEPARTMENT_ID: String?
-    let channel: String?
-    let subchannel: String?
-    let CMP: String?
-    let ALLOW_CHECKOUT: Bool?
-    var UPQ_PARAMS: String?
-    var UPQ_CHECKOUT_PARAMS: String?
-    let embeddedUrl: String?
+package struct ContextRequestBody: Codable, Sendable {
+    package let SDK_TID: String?
+    package let ENV: String?
+    package let RTPS_ID: String?
+    package let BUYER_ID: String?
+    package let PREQUAL_ID: String?
+    package let PREQUAL_CREDIT_LIMIT: String?
+    package let LOCATION: String?
+    package let PRICE: Int64?
+    package let EXISTING_CH: Bool?
+    package let CARDHOLDER_TIER: String?
+    package let STORE_NUMBER: String?
+    package let LOYALTY_ID: String?
+    package let OVERRIDE_KEY: String?
+    package let CLIENT_VAR_1: String?
+    package let CLIENT_VAR_2: String?
+    package let CLIENT_VAR_3: String?
+    package let CLIENT_VAR_4: String?
+    package let DEPARTMENT_ID: String?
+    package let channel: String?
+    package let subchannel: String?
+    package let CMP: String?
+    package let ALLOW_CHECKOUT: Bool?
+    package var UPQ_PARAMS: String?
+    package var UPQ_CHECKOUT_PARAMS: String?
+    package let embeddedUrl: String?
 
-    internal init(
+    package init(
         SDK_TID: String? = nil,
         ENV: String? = nil,
         RTPS_ID: String? = nil,
@@ -115,13 +100,11 @@ internal struct ContextRequestBody: Codable {
         self.UPQ_CHECKOUT_PARAMS = UPQ_CHECKOUT_PARAMS
         self.embeddedUrl = embeddedUrl
     }
-}
 
-extension ContextRequestBody {
-    func copy(upqParams: String? = nil, upqCheckoutParams: String? = nil) -> ContextRequestBody {
-        return ContextRequestBody(
+    package func copy(upqParams: String? = nil, upqCheckoutParams: String? = nil) -> ContextRequestBody {
+        ContextRequestBody(
             UPQ_PARAMS: upqParams,
-            UPQ_CHECKOUT_PARAMS: upqCheckoutParams,
+            UPQ_CHECKOUT_PARAMS: upqCheckoutParams
         )
     }
 }
