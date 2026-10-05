@@ -5,6 +5,18 @@ import Testing
 
 @Suite
 struct HTTPClientSpyTests {
+    @Test(arguments: [HTTPMethod.GET, .POST, .PUT, .DELETE, .OPTIONS])
+    func unexpectedRequestDescriptionIncludesMethodAndCompleteURL(method: HTTPMethod) throws {
+        let url = try #require(URL(string: "https://api.test/unexpected?reason=empty%20queue#details"))
+        let error = HTTPClientSpy.Failure.unexpectedRequest(method: method, url: url)
+        let expectedDescription =
+            "HTTPClientSpy received an unexpected \(method.rawValue) request to https://api.test/unexpected?reason=empty%20queue#details: no outcomes remain."
+
+        #expect(error.errorDescription == expectedDescription)
+        #expect(error.localizedDescription == expectedDescription)
+        #expect((error as NSError).localizedDescription == expectedDescription)
+    }
+
     @Test
     func defaultsToEmptyQueueAndRecordsUnexpectedRequest() async throws {
         let httpClient = HTTPClientSpy()
@@ -83,13 +95,13 @@ struct HTTPClientSpyTests {
         #expect(await httpClient.requestCount == 2)
     }
 
-    @Test(arguments: [true, false])
-    func exhaustedQueueThrowsAndRecordsUnexpectedRequest(initiallyEmpty: Bool) async throws {
+    @Test(arguments: [true, false], [HTTPMethod.GET, .POST, .PUT, .DELETE, .OPTIONS])
+    func exhaustedQueueThrowsAndRecordsUnexpectedRequest(initiallyEmpty: Bool, method: HTTPMethod) async throws {
         let responseData = Data("response".utf8)
         let httpClient = HTTPClientSpy(outcomes: initiallyEmpty ? [] : [.success(responseData)])
         let request = HTTPRequest(
             url: try #require(URL(string: "https://api.test/exhausted")),
-            method: .GET
+            method: method
         )
 
         if !initiallyEmpty {
@@ -103,7 +115,7 @@ struct HTTPClientSpyTests {
             #expect(error == .unexpectedRequest(method: request.method, url: request.url))
             #expect(
                 error.localizedDescription
-                    == "HTTPClientSpy received an unexpected GET request to https://api.test/exhausted: no outcomes remain."
+                    == "HTTPClientSpy received an unexpected \(method.rawValue) request to https://api.test/exhausted: no outcomes remain."
             )
         }
 
@@ -111,6 +123,44 @@ struct HTTPClientSpyTests {
         let recordedRequest = try #require(await httpClient.requests.last)
         #expect(recordedRequest.url == request.url)
         #expect(recordedRequest.method == request.method)
+    }
+
+    @Test
+    func repeatedUnexpectedRequestsPreserveAllRecordedFields() async throws {
+        let httpClient = HTTPClientSpy()
+        let requests = [
+            HTTPRequest(
+                url: try #require(URL(string: "https://api.test/first")),
+                method: .POST,
+                headers: ["X-Test": "first"],
+                cookies: "session=first",
+                body: Data("first-body".utf8)
+            ),
+            HTTPRequest(
+                url: try #require(URL(string: "https://api.test/second")),
+                method: .PUT,
+                headers: ["X-Test": "second"],
+                cookies: "session=second",
+                body: Data("second-body".utf8)
+            ),
+        ]
+
+        for request in requests {
+            do {
+                _ = try await httpClient.request(request)
+                Issue.record("Expected an unexpected-request failure")
+            } catch let error as HTTPClientSpy.Failure {
+                #expect(error == .unexpectedRequest(method: request.method, url: request.url))
+            }
+        }
+
+        #expect(await httpClient.requestCount == requests.count)
+        let recordedRequests = await httpClient.requests
+        #expect(recordedRequests.map(\.url) == requests.map(\.url))
+        #expect(recordedRequests.map(\.method) == requests.map(\.method))
+        #expect(recordedRequests.map(\.headers) == requests.map(\.headers))
+        #expect(recordedRequests.map(\.cookies) == requests.map(\.cookies))
+        #expect(recordedRequests.map(\.body) == requests.map(\.body))
     }
 
     @Test
