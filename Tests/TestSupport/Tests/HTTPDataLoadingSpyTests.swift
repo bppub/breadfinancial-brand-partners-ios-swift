@@ -1,6 +1,7 @@
+import BreadPartnersCore
+import BreadPartnersTestSupport
 import Foundation
 import Testing
-@testable import BreadPartners
 
 @Suite struct HTTPDataLoadingSpyTests {
     private let url = URL(string: "https://example.com/api")!
@@ -48,5 +49,24 @@ import Testing
         #expect(firstResult.0 == Data("first".utf8))
         #expect(secondResult.0 == Data("second".utf8))
         #expect(spy.request == secondRequest)
+    }
+
+    @Test
+    func recordsRequestAndThrowsConfiguredFailureWithoutWrappingIt() async throws {
+        let expectedError = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut)
+        let spy = HTTPDataLoadingSpy(
+            responseData: Data(),
+            response: URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil),
+            failure: expectedError
+        )
+        let request = URLRequest(url: url)
+
+        do {
+            _ = try await spy.data(for: request)
+            Issue.record("Expected configured transport failure")
+        } catch {
+            #expect(error as NSError === expectedError)
+        }
+        #expect(spy.request == request)
     }
 }
