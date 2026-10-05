@@ -34,6 +34,13 @@
         "identifier" : "BreadPartnersTests",
         "name" : "BreadPartnersTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersTestSupportTests",
+        "name" : "BreadPartnersTestSupportTests"
+      }
     }
   ],
   "version" : 1
