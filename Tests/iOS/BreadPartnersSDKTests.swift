@@ -24,10 +24,10 @@ struct BreadPartnersSDKTests {
         )
 
         let dependencies = try #require(sdk.dependencies)
+        #expect(dependencies.environment == .stage)
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
         #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
-        #expect(sdk.sdkEnvironment == .stage)
         #expect(sdk.integrationKey.isEmpty)
         #expect(sdk.isLoggingEnabled)
     }
@@ -49,7 +49,7 @@ struct BreadPartnersSDKTests {
             dependencies: dependencies
         )
 
-        #expect(sdk.sdkEnvironment == .stage)
+        #expect(sdk.dependencies?.environment == .stage)
         #expect(sdk.integrationKey == "brand-key")
         #expect(sdk.isLoggingEnabled)
         #expect(sdk.dependencies != nil)
@@ -163,6 +163,7 @@ struct BreadPartnersSDKTests {
         }
 
         return SDKDependencies(
+            environment: .stage,
             httpClientFactory: HTTPClientFactorySpy(client: httpClient),
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,

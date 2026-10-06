@@ -118,7 +118,6 @@ struct RTPSChallengeIntegrationTests {
     private func makeSDK() -> BreadPartnersSDK {
         let sdk = BreadPartnersSDK()
         sdk.integrationKey = "integration-key"
-        sdk.sdkEnvironment = .stage
         return sdk
     }
 

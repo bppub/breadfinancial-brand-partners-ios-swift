@@ -1,6 +1,7 @@
 import BreadPartnersCore
 
 struct SDKDependencies {
+    let environment: BreadPartnersEnvironment
     let httpClientFactory: any HTTPClientFactory
     let endpointProvider: any APIEndpointProviding
     let brandConfigurationService: any BrandConfigurationServicing
@@ -8,12 +9,14 @@ struct SDKDependencies {
     let rtpsCoordinator: any RealTimePrescreenCoordinating
 
     init(
+        environment: BreadPartnersEnvironment,
         httpClientFactory: any HTTPClientFactory,
         endpointProvider: any APIEndpointProviding,
         brandConfigurationService: any BrandConfigurationServicing,
         placementService: any PlacementServicing,
         rtpsCoordinator: any RealTimePrescreenCoordinating
     ) {
+        self.environment = environment
         self.httpClientFactory = httpClientFactory
         self.endpointProvider = endpointProvider
         self.brandConfigurationService = brandConfigurationService
@@ -28,6 +31,7 @@ struct SDKDependencies {
         let placementService = LivePlacementService()
 
         return SDKDependencies(
+            environment: environment,
             httpClientFactory: LiveHTTPClientFactory(),
             endpointProvider: endpointProvider,
             brandConfigurationService: BrandConfigurationService(
