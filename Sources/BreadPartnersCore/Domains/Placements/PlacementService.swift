@@ -23,7 +23,7 @@ package struct PlacementService: Sendable {
                 return .failure(error)
             }
 
-            return .challenge(htmlContent: htmlContent, originalURL: originalURL)
+            return .challenge(htmlContent: htmlContent, originalURL: originalURL, error: error)
         }
     }
 }

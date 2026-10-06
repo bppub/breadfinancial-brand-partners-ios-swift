@@ -97,11 +97,11 @@ struct PlacementServiceTests {
     }
 
     @Test(arguments: [
-        "not JSON",
+        "not JSON", "", "{", "[]", "null", "42", "true", #""value""#,
         #"{"placements":"invalid"}"#,
         #"{"placementContent":[{"contentData":{"htmlContent":42}}]}"#,
     ])
-    func executeReturnsDecodingFailure(json: String) async throws {
+    func executePreservesDecodingFailure(json: String) async throws {
         let data = Data(json.utf8)
         let httpClient = HTTPClientSpy(outcomes: [.success(data)])
 
@@ -150,29 +150,29 @@ struct PlacementServiceTests {
     func executeReturnsChallengeMetadataWithoutRetrying() async throws {
         let htmlContent = "<html>_Incapsula_Resource</html>"
         let originalURL = "https://challenge.test/original"
-        let httpClient = HTTPClientSpy(
-            outcomes: [
-                .failure(
-                    NSError(
-                        domain: NetworkChallengeConstants.domain,
-                        code: 403,
-                        userInfo: [
-                            NetworkChallengeConstants.htmlContentKey: htmlContent,
-                            NetworkChallengeConstants.urlKey: originalURL,
-                        ]
-                    )
-                )
+        let expectedError = NSError(
+            domain: NetworkChallengeConstants.domain,
+            code: 403,
+            userInfo: [
+                NSLocalizedDescriptionKey: "Security challenge detected. User interaction required.",
+                NetworkChallengeConstants.htmlContentKey: htmlContent,
+                NetworkChallengeConstants.urlKey: originalURL,
+                "additionalMetadata": "retained",
             ]
+        )
+        let httpClient = HTTPClientSpy(
+            outcomes: [.failure(expectedError)]
         )
 
         let outcome = await PlacementService().execute(try makeInput(httpClient: httpClient))
 
-        guard case let .challenge(actualHTML, actualURL) = outcome else {
+        guard case let .challenge(actualHTML, actualURL, actualError) = outcome else {
             Issue.record("Expected security challenge")
             return
         }
         #expect(actualHTML == htmlContent)
         #expect(actualURL == originalURL)
+        #expect(actualError === expectedError)
         #expect(await httpClient.requestCount == 1)
     }
 
