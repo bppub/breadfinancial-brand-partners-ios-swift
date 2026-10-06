@@ -130,7 +130,8 @@ private struct SVGStyle {
             style.opacity = style.opacity * CGFloat(max(0, min(1, value)))
         }
         if let fillOpacityValue = attributes["fill-opacity"], let value = Double(fillOpacityValue),
-           case .color(let color, _) = style.fill {
+            case .color(let color, _) = style.fill
+        {
             style.fill = .color(color, alpha: CGFloat(max(0, min(1, value))))
         }
         if let fillRuleValue = attributes["fill-rule"] {
@@ -290,7 +291,8 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
 
     private func parseSVGRoot(attributes: [String: String]) {
         if let viewBoxValue = attributes["viewBox"] {
-            let parts = viewBoxValue
+            let parts =
+                viewBoxValue
                 .split(whereSeparator: { $0 == " " || $0 == "," })
                 .compactMap { Double($0) }
             if parts.count == 4 {
@@ -299,8 +301,9 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
             }
         }
         if let widthValue = attributes["width"], let heightValue = attributes["height"],
-           let width = SVGLengthParser.length(from: widthValue),
-           let height = SVGLengthParser.length(from: heightValue) {
+            let width = SVGLengthParser.length(from: widthValue),
+            let height = SVGLengthParser.length(from: heightValue)
+        {
             document.widthHeight = CGSize(width: width, height: height)
         }
     }
@@ -319,7 +322,8 @@ private enum SVGShapeFactory {
             let x = SVGLengthParser.length(from: attributes["x"]) ?? 0
             let y = SVGLengthParser.length(from: attributes["y"]) ?? 0
             guard let width = SVGLengthParser.length(from: attributes["width"]),
-                  let height = SVGLengthParser.length(from: attributes["height"]) else { return nil }
+                let height = SVGLengthParser.length(from: attributes["height"])
+            else { return nil }
             let rx = SVGLengthParser.length(from: attributes["rx"])
             let ry = SVGLengthParser.length(from: attributes["ry"])
             let cornerRadius = rx ?? ry ?? 0
@@ -330,24 +334,27 @@ private enum SVGShapeFactory {
 
         case "circle":
             guard let cx = SVGLengthParser.length(from: attributes["cx"]),
-                  let cy = SVGLengthParser.length(from: attributes["cy"]),
-                  let radius = SVGLengthParser.length(from: attributes["r"]) else { return nil }
+                let cy = SVGLengthParser.length(from: attributes["cy"]),
+                let radius = SVGLengthParser.length(from: attributes["r"])
+            else { return nil }
             let rect = CGRect(x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2)
             return CGPath(ellipseIn: rect, transform: nil)
 
         case "ellipse":
             guard let cx = SVGLengthParser.length(from: attributes["cx"]),
-                  let cy = SVGLengthParser.length(from: attributes["cy"]),
-                  let rx = SVGLengthParser.length(from: attributes["rx"]),
-                  let ry = SVGLengthParser.length(from: attributes["ry"]) else { return nil }
+                let cy = SVGLengthParser.length(from: attributes["cy"]),
+                let rx = SVGLengthParser.length(from: attributes["rx"]),
+                let ry = SVGLengthParser.length(from: attributes["ry"])
+            else { return nil }
             let rect = CGRect(x: cx - rx, y: cy - ry, width: rx * 2, height: ry * 2)
             return CGPath(ellipseIn: rect, transform: nil)
 
         case "line":
             guard let x1 = SVGLengthParser.length(from: attributes["x1"]),
-                  let y1 = SVGLengthParser.length(from: attributes["y1"]),
-                  let x2 = SVGLengthParser.length(from: attributes["x2"]),
-                  let y2 = SVGLengthParser.length(from: attributes["y2"]) else { return nil }
+                let y1 = SVGLengthParser.length(from: attributes["y1"]),
+                let x2 = SVGLengthParser.length(from: attributes["x2"]),
+                let y2 = SVGLengthParser.length(from: attributes["y2"])
+            else { return nil }
             let path = CGMutablePath()
             path.move(to: CGPoint(x: x1, y: y1))
             path.addLine(to: CGPoint(x: x2, y: y2))
@@ -355,7 +362,8 @@ private enum SVGShapeFactory {
 
         case "polygon", "polyline":
             guard let pointsValue = attributes["points"] else { return nil }
-            let coordinates = pointsValue
+            let coordinates =
+                pointsValue
                 .split(whereSeparator: { $0 == " " || $0 == "," || $0 == "\n" })
                 .compactMap { Double($0) }
             guard coordinates.count >= 4 else { return nil }
@@ -421,8 +429,9 @@ private enum SVGPathDataParser {
                 lastControlPoint = nil
             case "c":
                 while let control1 = scanner.nextPoint(),
-                      let control2 = scanner.nextPoint(),
-                      let end = scanner.nextPoint() {
+                    let control2 = scanner.nextPoint(),
+                    let end = scanner.nextPoint()
+                {
                     let c1 = isRelative ? current + control1 : control1
                     let c2 = isRelative ? current + control2 : control2
                     let endpoint = isRelative ? current + end : end
@@ -457,10 +466,11 @@ private enum SVGPathDataParser {
                 }
             case "a":
                 while let radii = scanner.nextPoint(),
-                      let rotation = scanner.nextNumber(),
-                      let largeArcFlag = scanner.nextFlag(),
-                      let sweepFlag = scanner.nextFlag(),
-                      let end = scanner.nextPoint() {
+                    let rotation = scanner.nextNumber(),
+                    let largeArcFlag = scanner.nextFlag(),
+                    let sweepFlag = scanner.nextFlag(),
+                    let end = scanner.nextPoint()
+                {
                     let endpoint = isRelative ? current + end : end
                     SVGArcConverter.addArc(
                         to: path, from: current, to: endpoint,
@@ -561,7 +571,9 @@ private struct PathDataScanner {
     }
 
     private mutating func skipSeparators() {
-        while index < scalar.count, scalar[index] == " " || scalar[index] == "," || scalar[index] == "\n" || scalar[index] == "\t" {
+        while index < scalar.count,
+            scalar[index] == " " || scalar[index] == "," || scalar[index] == "\n" || scalar[index] == "\t"
+        {
             index += 1
         }
     }
@@ -745,8 +757,9 @@ private struct TransformScanner {
             argsString.append(characters[index])
             index += 1
         }
-        if index < characters.count { index += 1 } // skip ')'
-        let args = argsString
+        if index < characters.count { index += 1 }  // skip ')'
+        let args =
+            argsString
             .split(whereSeparator: { $0 == " " || $0 == "," })
             .compactMap { Double($0) }
             .map { CGFloat($0) }
@@ -818,7 +831,8 @@ private enum SVGColorParser {
             return nil
         }
         let componentsString = value[value.index(after: openParen)..<closeParen]
-        let components = componentsString
+        let components =
+            componentsString
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
         guard components.count >= 3 else { return nil }
@@ -836,7 +850,7 @@ private enum SVGColorParser {
         let alpha: CGFloat = components.count > 3 ? CGFloat(Double(components[3]) ?? 1) : 1
         return UIColor(red: red, green: green, blue: blue, alpha: alpha).cgColor
     }
-    
+
     /// A small set of CSS named colors commonly seen in brand logos.
     private static let namedColors: [String: CGColor] = [
         "black": UIColor.black.cgColor,
@@ -866,8 +880,9 @@ private enum SVGStyleSheetParser {
         var result: [String: [String: String]] = [:]
         var searchStart = text.startIndex
         while let styleTagRange = text.range(of: "<style", range: searchStart..<text.endIndex),
-              let tagCloseRange = text.range(of: ">", range: styleTagRange.upperBound..<text.endIndex),
-              let styleEndRange = text.range(of: "</style>", range: tagCloseRange.upperBound..<text.endIndex) {
+            let tagCloseRange = text.range(of: ">", range: styleTagRange.upperBound..<text.endIndex),
+            let styleEndRange = text.range(of: "</style>", range: tagCloseRange.upperBound..<text.endIndex)
+        {
             let cssText = text[tagCloseRange.upperBound..<styleEndRange.lowerBound]
             parseRules(String(cssText), into: &result)
             searchStart = styleEndRange.upperBound
