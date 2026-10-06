@@ -1,3 +1,4 @@
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 import BreadPartnersCore
@@ -33,7 +34,7 @@ struct BreadPartnersSDKTests {
 
     @Test
     func setupBuildsDependenciesAndFetchesBrandConfiguration() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [])
+        let httpClient = HTTPClientSpy()
         let service = BrandConfigurationServiceSpy(results: [brandConfiguration])
         let dependencies = makeDependencies(
             httpClient: httpClient,
@@ -73,7 +74,7 @@ struct BreadPartnersSDKTests {
 
     @Test
     func silentRTPSRequestCreatesCoordinatorWithActionDependencies() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [])
+        let httpClient = HTTPClientSpy()
         let service = BrandConfigurationServiceSpy(results: [brandConfiguration])
         let coordinator = RootCoordinatorSpy()
         let dependencies = makeDependencies(
@@ -112,7 +113,7 @@ struct BreadPartnersSDKTests {
 
     @Test
     func silentRTPSRequestLazilyFetchesBrandConfiguration() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [])
+        let httpClient = HTTPClientSpy()
         let service = BrandConfigurationServiceSpy(results: [nil, brandConfiguration])
         let coordinator = RootCoordinatorSpy()
         let dependencies = makeDependencies(

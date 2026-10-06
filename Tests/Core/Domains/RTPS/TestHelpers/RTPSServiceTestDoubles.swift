@@ -1,3 +1,4 @@
+import BreadPartnersTestSupport
 import Foundation
 
 @testable import BreadPartnersCore
@@ -28,28 +29,6 @@ actor StubRecaptchaProvider: RecaptchaProviding {
         case .failure(let error):
             throw error
         }
-    }
-}
-
-actor HTTPClientSpy: HTTPClient {
-    private let responseData: Data
-    private let failure: NSError?
-
-    private(set) var requests: [HTTPRequest] = []
-
-    init(responseData: Data = Data(), failure: NSError? = nil) {
-        self.responseData = responseData
-        self.failure = failure
-    }
-
-    func request(_ request: HTTPRequest) async throws -> Data {
-        requests.append(request)
-
-        if let failure {
-            throw failure
-        }
-
-        return responseData
     }
 }
 
@@ -208,7 +187,7 @@ enum RTPSFixtures {
     }
 
     static func input(
-        httpClient: HTTPClientSpy = HTTPClientSpy(),
+        httpClient: HTTPClientSpy = HTTPClientSpy(outcomes: [.success(Data())]),
         merchantConfiguration: MerchantConfiguration = MerchantConfigurationFixture.complete(),
         rtpsData: RTPSData,
         integrationKey: String = "integration-key",
