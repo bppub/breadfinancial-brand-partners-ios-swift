@@ -14,28 +14,29 @@ struct SDKDependenciesTests {
                 endpointProvider: endpointProvider
             )
         )
-        let coordinatorFactory = LiveRTPSCoordinatorFactory(
+        let placementService = LivePlacementService()
+        let coordinator = RTPSCoordinator(
             environment: .stage,
-            endpointProvider: endpointProvider
+            endpointProvider: endpointProvider,
+            placementService: placementService
         )
 
         let dependencies = SDKDependencies(
             httpClientFactory: httpClientFactory,
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
-            rtpsCoordinatorFactory: coordinatorFactory
+            placementService: placementService,
+            rtpsCoordinator: coordinator
         )
 
         let storedHTTPClientFactory = try #require(
             dependencies.httpClientFactory as? LiveHTTPClientFactory
         )
-        let storedCoordinatorFactory = try #require(
-            dependencies.rtpsCoordinatorFactory as? LiveRTPSCoordinatorFactory
-        )
-
         #expect(storedHTTPClientFactory === httpClientFactory)
-        #expect(storedCoordinatorFactory === coordinatorFactory)
+        #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
+        #expect(dependencies.placementService is LivePlacementService)
         #expect(dependencies.brandConfigurationService is BrandConfigurationService)
+        #expect(dependencies.placementService is LivePlacementService)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
                 == endpointProvider.url(for: .prescreen)
@@ -49,7 +50,7 @@ struct SDKDependenciesTests {
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
         #expect(dependencies.brandConfigurationService is BrandConfigurationService)
-        #expect(dependencies.rtpsCoordinatorFactory is LiveRTPSCoordinatorFactory)
+        #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
                 == URL(string: "https://acquire1uat.comenity.net/api/prescreen")

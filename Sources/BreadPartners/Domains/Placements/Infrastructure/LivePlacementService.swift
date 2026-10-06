@@ -2,15 +2,10 @@ import BreadPartnersCore
 import Foundation
 
 struct LivePlacementService: PlacementServicing {
-    private let httpClient: any HTTPClient
-
-    init(httpClient: any HTTPClient) {
-        self.httpClient = httpClient
-    }
-
     func fetch(
         request: PlacementRequest,
-        from url: URL
+        from url: URL,
+        httpClient: any HTTPClient
     ) async throws -> PlacementsResponse {
         let data = try await httpClient.request(
             HTTPRequest(

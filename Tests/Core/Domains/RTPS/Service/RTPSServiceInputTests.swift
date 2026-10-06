@@ -7,12 +7,14 @@ import Testing
     @Test
     func initializesAllValues() {
         let log = LogCapture()
+        let httpClient = HTTPClientSpy()
         let merchantConfiguration = RTPSFixtures.MerchantConfigurationFixture.complete()
         let rtpsData = RTPSData(prescreenId: 42)
         let prescreenURL = URL(string: "https://prescreen.test")!
         let virtualLookupURL = URL(string: "https://lookup.test")!
 
         let input = RTPSServiceInput(
+            httpClient: httpClient,
             merchantConfiguration: merchantConfiguration,
             rtpsData: rtpsData,
             integrationKey: "integration-key",
@@ -24,6 +26,7 @@ import Testing
             log: log.record
         )
 
+        #expect(input.httpClient is HTTPClientSpy)
         #expect(input.merchantConfiguration.storeNumber == merchantConfiguration.storeNumber)
         #expect(input.rtpsData === rtpsData)
         #expect(input.integrationKey == "integration-key")
@@ -41,6 +44,7 @@ import Testing
     @Test
     func defaultsOptionalValuesAndLog() {
         let input = RTPSServiceInput(
+            httpClient: HTTPClientSpy(),
             merchantConfiguration: MerchantConfiguration(),
             rtpsData: RTPSData(),
             integrationKey: "integration-key",

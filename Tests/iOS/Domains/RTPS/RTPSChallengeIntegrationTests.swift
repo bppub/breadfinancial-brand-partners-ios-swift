@@ -15,8 +15,8 @@ struct RTPSChallengeIntegrationTests {
         let sdk = makeSDK()
         let events = EventCapture()
 
-        await makeCoordinator(httpClient: httpClient).runFlow(
-            makeRequest(sdk: sdk, callback: events.record)
+        await makeCoordinator().runFlow(
+            makeRequest(sdk: sdk, httpClient: httpClient, callback: events.record)
         )
 
         guard case let .renderPopupView(view) = events.first else {
@@ -44,8 +44,8 @@ struct RTPSChallengeIntegrationTests {
         let sdk = makeSDK()
         let events = EventCapture()
 
-        await makeCoordinator(httpClient: httpClient, decoder: decoder).runFlow(
-            makeRequest(sdk: sdk, callback: events.record)
+        await makeCoordinator(decoder: decoder).runFlow(
+            makeRequest(sdk: sdk, httpClient: httpClient, callback: events.record)
         )
 
         guard case let .renderPopupView(view) = events.first,
@@ -100,9 +100,9 @@ struct RTPSChallengeIntegrationTests {
         let sdk = makeSDK()
         let events = EventCapture()
 
-        let coordinator = makeCoordinator(httpClient: httpClient, decoder: decoder)
+        let coordinator = makeCoordinator(decoder: decoder)
         await coordinator.runFlow(
-            makeRequest(sdk: sdk, callback: events.record)
+            makeRequest(sdk: sdk, httpClient: httpClient, callback: events.record)
         )
 
         let requests = await httpClient.requests
@@ -122,7 +122,6 @@ struct RTPSChallengeIntegrationTests {
     }
 
     private func makeCoordinator(
-        httpClient: HTTPClientSpy,
         decoder: ResponseDecoderStub = ResponseDecoderStub(
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
@@ -132,22 +131,23 @@ struct RTPSChallengeIntegrationTests {
             endpointProvider: LiveAPIEndpointProvider(environment: .stage),
             dependencies: RTPSDependencies(
                 recaptcha: RecaptchaStub(),
-                httpClient: httpClient,
                 requestBuilder: RTPSRequestBuilder(),
                 responseDecoder: decoder
             ),
-            placementService: LivePlacementService(httpClient: httpClient),
+            placementService: LivePlacementService(),
             makeUICoordinator: { RTPSUICoordinator.live }
         )
     }
 
     private func makeRequest(
         sdk: BreadPartnersSDK,
+        httpClient: HTTPClientSpy,
         merchantConfiguration: MerchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete,
         placementsConfiguration: PlacementConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps,
         callback: @Sendable @escaping (BreadPartnerEvents) -> Void
     ) -> RealTimePrescreenInput {
         RealTimePrescreenInput(
+            httpClient: httpClient,
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             integrationKey: sdk.integrationKey,

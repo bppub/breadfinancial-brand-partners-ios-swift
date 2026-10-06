@@ -208,6 +208,7 @@ enum RTPSFixtures {
     }
 
     static func input(
+        httpClient: HTTPClientSpy = HTTPClientSpy(),
         merchantConfiguration: MerchantConfiguration = MerchantConfigurationFixture.complete(),
         rtpsData: RTPSData,
         integrationKey: String = "integration-key",
@@ -217,6 +218,7 @@ enum RTPSFixtures {
         log: @escaping @Sendable (String) -> Void = { _ in }
     ) -> RTPSServiceInput {
         RTPSServiceInput(
+            httpClient: httpClient,
             merchantConfiguration: merchantConfiguration,
             rtpsData: rtpsData,
             integrationKey: integrationKey,
@@ -231,13 +233,11 @@ enum RTPSFixtures {
 
     static func dependencies(
         recaptcha: StubRecaptchaProvider = StubRecaptchaProvider(),
-        network: HTTPClientSpy = HTTPClientSpy(),
         requestBuilder: StubRTPSRequestBuilder = StubRTPSRequestBuilder(),
         responseDecoder: StubRTPSResponseDecoder = StubRTPSResponseDecoder()
     ) -> RTPSDependencies {
         RTPSDependencies(
             recaptcha: recaptcha,
-            httpClient: network,
             requestBuilder: requestBuilder,
             responseDecoder: responseDecoder
         )
