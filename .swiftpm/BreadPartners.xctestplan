@@ -9,15 +9,6 @@
     }
   ],
   "defaultOptions" : {
-    "codeCoverage" : {
-      "targets" : [
-        {
-          "containerPath" : "container:",
-          "identifier" : "BreadPartners",
-          "name" : "BreadPartners"
-        }
-      ]
-    },
     "performanceAntipatternCheckerEnabled" : true
   },
   "testTargets" : [
