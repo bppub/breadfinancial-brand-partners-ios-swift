@@ -12,7 +12,6 @@ struct BrandConfigurationServiceTests {
         let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
         let service = BrandConfigurationService(
             dependencies: BrandConfigurationDependencies(
-                httpClient: httpClient,
                 endpointProvider: endpointProvider,
                 responseDecoder: BrandConfigurationResponseDecoderStub(
                     result: .success(expectedConfiguration)
@@ -20,7 +19,7 @@ struct BrandConfigurationServiceTests {
             )
         )
 
-        let configuration = await service.fetch(brandID: "brand-key")
+        let configuration = await service.fetch(brandID: "brand-key", httpClient: httpClient)
 
         #expect(configuration == expectedConfiguration)
         let request = try #require(await httpClient.requests.first)
@@ -34,38 +33,60 @@ struct BrandConfigurationServiceTests {
     @Test
     func fetchReturnsNilForHTTPError() async {
         let service = makeService(
-            httpClient: HTTPClientSpy(
-                failure: NSError(domain: "BrandConfiguration", code: 1)
-            ),
             decodeResult: .success(.fixture)
         )
 
-        #expect(await service.fetch(brandID: "brand-key") == nil)
+        #expect(
+            await service.fetch(
+                brandID: "brand-key",
+                httpClient: HTTPClientSpy(
+                    failure: NSError(domain: "BrandConfiguration", code: 1)
+                )
+            ) == nil
+        )
     }
 
     @Test
     func fetchReturnsNilForDecodingError() async {
         let service = makeService(
-            httpClient: HTTPClientSpy(),
             decodeResult: .failure(NSError(domain: "Decoding", code: 1))
         )
 
-        #expect(await service.fetch(brandID: "brand-key") == nil)
+        #expect(
+            await service.fetch(brandID: "brand-key", httpClient: HTTPClientSpy()) == nil
+        )
     }
 
     private func makeService(
-        httpClient: HTTPClientSpy,
         decodeResult: Result<BrandConfiguration, NSError>
     ) -> BrandConfigurationService {
         BrandConfigurationService(
             dependencies: BrandConfigurationDependencies(
-                httpClient: httpClient,
                 endpointProvider: LiveAPIEndpointProvider(environment: .stage),
                 responseDecoder: BrandConfigurationResponseDecoderStub(
                     result: decodeResult
                 )
             )
         )
+    }
+
+    @Test
+    func initializerDefaultsToLiveDecoder() async {
+        let service = BrandConfigurationService(
+            dependencies: BrandConfigurationDependencies(
+                endpointProvider: LiveAPIEndpointProvider(environment: .stage)
+            )
+        )
+        let httpClient = HTTPClientSpy(
+            responseData: Data(#"{"config":{"rsk_STAGE_NATIVE_IOS":"stage-key"}}"#.utf8)
+        )
+
+        let configuration = await service.fetch(
+            brandID: "brand-key",
+            httpClient: httpClient
+        )
+
+        #expect(configuration?.stageRecaptchaSiteKey == "stage-key")
     }
 }
 

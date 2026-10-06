@@ -24,7 +24,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     }()
 
     internal var dependencies: SDKDependencies?
-    var brandConfiguration: BrandConfigResponse?
+    var brandConfiguration: BrandConfiguration?
 
     var integrationKey: String = ""
     var isLoggingEnabled: Bool = false
@@ -67,10 +67,13 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         self.isLoggingEnabled = enableLog
         self.dependencies = dependencies
 
-        let logger = makeLogger()
-        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
-
-        return await fetchBrandConfig(httpClient: httpClient)
+        brandConfiguration = await dependencies.brandConfigurationService.fetch(
+            brandID: integrationKey,
+            httpClient:
+                dependencies.httpClientFactory.makeClient(
+                    logger: makeLogger()
+                )
+        )
     }
 
     /// Calls this function to check if the user qualifies for a pre-screen card application.
@@ -102,7 +105,10 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
         // This will fetch reCaptcha keys if it was not done yet.
         if (brandConfiguration == nil) {
-            await fetchBrandConfig(httpClient: httpClient)
+            brandConfiguration = await dependencies.brandConfigurationService.fetch(
+                brandID: integrationKey,
+                httpClient: httpClient
+            )
         }
 
         let coordinator = dependencies.rtpsCoordinatorFactory.makeCoordinator(
@@ -199,6 +205,10 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         return logger
     }
 
+    /// Checks if the required SDK dependencies are available.
+    /// - Parameters:
+    ///   - callback: A callback to handle the error if dependencies are missing.
+    /// - Returns: The SDK dependencies if available, otherwise `nil`.
     private func requireDependencies(
         callback: @Sendable @escaping (BreadPartnerEvents) -> Void
     ) -> SDKDependencies? {

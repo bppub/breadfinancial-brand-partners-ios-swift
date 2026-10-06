@@ -5,18 +5,12 @@ import Testing
 @Suite
 struct BrandConfigurationDependenciesTests {
     @Test
-    func initializerPreservesDependencies() {
-        let httpClient = HTTPClientSpy()
+    func initializerKeepsEndpointProviderAndDefaultsLiveDecoder() {
         let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
-        let responseDecoder = LiveBrandConfigurationResponseDecoder()
-
         let dependencies = BrandConfigurationDependencies(
-            httpClient: httpClient,
-            endpointProvider: endpointProvider,
-            responseDecoder: responseDecoder
+            endpointProvider: endpointProvider
         )
 
-        #expect(dependencies.httpClient is HTTPClientSpy)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
         #expect(
             dependencies.responseDecoder is LiveBrandConfigurationResponseDecoder
