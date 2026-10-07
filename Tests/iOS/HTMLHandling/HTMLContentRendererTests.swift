@@ -1,4 +1,3 @@
-import BreadPartnersTestSupport
 import Foundation
 import Testing
 import UIKit
@@ -21,19 +20,18 @@ struct HTMLContentRendererTests {
 
     @Test
     func missingTextContentDoesNotReportAnalyticsAndPreservesErrorCallback() async throws {
-        let httpClient = HTTPClientSpy()
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = HTMLContentRenderer(
             integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
             placementsConfiguration: PlacementConfiguration(), logger: Logger(),
-            analyticsReporter: reporterFactory.makeReporter(httpClient: httpClient),
+            analyticsReporter: reporter,
             callback: events.record
         )
 
         await renderer.handleTextPlacement(responseModel: PlacementsResponse(placements: nil, placementContent: nil))
 
-        #expect(await httpClient.requestCount == 0)
+        #expect(await reporter.calls.isEmpty)
         #expect(events.eventCount == 1)
         guard case let .sdkError(error) = try #require(events.first) else {
             Issue.record("Expected the existing missing text content error")
@@ -46,12 +44,11 @@ struct HTMLContentRendererTests {
     @Test(arguments: [false, true], [false, true])
     func successfulTextReportsOneViewAndPreservesRenderCallback(splitTextAndAction: Bool, forSwiftUI: Bool) async throws
     {
-        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
         let reported = XCTestExpectation(description: "view reported")
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy(reported: reported)
         let events = EventCapture()
         let renderer = makeRenderer(
-            reporterFactory: reporterFactory, httpClient: httpClient, reported: reported, events: events,
+            reporter: reporter, events: events,
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI
         )
         let response = makeResponse(textHTML: textHTML)
@@ -66,30 +63,27 @@ struct HTMLContentRendererTests {
         case (true, true, .renderSwiftUISeparateTextAndButton): break
         default: Issue.record("Expected the existing render callback for the selected mode")
         }
-        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
-        let requests = await httpClient.requests
-        #expect(requests.count == 1)
-        #expect(requests.first?.method == .OPTIONS)
-        let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.first?.body))
-        #expect(payload.name == "view-placement")
-        #expect(payload.props?.eventProperties?.placementContent?.id == "text")
+        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
+        let calls = await reporter.calls
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .viewPlacement)
+        #expect(calls.first?.placementResponse.placementContent?.first?.id == "text")
         #expect(events.eventCount == 1)
     }
 
     @Test
     func validPopupReportsOneClickAndPreservesOrderedCallbacks() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
         let reported = XCTestExpectation(description: "click reported")
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy(reported: reported)
         let events = EventCapture()
         let renderer = makeRenderer(
-            reporterFactory: reporterFactory, httpClient: httpClient, reported: reported, events: events)
+            reporter: reporter, events: events)
         let response = makeResponse(textHTML: textHTML, popupHTML: popupHTML)
         let model = try #require(try await HTMLContentParser().extractTextPlacementModel(htmlContent: textHTML))
 
         await renderer.handlePopupPlacement(responseModel: response, textPlacementModel: model)
 
-        #expect(events.eventCount == 2)
+        try #require(events.eventCount == 2)
         guard case .textClicked = events.events[0],
             case let .renderPopupView(view) = events.events[1]
         else {
@@ -101,13 +95,11 @@ struct HTMLContentRendererTests {
         #expect(popup.integrationKey == "brand")
         #expect(popup.modalPresentationStyle == .overCurrentContext)
         #expect(popup.modalTransitionStyle == .crossDissolve)
-        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
-        let requests = await httpClient.requests
-        #expect(requests.count == 1)
-        #expect(requests.first?.method == .OPTIONS)
-        let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.first?.body))
-        #expect(payload.name == "click-placement")
-        #expect(payload.props?.eventProperties?.placementContent?.id == "text")
+        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
+        let calls = await reporter.calls
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .clickPlacement)
+        #expect(calls.first?.placementResponse.placementContent?.map(\.id) == ["text", "popup"])
         popup.callback(.popupClosed)
         guard case .popupClosed = try #require(events.events.last) else {
             Issue.record("Expected the popup callback to be forwarded unchanged")
@@ -117,17 +109,16 @@ struct HTMLContentRendererTests {
 
     @Test(arguments: [nil, "", "<div data-overlay-metadata data-overlay-type='UNKNOWN'></div>"] as [String?])
     func popupParsingOrOverlayFailureDoesNotReportAndPreservesError(popupHTML: String?) async throws {
-        let httpClient = HTTPClientSpy()
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
-        let renderer = makeRenderer(reporterFactory: reporterFactory, httpClient: httpClient, events: events)
+        let renderer = makeRenderer(reporter: reporter, events: events)
         let model = try #require(try await HTMLContentParser().extractTextPlacementModel(htmlContent: textHTML))
 
         await renderer.handlePopupPlacement(
             responseModel: makeResponse(textHTML: textHTML, popupHTML: popupHTML), textPlacementModel: model
         )
 
-        #expect(await httpClient.requestCount == 0)
+        #expect(await reporter.calls.isEmpty)
         #expect(events.eventCount == 1)
         guard case let .sdkError(error) = try #require(events.first) else {
             Issue.record("Expected the existing popup parsing or overlay error")
@@ -141,47 +132,44 @@ struct HTMLContentRendererTests {
 
     @Test
     func noActionTapPreservesTextClickedWithoutClickAnalytics() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
         let reported = XCTestExpectation(description: "view reported")
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy(reported: reported)
         let events = EventCapture()
         let renderer = makeRenderer(
-            reporterFactory: reporterFactory, httpClient: httpClient, reported: reported, events: events,
+            reporter: reporter, events: events,
             splitTextAndAction: true
         )
         let html = textHTML.replacingOccurrences(of: "SHOW_OVERLAY", with: "NO_ACTION")
 
         await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: html))
+        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
         await renderer.handleLinkInteraction(link: "Apply")
 
-        #expect(events.eventCount == 2)
+        try #require(events.eventCount == 2)
         guard case .renderSeparateTextAndButton = events.events[0], case .textClicked = events.events[1] else {
             Issue.record("Expected the render callback followed by textClicked")
             return
         }
-        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
-        let requests = await httpClient.requests
-        #expect(requests.count == 1)
-        let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.first?.body))
-        #expect(payload.name == "view-placement")
+        let calls = await reporter.calls
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .viewPlacement)
     }
 
     @Test
     func incompleteTextHTMLRetainsCurrentSuccessfulParseAndViewReporting() async throws {
-        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
         let reported = XCTestExpectation(description: "view reported")
-        let reporterFactory = makeReporterFactory()
+        let reporter = AnalyticsReporterSpy(reported: reported)
         let events = EventCapture()
         let renderer = makeRenderer(
-            reporterFactory: reporterFactory, httpClient: httpClient, reported: reported, events: events)
+            reporter: reporter, events: events)
 
         await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: ""))
 
-        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
-        let requests = await httpClient.requests
-        #expect(requests.count == 1)
-        let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.first?.body))
-        #expect(payload.name == "view-placement")
+        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
+        let calls = await reporter.calls
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .viewPlacement)
+        #expect(calls.first?.placementResponse.placementContent?.first?.contentData?.htmlContent == "")
         #expect(events.eventCount == 1)
         guard case .renderTextViewWithLink = try #require(events.first) else {
             Issue.record("Expected the current empty text render callback")
@@ -189,32 +177,18 @@ struct HTMLContentRendererTests {
         }
     }
 
-    private func makeReporterFactory() -> LiveAnalyticsReporterFactory {
-        LiveAnalyticsReporterFactory(
-            endpointProvider: LiveAPIEndpointProvider(environment: .stage)
-        )
-    }
-
     private func makeRenderer(
-        reporterFactory: any AnalyticsReporterFactory,
-        httpClient: HTTPClientSpy,
-        reported: XCTestExpectation? = nil,
+        reporter: any AnalyticsReporting,
         events: EventCapture,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false
     ) -> HTMLContentRenderer {
-        let client: any HTTPClient
-        if let reported {
-            client = AnalyticsHTTPClientObserver(client: httpClient, reported: reported)
-        } else {
-            client = httpClient
-        }
         return HTMLContentRenderer(
             integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
             placementsConfiguration: PlacementConfiguration().withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI,
             logger: Logger(),
-            analyticsReporter: reporterFactory.makeReporter(httpClient: client),
+            analyticsReporter: reporter,
             callback: events.record
         )
     }

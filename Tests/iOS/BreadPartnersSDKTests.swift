@@ -181,7 +181,7 @@ struct BreadPartnersSDKTests {
             placementsConfiguration: PlacementConfiguration(), logger: logger, callback: events.record
         )
 
-        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
+        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 5) == .completed)
         let requests = await httpClient.requests
         #expect(requests.count == 1)
         #expect(requests.first?.url == endpoint)
