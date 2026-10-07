@@ -87,13 +87,15 @@ private struct SVGShape {
 
         if case .color(let color, let alpha) = style.fill {
             context.addPath(path)
-            context.setFillColor(color.copy(alpha: alpha * style.opacity) ?? color)
+            context.setFillColor(UIColor(cgColor: color).withAlphaComponent(color.alpha * alpha * style.opacity).cgColor)
             context.fillPath(using: style.fillRule)
         }
 
         if case .color(let strokeColor, let alpha) = style.stroke, style.strokeWidth > 0 {
             context.addPath(path)
-            context.setStrokeColor(strokeColor.copy(alpha: alpha * style.opacity) ?? strokeColor)
+            context.setStrokeColor(
+                UIColor(cgColor: strokeColor).withAlphaComponent(strokeColor.alpha * alpha * style.opacity).cgColor
+            )
             context.setLineWidth(style.strokeWidth)
             context.strokePath()
         }
@@ -230,11 +232,12 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
         attributes attributeDict: [String: String] = [:]
     ) {
         let effectiveAttributes = resolvedAttributes(attributeDict)
-        let currentStyle = styleStack.last ?? SVGStyle()
+        // The stacks are seeded with one element and never popped below it.
+        let currentStyle = styleStack[styleStack.count - 1]
         let mergedStyle = currentStyle.merging(attributes: effectiveAttributes)
         let localTransform = SVGTransformParser.transform(from: effectiveAttributes["transform"])
-        let combinedTransform = localTransform.concatenating(transformStack.last ?? .identity)
-        let parentSuppressed = suppressStack.last ?? false
+        let combinedTransform = localTransform.concatenating(transformStack[transformStack.count - 1])
+        let parentSuppressed = suppressStack[suppressStack.count - 1]
         let isNonRenderingElement = Self.nonRenderingElements.contains(elementName.lowercased())
         let suppressed = parentSuppressed || isNonRenderingElement
 
@@ -247,8 +250,8 @@ private final class SVGDocumentParser: NSObject, XMLParserDelegate {
         }
 
         if !suppressed, let path = SVGShapeFactory.path(for: elementName, attributes: effectiveAttributes) {
-            var mutableTransform = combinedTransform
-            let transformedPath = path.copy(using: &mutableTransform) ?? path
+            let transformedPath = CGMutablePath()
+            transformedPath.addPath(path, transform: combinedTransform)
             document.shapes.append(SVGShape(path: transformedPath, style: mergedStyle))
         }
 
@@ -392,9 +395,8 @@ private enum SVGPathDataParser {
         var current = CGPoint.zero
         var subpathStart = CGPoint.zero
         var lastControlPoint: CGPoint?
-        var lastCommand: Character?
 
-        while let command = scanner.nextCommand(previous: lastCommand) {
+        while let command = scanner.nextCommand() {
             let isRelative = command.isLowercase
             switch command.lowercased().first! {
             case "m":
@@ -488,7 +490,6 @@ private enum SVGPathDataParser {
             default:
                 return finalize(path)
             }
-            lastCommand = command
         }
         return finalize(path)
     }
@@ -506,7 +507,7 @@ private struct PathDataScanner {
         self.scalar = Array(string)
     }
 
-    mutating func nextCommand(previous: Character?) -> Character? {
+    mutating func nextCommand() -> Character? {
         skipSeparators()
         guard index < scalar.count else { return nil }
         let character = scalar[index]
@@ -514,8 +515,10 @@ private struct PathDataScanner {
             index += 1
             return character
         }
-        // Implicit repetition of the previous command (e.g. "L10 10 20 20").
-        return previous
+        // Coordinates following a command are consumed by that command's own
+        // loop, so any other token here is malformed. Stop instead of returning
+        // the previous command without consuming input, which would loop forever.
+        return nil
     }
 
     mutating func nextNumber() -> Double? {
@@ -629,7 +632,9 @@ private enum SVGArcConverter {
         let sign: Double = (largeArcFlag != sweepFlag) ? 1 : -1
         let num = max(0, (rx * rx * ry * ry) - (rx * rx * y1p * y1p) - (ry * ry * x1p * x1p))
         let den = (rx * rx * y1p * y1p) + (ry * ry * x1p * x1p)
-        let coefficient = den == 0 ? 0 : sign * sqrt(num / den)
+        // `den` is never zero here: the radii are non-zero and the endpoints differ,
+        // so (x1p, y1p) is not the origin.
+        let coefficient = sign * sqrt(num / den)
 
         let cxp = coefficient * (rx * y1p / ry)
         let cyp = coefficient * -(ry * x1p / rx)
@@ -640,7 +645,8 @@ private enum SVGArcConverter {
         func angle(_ ux: Double, _ uy: Double, _ vx: Double, _ vy: Double) -> Double {
             let dot = ux * vx + uy * vy
             let len = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
-            var result = len == 0 ? 0 : acos(max(-1, min(1, dot / len)))
+            // `len` is never zero: both vectors are non-zero for the validated radii.
+            var result = acos(max(-1, min(1, dot / len)))
             if (ux * vy - uy * vx) < 0 { result = -result }
             return result
         }
