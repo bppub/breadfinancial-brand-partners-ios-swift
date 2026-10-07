@@ -6,6 +6,7 @@ struct SDKDependencies {
     let endpointProvider: any APIEndpointProviding
     let brandConfigurationService: any BrandConfigurationServicing
     let placementService: any PlacementServicing
+    let analyticsFactory: any AnalyticsReporterFactory
     let rtpsCoordinator: any RealTimePrescreenCoordinating
 
     init(
@@ -14,6 +15,7 @@ struct SDKDependencies {
         endpointProvider: any APIEndpointProviding,
         brandConfigurationService: any BrandConfigurationServicing,
         placementService: any PlacementServicing,
+        analyticsFactory: any AnalyticsReporterFactory,
         rtpsCoordinator: any RealTimePrescreenCoordinating
     ) {
         self.environment = environment
@@ -21,6 +23,7 @@ struct SDKDependencies {
         self.endpointProvider = endpointProvider
         self.brandConfigurationService = brandConfigurationService
         self.placementService = placementService
+        self.analyticsFactory = analyticsFactory
         self.rtpsCoordinator = rtpsCoordinator
     }
 
@@ -40,6 +43,9 @@ struct SDKDependencies {
                 )
             ),
             placementService: placementService,
+            analyticsFactory: LiveAnalyticsReporterFactory(
+                endpointProvider: endpointProvider
+            ),
             rtpsCoordinator: RTPSCoordinator(
                 environment: environment,
                 endpointProvider: endpointProvider,
