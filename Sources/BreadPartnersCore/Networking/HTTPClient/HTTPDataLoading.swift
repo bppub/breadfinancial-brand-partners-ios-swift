@@ -1,6 +1,6 @@
 import Foundation
 
-protocol HTTPDataLoading {
+package protocol HTTPDataLoading: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
