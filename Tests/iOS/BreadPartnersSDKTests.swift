@@ -2,6 +2,7 @@ import BreadPartnersTestSupport
 import Foundation
 import Testing
 import BreadPartnersCore
+import XCTest
 
 @testable import BreadPartners
 
@@ -145,12 +146,65 @@ struct BreadPartnersSDKTests {
         #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
     }
 
+    @Test
+    func placementRendererUsesSDKHTTPFactoryAndEndpointsForAnalytics() async throws {
+        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
+        let reported = XCTestExpectation(description: "analytics sent through SDK HTTP client")
+        let observedClient = AnalyticsHTTPClientObserver(client: httpClient, reported: reported)
+        let endpoint = try #require(URL(string: "https://sdk-analytics.test/view"))
+        let endpointProvider = SDKAnalyticsEndpointProvider(url: endpoint)
+        let dependencies = makeDependencies(
+            httpClient: observedClient,
+            brandConfigurationService: BrandConfigurationServiceSpy(results: [brandConfiguration]),
+            endpointProvider: SDKAnalyticsEndpointProvider(url: endpoint.appendingPathComponent("unexpected")),
+            analyticsFactory: LiveAnalyticsReporterFactory(
+                endpointProvider: endpointProvider
+            )
+        )
+        let sdk = BreadPartnersSDK()
+        await sdk.setup(environment: .stage, integrationKey: "brand", enableLog: false, dependencies: dependencies)
+        let events = EventCapture()
+        let logger = Logger()
+        let response: [String: Any] = [
+            "placementContent": [
+                [
+                    "id": "text",
+                    "contentData": [
+                        "htmlContent": "<div class='ep-text-placement'><div class='epjs-body'>Offer</div></div>"
+                    ],
+                ]
+            ]
+        ]
+
+        await sdk.handlePlacementResponse(
+            AnySendable(value: response), merchantConfiguration: MerchantConfiguration(),
+            placementsConfiguration: PlacementConfiguration(), logger: logger, callback: events.record
+        )
+
+        #expect(await XCTWaiter.fulfillment(of: [reported], timeout: 2) == .completed)
+        let requests = await httpClient.requests
+        #expect(requests.count == 1)
+        #expect(requests.first?.url == endpoint)
+        #expect(requests.first?.method == .OPTIONS)
+        let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.first?.body))
+        #expect(payload.name == "view-placement")
+        #expect(payload.context?.apiKey == "")
+        #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.makeCount == 2)
+        #expect((dependencies.httpClientFactory as? HTTPClientFactorySpy)?.lastLogger === logger)
+        #expect(events.eventCount == 1)
+        guard case .renderTextViewWithLink = try #require(events.first) else {
+            Issue.record("Expected the original text render callback")
+            return
+        }
+    }
+
     private func makeDependencies(
-        httpClient: HTTPClientSpy,
+        httpClient: any HTTPClient,
         coordinator: RootCoordinatorSpy = RootCoordinatorSpy(),
-        brandConfigurationService serviceSpy: BrandConfigurationServiceSpy? = nil
+        brandConfigurationService serviceSpy: BrandConfigurationServiceSpy? = nil,
+        endpointProvider: any APIEndpointProviding = LiveAPIEndpointProvider(environment: .stage),
+        analyticsFactory: (any AnalyticsReporterFactory)? = nil
     ) -> SDKDependencies {
-        let endpointProvider = LiveAPIEndpointProvider(environment: .stage)
         let brandConfigurationService: any BrandConfigurationServicing
         if let serviceSpy {
             brandConfigurationService = serviceSpy
@@ -168,7 +222,10 @@ struct BreadPartnersSDKTests {
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
             placementService: LivePlacementService(),
-            analyticsFactory: LiveAnalyticsReporterFactory(endpointProvider: endpointProvider),
+            analyticsFactory: analyticsFactory
+                ?? LiveAnalyticsReporterFactory(
+                    endpointProvider: endpointProvider
+                ),
             rtpsCoordinator: coordinator
         )
     }
@@ -185,6 +242,7 @@ struct BreadPartnersSDKTests {
 private final class HTTPClientFactorySpy: HTTPClientFactory, @unchecked Sendable {
     let client: any HTTPClient
     private(set) var makeCount = 0
+    private(set) var lastLogger: Logger?
 
     init(client: any HTTPClient) {
         self.client = client
@@ -192,7 +250,29 @@ private final class HTTPClientFactorySpy: HTTPClientFactory, @unchecked Sendable
 
     func makeClient(logger: Logger) -> any HTTPClient {
         makeCount += 1
+        lastLogger = logger
         return client
+    }
+}
+
+struct AnalyticsHTTPClientObserver: HTTPClient {
+    let client: HTTPClientSpy
+    let reported: XCTestExpectation
+
+    func request(_ request: HTTPRequest) async throws -> Data {
+        defer { reported.fulfill() }
+        return try await client.request(request)
+    }
+}
+
+private struct SDKAnalyticsEndpointProvider: APIEndpointProviding {
+    let url: URL
+
+    func url(for endpoint: APIEndpoint) -> URL {
+        switch endpoint {
+        case .viewPlacement: url
+        default: url.appendingPathComponent("unexpected")
+        }
     }
 }
 

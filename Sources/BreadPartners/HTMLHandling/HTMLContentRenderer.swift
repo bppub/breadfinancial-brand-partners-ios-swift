@@ -25,6 +25,7 @@ internal class HTMLContentRenderer {
     var forSwiftUI: Bool = false
 
     var logger: Logger = Logger()
+    let analyticsReporter: any AnalyticsReporting
     let callback: ((BreadPartnerEvents) -> Void)
 
     init(
@@ -34,6 +35,7 @@ internal class HTMLContentRenderer {
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
         logger: Logger,
+        analyticsReporter: any AnalyticsReporting,
         callback: @escaping ((BreadPartnerEvents) -> Void)
     ) {
         self.integrationKey = integrationKey
@@ -42,6 +44,7 @@ internal class HTMLContentRenderer {
         self.splitTextAndAction = splitTextAndAction
         self.forSwiftUI = forSwiftUI
         self.logger = logger
+        self.analyticsReporter = analyticsReporter
         self.callback = callback
     }
 
@@ -85,8 +88,10 @@ internal class HTMLContentRenderer {
             guard let textPlacementModel = textPlacementModel else { return }
 
             logger.logTextPlacementModelDetails(textPlacementModel)
+
             Task {
-                await AnalyticsManager(logger: logger).sendViewPlacement(
+                await analyticsReporter.send(
+                    event: .viewPlacement,
                     placementResponse: responseModel)
             }
 
@@ -151,9 +156,11 @@ internal class HTMLContentRenderer {
         }
 
         Task {
-            await AnalyticsManager(logger: logger).sendClickPlacement(
+            await analyticsReporter.send(
+                event: .clickPlacement,
                 placementResponse: responseModel)
         }
+
         await createPopupOverlay(
             popupPlacementModel: popupPlacementModel, overlayType: overlayType)
     }

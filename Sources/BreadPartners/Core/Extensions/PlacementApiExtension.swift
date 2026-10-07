@@ -112,11 +112,16 @@ extension BreadPartnersSDK {
                 BreadPartnerEvents
             ) -> Void
     ) async {
+        guard let dependencies = requireDependencies(callback: callback) else { return }
+
         do {
             let responseModel: PlacementsResponse = try ResponseDecoder.decode(
                 response,
                 as: PlacementsResponse.self
             )
+
+            let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
+            let analyticsReporter = dependencies.analyticsFactory.makeReporter(httpClient: httpClient)
 
             /// Opens the overlay automatically to simulate user behavior of manually tapping the placement.
             if openPlacementExperience {
@@ -152,6 +157,7 @@ extension BreadPartnersSDK {
                     splitTextAndAction: splitTextAndAction,
                     forSwiftUI: forSwiftUI,
                     logger: logger,
+                    analyticsReporter: analyticsReporter,
                     callback: callback
                 ).createPopupOverlay(
                     popupPlacementModel: popupPlacementModel,
@@ -169,6 +175,7 @@ extension BreadPartnersSDK {
                     splitTextAndAction: splitTextAndAction,
                     forSwiftUI: forSwiftUI,
                     logger: logger,
+                    analyticsReporter: analyticsReporter,
                     callback: callback
                 ).handleTextPlacement(
                     responseModel: responseModel
