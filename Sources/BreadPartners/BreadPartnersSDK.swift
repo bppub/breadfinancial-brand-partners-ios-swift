@@ -28,13 +28,12 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
 
     var integrationKey: String = ""
     var isLoggingEnabled: Bool = false
-    var sdkEnvironment: BreadPartnersEnvironment = .stage
 
     /// Call this function when the app launches.
     /// - Parameters:
     ///   - integrationKey: A unique key specific to the brand.
     ///   - enableLog: Set this to `true` if you want to see debug logs.
-    ///   - environment: Specifies the SDK environment, such as production (.prod) or development (stage).
+    ///   - environment: Specifies the SDK environment, such as production (.prod) or development (.stage).
     public func setup(
         environment: BreadPartnersEnvironment = .prod,
         integrationKey: String,
@@ -62,7 +61,6 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         dependencies: SDKDependencies
     ) async {
         await APIUrl.setEnvironment(environment)
-        self.sdkEnvironment = environment
         self.integrationKey = integrationKey
         self.isLoggingEnabled = enableLog
         self.dependencies = dependencies

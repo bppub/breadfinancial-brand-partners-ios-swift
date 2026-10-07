@@ -198,17 +198,19 @@ struct RTPSCoordinatorTests {
     func nilEnvironmentAndRTPSDataUseDefaults() async throws {
         let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
+        let recaptcha = RecaptchaStub()
         let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
         let brandConfiguration = BrandConfiguration(
-            uatRecaptchaSiteKey: "",
-            stageRecaptchaSiteKey: "",
-            productionRecaptchaSiteKey: ""
+            uatRecaptchaSiteKey: "uat-site-key",
+            stageRecaptchaSiteKey: "stage-site-key",
+            productionRecaptchaSiteKey: "production-site-key"
         )
         var merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
         merchantConfiguration.env = nil
         let coordinator = makeCoordinator(
             placementService: placementService,
             uiCoordinator: uiCoordinator,
+            recaptcha: recaptcha,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
 
@@ -222,8 +224,39 @@ struct RTPSCoordinatorTests {
         )
 
         #expect(await httpClient.requestCount == 1)
+        let recaptchaSiteKey = await recaptcha.lastSiteKey
+        #expect(recaptchaSiteKey == "production-site-key")
         #expect(placementService.callCount == 0)
         #expect(uiCoordinator.placementCallCount == 0)
+    }
+
+    @Test
+    func merchantEnvironmentOverridesCoordinatorEnvironmentForRecaptcha() async {
+        let recaptcha = RecaptchaStub()
+        let brandConfiguration = BrandConfiguration(
+            uatRecaptchaSiteKey: "uat-site-key",
+            stageRecaptchaSiteKey: "stage-site-key",
+            productionRecaptchaSiteKey: "production-site-key"
+        )
+        var merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
+        merchantConfiguration.env = .uat
+        let coordinator = makeCoordinator(
+            placementService: PlacementServiceSpy(result: .success(placementResponse)),
+            uiCoordinator: RTPSUICoordinatorSpy(),
+            recaptcha: recaptcha,
+            responses: [.rtps(RTPSTestFixtures.Response.neutral)]
+        )
+
+        await coordinator.runFlow(
+            input(
+                merchantConfiguration: merchantConfiguration,
+                rtpsData: nil,
+                brandConfiguration: brandConfiguration
+            )
+        )
+
+        let recaptchaSiteKey = await recaptcha.lastSiteKey
+        #expect(recaptchaSiteKey == "uat-site-key")
     }
 
     @Test
@@ -296,13 +329,14 @@ struct RTPSCoordinatorTests {
         placementService: PlacementServiceSpy,
         uiCoordinator: RTPSUICoordinatorSpy,
         endpointProvider: any APIEndpointProviding = LiveAPIEndpointProvider(environment: .stage),
+        recaptcha: RecaptchaStub = RecaptchaStub(),
         responses: [ResponseDecoderStub.Response] = []
     ) -> RTPSCoordinator {
         RTPSCoordinator(
             environment: .stage,
             endpointProvider: endpointProvider,
             dependencies: RTPSDependencies(
-                recaptcha: RecaptchaStub(),
+                recaptcha: recaptcha,
                 requestBuilder: RTPSRequestBuilder(),
                 responseDecoder: ResponseDecoderStub(responses: responses)
             ),

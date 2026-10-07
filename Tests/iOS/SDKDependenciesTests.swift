@@ -22,6 +22,7 @@ struct SDKDependenciesTests {
         )
 
         let dependencies = SDKDependencies(
+            environment: .stage,
             httpClientFactory: httpClientFactory,
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
@@ -47,6 +48,7 @@ struct SDKDependenciesTests {
     func liveBuildsExpectedDependenciesForEnvironment() {
         let dependencies = SDKDependencies.live(environment: .uat)
 
+        #expect(dependencies.environment == .uat)
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
         #expect(dependencies.brandConfigurationService is BrandConfigurationService)
