@@ -2,7 +2,6 @@ import BreadPartnersTestSupport
 import Foundation
 import Testing
 import BreadPartnersCore
-import XCTest
 
 @testable import BreadPartners
 
@@ -149,8 +148,8 @@ struct BreadPartnersSDKTests {
     @Test
     func placementRendererUsesSDKHTTPFactoryAndEndpointsForAnalytics() async throws {
         let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
-        let reported = XCTestExpectation(description: "analytics sent through SDK HTTP client")
-        let observedClient = AnalyticsHTTPClientObserver(client: httpClient, reported: reported)
+        let (reported, reportedContinuation) = AsyncStream<Void>.makeStream()
+        let observedClient = AnalyticsHTTPClientObserver(client: httpClient, reported: reportedContinuation)
         let endpoint = try #require(URL(string: "https://sdk-analytics.test/view"))
         let endpointProvider = SDKAnalyticsEndpointProvider(url: endpoint)
         let dependencies = makeDependencies(
@@ -181,7 +180,7 @@ struct BreadPartnersSDKTests {
             placementsConfiguration: PlacementConfiguration(), logger: logger, callback: events.record
         )
 
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 5) == .completed)
+        for await _ in reported { break }
         let requests = await httpClient.requests
         #expect(requests.count == 1)
         #expect(requests.first?.url == endpoint)
@@ -257,10 +256,10 @@ private final class HTTPClientFactorySpy: HTTPClientFactory, @unchecked Sendable
 
 struct AnalyticsHTTPClientObserver: HTTPClient {
     let client: HTTPClientSpy
-    let reported: XCTestExpectation
+    let reported: AsyncStream<Void>.Continuation
 
     func request(_ request: HTTPRequest) async throws -> Data {
-        defer { reported.fulfill() }
+        defer { reported.yield() }
         return try await client.request(request)
     }
 }

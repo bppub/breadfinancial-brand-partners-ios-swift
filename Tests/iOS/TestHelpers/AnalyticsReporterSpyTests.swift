@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import XCTest
 
 @testable import BreadPartners
 
@@ -47,17 +46,16 @@ struct AnalyticsReporterSpyTests {
     }
 
     @Test
-    func fulfillsExpectationForEachRecordedCallBeforeReturning() async throws {
-        let reported = XCTestExpectation(description: "both analytics calls recorded")
-        reported.expectedFulfillmentCount = 2
-        let reporter = AnalyticsReporterSpy(reported: reported)
+    func callsAtLeastResumesOnceRequestedCountIsRecorded() async throws {
+        let reporter = AnalyticsReporterSpy()
         let response = PlacementsResponse(placements: nil, placementContent: nil)
 
+        async let waited = reporter.calls(atLeast: 2)
         await reporter.send(event: .viewPlacement, placementResponse: response)
         await reporter.send(event: .clickPlacement, placementResponse: response)
 
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 0) == .completed)
-        let calls = await reporter.calls
+        let calls = await waited
+        #expect(await reporter.calls(atLeast: 1).count == 2)
         #expect(calls.map(\.event) == [.viewPlacement, .clickPlacement])
         #expect(calls.allSatisfy { $0.placementResponse.placements == nil })
         #expect(calls.allSatisfy { $0.placementResponse.placementContent == nil })

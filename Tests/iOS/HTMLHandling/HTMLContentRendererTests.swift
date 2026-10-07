@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import UIKit
-import XCTest
 
 @testable import BreadPartners
 
@@ -44,8 +43,7 @@ struct HTMLContentRendererTests {
     @Test(arguments: [false, true], [false, true])
     func successfulTextReportsOneViewAndPreservesRenderCallback(splitTextAndAction: Bool, forSwiftUI: Bool) async throws
     {
-        let reported = XCTestExpectation(description: "view reported")
-        let reporter = AnalyticsReporterSpy(reported: reported)
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(
             reporter: reporter, events: events,
@@ -63,8 +61,7 @@ struct HTMLContentRendererTests {
         case (true, true, .renderSwiftUISeparateTextAndButton): break
         default: Issue.record("Expected the existing render callback for the selected mode")
         }
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
-        let calls = await reporter.calls
+        let calls = await reporter.calls(atLeast: 1)
         #expect(calls.count == 1)
         #expect(calls.first?.event == .viewPlacement)
         #expect(calls.first?.placementResponse.placementContent?.first?.id == "text")
@@ -73,8 +70,7 @@ struct HTMLContentRendererTests {
 
     @Test
     func validPopupReportsOneClickAndPreservesOrderedCallbacks() async throws {
-        let reported = XCTestExpectation(description: "click reported")
-        let reporter = AnalyticsReporterSpy(reported: reported)
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(
             reporter: reporter, events: events)
@@ -95,8 +91,7 @@ struct HTMLContentRendererTests {
         #expect(popup.integrationKey == "brand")
         #expect(popup.modalPresentationStyle == .overCurrentContext)
         #expect(popup.modalTransitionStyle == .crossDissolve)
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
-        let calls = await reporter.calls
+        let calls = await reporter.calls(atLeast: 1)
         #expect(calls.count == 1)
         #expect(calls.first?.event == .clickPlacement)
         #expect(calls.first?.placementResponse.placementContent?.map(\.id) == ["text", "popup"])
@@ -132,8 +127,7 @@ struct HTMLContentRendererTests {
 
     @Test
     func noActionTapPreservesTextClickedWithoutClickAnalytics() async throws {
-        let reported = XCTestExpectation(description: "view reported")
-        let reporter = AnalyticsReporterSpy(reported: reported)
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(
             reporter: reporter, events: events,
@@ -142,7 +136,7 @@ struct HTMLContentRendererTests {
         let html = textHTML.replacingOccurrences(of: "SHOW_OVERLAY", with: "NO_ACTION")
 
         await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: html))
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
+        _ = await reporter.calls(atLeast: 1)
         await renderer.handleLinkInteraction(link: "Apply")
 
         try #require(events.eventCount == 2)
@@ -157,16 +151,14 @@ struct HTMLContentRendererTests {
 
     @Test
     func incompleteTextHTMLRetainsCurrentSuccessfulParseAndViewReporting() async throws {
-        let reported = XCTestExpectation(description: "view reported")
-        let reporter = AnalyticsReporterSpy(reported: reported)
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(
             reporter: reporter, events: events)
 
         await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: ""))
 
-        try #require(await XCTWaiter.fulfillment(of: [reported], timeout: 10) == .completed)
-        let calls = await reporter.calls
+        let calls = await reporter.calls(atLeast: 1)
         #expect(calls.count == 1)
         #expect(calls.first?.event == .viewPlacement)
         #expect(calls.first?.placementResponse.placementContent?.first?.contentData?.htmlContent == "")
