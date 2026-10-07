@@ -3,12 +3,12 @@ import BreadPartnersTestSupport
 import Foundation
 import Testing
 
-@Suite struct AnalyticsReportingServiceTests {
-    @Test(arguments: [false, true])
-    func sendsExpectedEventToInjectedEndpointWithLegacyMethodHeadersAndPayload(isClick: Bool) async throws {
+@Suite struct AnalyticsServiceTests {
+    @Test(arguments: AnalyticsEvent.allCases)
+    func sendsExpectedEventToInjectedEndpointWithLegacyMethodHeadersAndPayload(event: AnalyticsEvent) async throws {
         let httpClient = HTTPClientSpy(outcomes: [.success(Data("ignored response".utf8))])
         let endpoints = try makeEndpoints()
-        let service = AnalyticsReportingService(httpClient: httpClient, endpointProvider: endpoints)
+        let service = AnalyticsService(endpointProvider: endpoints)
         let response = try JSONDecoder().decode(
             PlacementsResponse.self,
             from: Data(
@@ -17,20 +17,15 @@ import Testing
             )
         )
 
-        if isClick {
-            await service.sendClickPlacement(
-                placementResponse: response, timestamp: "timestamp", apiKey: "key", userAgent: "device"
-            )
-        } else {
-            await service.sendViewPlacement(
-                placementResponse: response, timestamp: "timestamp", apiKey: "key", userAgent: "device"
-            )
-        }
+        await service.send(
+            event: event, httpClient: httpClient,
+            placementResponse: response, timestamp: "timestamp", apiKey: "key", userAgent: "device"
+        )
 
         let requests = await httpClient.requests
         #expect(requests.count == 1)
         let request = try #require(requests.first)
-        #expect(request.url == (isClick ? endpoints.clickURL : endpoints.viewURL))
+        #expect(request.url == (event == .clickPlacement ? endpoints.clickURL : endpoints.viewURL))
         #expect(request.method == .OPTIONS)
         #expect(request.cookies == nil)
         #expect(
@@ -44,7 +39,7 @@ import Testing
             ])
         let body = try #require(request.body)
         let payload = try JSONDecoder().decode(Analytics.Payload.self, from: body)
-        let name = isClick ? "click-placement" : "view-placement"
+        let name = event == .clickPlacement ? "click-placement" : "view-placement"
         #expect(payload.name == name)
         #expect(payload.context?.timestamp == "timestamp")
         #expect(payload.context?.apiKey == "key")
@@ -59,7 +54,7 @@ import Testing
     }
 
     @Test(
-        arguments: [false, true],
+        arguments: AnalyticsEvent.allCases,
         [
             NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet),
             NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled),
@@ -73,30 +68,26 @@ import Testing
                 ]
             ),
         ])
-    func swallowsFailuresWithoutRetryAndAllowsSubsequentEvents(isClick: Bool, error: NSError) async throws {
+    func swallowsFailuresWithoutRetryAndAllowsSubsequentEvents(event: AnalyticsEvent, error: NSError) async throws {
         let httpClient = HTTPClientSpy(outcomes: [.failure(error), .success(Data())])
         let endpoints = try makeEndpoints()
-        let service = AnalyticsReportingService(httpClient: httpClient, endpointProvider: endpoints)
+        let service = AnalyticsService(endpointProvider: endpoints)
         let response = PlacementsResponse(placements: nil, placementContent: nil)
 
-        if isClick {
-            await service.sendClickPlacement(
-                placementResponse: response, timestamp: "first", apiKey: "", userAgent: nil
-            )
-        } else {
-            await service.sendViewPlacement(
-                placementResponse: response, timestamp: "first", apiKey: "", userAgent: nil
-            )
-        }
+        await service.send(
+            event: event, httpClient: httpClient,
+            placementResponse: response, timestamp: "first", apiKey: "", userAgent: nil
+        )
         #expect(await httpClient.requestCount == 1)
 
-        await service.sendViewPlacement(
+        await service.send(
+            event: .viewPlacement, httpClient: httpClient,
             placementResponse: response, timestamp: "second", apiKey: "next-key", userAgent: "next-device"
         )
 
         let requests = await httpClient.requests
         #expect(requests.count == 2)
-        #expect(requests.first?.url == (isClick ? endpoints.clickURL : endpoints.viewURL))
+        #expect(requests.first?.url == (event == .clickPlacement ? endpoints.clickURL : endpoints.viewURL))
         #expect(requests.last?.url == endpoints.viewURL)
         let payload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(requests.last?.body))
         #expect(payload.name == "view-placement")
@@ -108,9 +99,10 @@ import Testing
     @Test
     func swallowsNonNSErrorTransportFailure() async throws {
         let httpClient = HTTPClientSpy()
-        let service = AnalyticsReportingService(httpClient: httpClient, endpointProvider: try makeEndpoints())
+        let service = AnalyticsService(endpointProvider: try makeEndpoints())
 
-        await service.sendClickPlacement(
+        await service.send(
+            event: .clickPlacement, httpClient: httpClient,
             placementResponse: PlacementsResponse(placements: [], placementContent: []),
             timestamp: "", apiKey: "", userAgent: nil
         )
@@ -126,14 +118,52 @@ import Testing
     @Test(arguments: ["", "not JSON", "[]", "null", #"{"error":"ignored"}"#])
     func ignoresResponseDataWithoutDecodingOrAdditionalRequests(responseBody: String) async throws {
         let httpClient = HTTPClientSpy(outcomes: [.success(Data(responseBody.utf8))])
-        let service = AnalyticsReportingService(httpClient: httpClient, endpointProvider: try makeEndpoints())
+        let service = AnalyticsService(endpointProvider: try makeEndpoints())
 
-        await service.sendViewPlacement(
+        await service.send(
+            event: .viewPlacement, httpClient: httpClient,
             placementResponse: PlacementsResponse(placements: nil, placementContent: nil),
             timestamp: "timestamp", apiKey: "key", userAgent: nil
         )
 
         #expect(await httpClient.requestCount == 1)
+    }
+
+    @Test
+    func sharedServiceUsesTheHTTPClientSuppliedForEachOperation() async throws {
+        let viewClient = HTTPClientSpy(outcomes: [.success(Data())])
+        let clickClient = HTTPClientSpy(outcomes: [.success(Data())])
+        let endpoints = try makeEndpoints()
+        let service = AnalyticsService(endpointProvider: endpoints)
+        let response = PlacementsResponse(placements: nil, placementContent: nil)
+
+        await service.send(
+            event: .viewPlacement,
+            httpClient: viewClient, placementResponse: response, timestamp: "view", apiKey: "", userAgent: nil
+        )
+        await service.send(
+            event: .clickPlacement,
+            httpClient: clickClient, placementResponse: response, timestamp: "click", apiKey: "", userAgent: nil
+        )
+
+        let viewRequests = await viewClient.requests
+        let clickRequests = await clickClient.requests
+        #expect(viewRequests.count == 1)
+        #expect(clickRequests.count == 1)
+        #expect(viewRequests.first?.url == endpoints.viewURL)
+        #expect(clickRequests.first?.url == endpoints.clickURL)
+        let viewPayload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(viewRequests.first?.body))
+        let clickPayload = try JSONDecoder().decode(Analytics.Payload.self, from: #require(clickRequests.first?.body))
+        #expect(viewPayload.name == "view-placement")
+        #expect(clickPayload.name == "click-placement")
+    }
+
+    @Test
+    func eventNamesKeepExactWireValuesAndRejectUnknownEvents() {
+        #expect(Set(AnalyticsEvent.allCases.map(\.rawValue)) == ["view-placement", "click-placement"])
+        #expect(AnalyticsEvent(rawValue: "view-placement") == .viewPlacement)
+        #expect(AnalyticsEvent(rawValue: "click-placement") == .clickPlacement)
+        #expect(AnalyticsEvent(rawValue: "unknown") == nil)
     }
 
     private func makeEndpoints() throws -> AnalyticsEndpointProviderStub {
