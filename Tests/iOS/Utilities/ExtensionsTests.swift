@@ -95,7 +95,9 @@ struct ExtensionsTests {
         #expect(imageView.image?.size == nil)
     }
 
-    private func loadImageFromTempFile(into imageView: UIImageView, data: Data, pathExtension: String) async throws -> Bool {
+    private func loadImageFromTempFile(into imageView: UIImageView, data: Data, pathExtension: String) async throws
+        -> Bool
+    {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension(pathExtension)

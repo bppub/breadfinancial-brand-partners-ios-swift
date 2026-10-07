@@ -87,7 +87,8 @@ private struct SVGShape {
 
         if case .color(let color, let alpha) = style.fill {
             context.addPath(path)
-            context.setFillColor(UIColor(cgColor: color).withAlphaComponent(color.alpha * alpha * style.opacity).cgColor)
+            context.setFillColor(
+                UIColor(cgColor: color).withAlphaComponent(color.alpha * alpha * style.opacity).cgColor)
             context.fillPath(using: style.fillRule)
         }
 
