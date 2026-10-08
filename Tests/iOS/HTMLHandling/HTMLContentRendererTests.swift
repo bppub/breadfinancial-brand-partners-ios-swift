@@ -52,6 +52,30 @@ struct HTMLContentRendererTests {
         #expect(error.localizedDescription == Constants.noTextPlacementError)
     }
 
+    @Test
+    func textPlacementParserFailureReportsParsingErrorWithoutAnalytics() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(
+            reporter: reporter,
+            events: events,
+            textPlacementParser: { _ in
+                throw NSError(domain: "TextPlacementParserTests", code: 1)
+            }
+        )
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: textHTML))
+
+        #expect(await reporter.calls.isEmpty)
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(error) = try #require(events.first) else {
+            Issue.record("Expected the existing text placement parsing error")
+            return
+        }
+        #expect((error as NSError).code == 500)
+        #expect(error.localizedDescription == Constants.textPlacementParsingError)
+    }
+
     @Test(arguments: [false, true], [false, true])
     func successfulTextReportsOneViewAndPreservesRenderCallback(splitTextAndAction: Bool, forSwiftUI: Bool) async throws
     {
@@ -271,7 +295,10 @@ struct HTMLContentRendererTests {
         reporter: any AnalyticsReporting,
         events: EventCapture,
         splitTextAndAction: Bool = false,
-        forSwiftUI: Bool = false
+        forSwiftUI: Bool = false,
+        textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
+            try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
+        }
     ) -> HTMLContentRenderer {
         return HTMLContentRenderer(
             integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
@@ -279,7 +306,8 @@ struct HTMLContentRendererTests {
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI,
             logger: Logger(),
             analyticsReporter: reporter,
-            callback: events.record
+            callback: events.record,
+            textPlacementParser: textPlacementParser
         )
     }
 

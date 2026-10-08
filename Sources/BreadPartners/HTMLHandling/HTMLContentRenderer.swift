@@ -26,7 +26,8 @@ internal class HTMLContentRenderer {
 
     var logger: Logger = Logger()
     let analyticsReporter: any AnalyticsReporting
-    let callback: ((BreadPartnerEvents) -> Void)
+    let callback: (BreadPartnerEvents) -> Void
+    private let textPlacementParser: (String) throws -> TextPlacementModel
 
     init(
         integrationKey: String,
@@ -36,7 +37,10 @@ internal class HTMLContentRenderer {
         forSwiftUI: Bool = false,
         logger: Logger,
         analyticsReporter: any AnalyticsReporting,
-        callback: @escaping ((BreadPartnerEvents) -> Void)
+        callback: @escaping ((BreadPartnerEvents) -> Void),
+        textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
+            try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
+        }
     ) {
         self.integrationKey = integrationKey
         self.merchantConfiguration = merchantConfiguration
@@ -46,6 +50,7 @@ internal class HTMLContentRenderer {
         self.logger = logger
         self.analyticsReporter = analyticsReporter
         self.callback = callback
+        self.textPlacementParser = textPlacementParser
     }
 
     var textPlacementModel: TextPlacementModel? = nil
@@ -68,7 +73,7 @@ internal class HTMLContentRenderer {
                         ])))
         }
 
-        guard let textPlacementModel = try? TextPlacementHTMLParser().extract(htmlContent: placementContent) else {
+        guard let textPlacementModel = try? textPlacementParser(placementContent) else {
             return callback(
                 .sdkError(
                     error: NSError(
