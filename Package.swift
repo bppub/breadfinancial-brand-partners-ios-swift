@@ -1,3 +1,5 @@
+// swift-tools-version: 6.0
+
 //------------------------------------------------------------------------------
 //  File:          Package.swift
 //  Author(s):     Bread Financial
@@ -9,9 +11,6 @@
 //
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
-
-// swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
