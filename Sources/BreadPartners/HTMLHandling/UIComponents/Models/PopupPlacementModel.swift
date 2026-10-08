@@ -63,6 +63,16 @@ internal struct PrimaryActionButtonModel {
         self.dataLocation = dataLocation
         self.buttonText = buttonText
     }
+
+    init(_ attributes: PopupPlacementHTMLModel.PrimaryActionButton) {
+        dataOverlayType = attributes.dataOverlayType
+        dataContentFetch = attributes.dataContentFetch
+        dataActionTarget = attributes.dataActionTarget
+        dataActionType = attributes.dataActionType
+        dataActionContentId = attributes.dataActionContentId
+        dataLocation = attributes.dataLocation
+        buttonText = attributes.buttonText
+    }
 }
 
 /// Enum representing the different types of overlays that can be displayed for a placement.
