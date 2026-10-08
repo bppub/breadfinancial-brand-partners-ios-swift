@@ -45,6 +45,7 @@ struct LiveRTPSUIFactoriesTests {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             popupPlacementModel: popupPlacementModel,
+            overlayType: .embeddedOverlay,
             logger: logger,
             callback: events.record
         )

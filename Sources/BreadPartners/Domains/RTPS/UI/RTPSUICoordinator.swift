@@ -97,6 +97,7 @@ final class RTPSUICoordinator: RTPSUICoordinating {
             merchantConfiguration: merchantConfiguration,
             placementsConfiguration: placementsConfiguration,
             popupPlacementModel: popupPlacementModel,
+            overlayType: .embeddedOverlay,
             logger: logger,
             callback: callback
         )
