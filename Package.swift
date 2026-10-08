@@ -36,7 +36,7 @@ let package = Package(
     targets: [
         .target(
             name: "BreadPartnersCore",
-            dependencies: []
+            dependencies: ["SwiftSoup"]
         ),
         .target(
             name: "BreadPartnersTestSupport",
