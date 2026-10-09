@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 import BreadPartnersCore
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 import UIKit
@@ -20,74 +21,62 @@ import UIKit
 @Suite
 @MainActor
 struct PlacementUICoordinatorTests {
-    @Test(arguments: [
-        PlacementTextRenderMode.linkedText,
-        PlacementTextRenderMode.splitTextAndAction,
-        PlacementTextRenderMode.swiftUILinkedText,
-        PlacementTextRenderMode.swiftUISplitTextAndAction,
-    ])
-    func successForwardsTheSelectedRenderMode(renderMode: PlacementTextRenderMode) async {
-        let renderer = PlacementTextRenderingSpy()
-        let coordinator = makeCoordinator(textRenderer: renderer)
-        let response = RTPSTestFixtures.Response.emptyPlacements
+    @Test(arguments: [false, true], [false, true])
+    func textPlacementUsesInputFlagsAndAnalytics(splitTextAndAction: Bool, forSwiftUI: Bool) async throws {
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
-
-        await coordinator.handle(
-            .success(response),
-            renderMode: renderMode,
-            logger: Logger(),
-            callback: events.record,
-            onChallengeComplete: { _ in }
+        let input = makeInput(
+            events: events, reporter: reporter,
+            splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI
         )
 
-        #expect(renderer.responseModels.count == 1)
-        #expect(renderer.responseModels.first?.placements?.isEmpty == true)
-        #expect(renderer.modes == [renderMode])
-        #expect(events.eventCount == 0)
+        await makeCoordinator().presentPlacement(makeResponse(), input: input)
+
+        #expect(events.eventCount == 1)
+        switch (splitTextAndAction, forSwiftUI, try #require(events.first)) {
+        case (false, false, .renderTextViewWithLink): break
+        case (false, true, .renderSwiftUITextViewWithLink): break
+        case (true, false, .renderSeparateTextAndButton): break
+        case (true, true, .renderSwiftUISeparateTextAndButton): break
+        default: Issue.record("Expected the render callback selected by the input flags")
+        }
+        let calls = await reporter.calls(atLeast: 1)
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .viewPlacement)
+        #expect(calls.first?.placementResponse.placementContent?.first?.id == "text")
     }
 
     @Test
-    func renderingFailureBecomesSDKError() async throws {
-        let renderer = PlacementTextRenderingSpy(
-            error: NSError(
-                domain: "Renderer",
-                code: 9,
-                userInfo: [NSLocalizedDescriptionKey: "render failed"]
-            )
-        )
+    func missingTextContentReportsRendererErrorWithoutAnalytics() async throws {
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
 
-        await makeCoordinator(textRenderer: renderer).handle(
-            .success(RTPSTestFixtures.Response.emptyPlacements),
-            renderMode: .linkedText,
-            logger: Logger(),
-            callback: events.record,
-            onChallengeComplete: { _ in }
+        await makeCoordinator().presentPlacement(
+            RTPSTestFixtures.Response.emptyPlacements,
+            input: makeInput(events: events, reporter: reporter)
         )
 
         let error = try #require(sdkError(from: events))
+        #expect(events.eventCount == 1)
         #expect(error.code == 500)
-        #expect(error.localizedDescription == Constants.apiError(message: "render failed"))
+        #expect(error.localizedDescription == Constants.noTextPlacementError)
+        #expect(await reporter.calls.isEmpty)
     }
 
     @Test
-    func challengeUsesFactoryAndForwardsCompletion() async {
+    func challengeUsesFactoryAndForwardsCompletion() {
         let challengeFactory = PlacementChallengeFactorySpy(controller: UIViewController())
         let coordinator = makeCoordinator(challengeFactory: challengeFactory)
         let events = EventCapture()
         var completedCookie: String?
         let logger = Logger()
 
-        await coordinator.handle(
-            .challenge(
-                htmlContent: "<html>challenge</html>",
-                originalURL: "https://challenge.test",
-                error: NSError(domain: "Challenge", code: 0)
-            ),
-            renderMode: .linkedText,
-            logger: logger,
+        coordinator.presentChallenge(
+            htmlContent: "<html>challenge</html>",
+            originalURL: "https://challenge.test",
             callback: events.record,
-            onChallengeComplete: { completedCookie = $0 }
+            logger: logger,
+            onComplete: { completedCookie = $0 }
         )
 
         #expect(challengeFactory.htmlContent == "<html>challenge</html>")
@@ -101,55 +90,54 @@ struct PlacementUICoordinatorTests {
 
         challengeFactory.onComplete?("retry-cookie")
         #expect(completedCookie == "retry-cookie")
+        challengeFactory.callback?(.popupClosed)
+        #expect(events.eventCount == 2)
+        guard case .popupClosed = events.events.last else {
+            Issue.record("Expected the challenge callback to be forwarded")
+            return
+        }
     }
 
-    @Test
-    func failureOutcomeMapsToSDKError() async throws {
+    @Test(arguments: ["Placement", NetworkChallengeConstants.domain])
+    func failurePreservesChallengeErrorsAndMapsOtherErrors(domain: String) throws {
         let events = EventCapture()
         let failure = NSError(
-            domain: "Placement",
+            domain: domain,
             code: 42,
             userInfo: [NSLocalizedDescriptionKey: "request failed"]
         )
 
-        await makeCoordinator().handle(
-            .failure(failure),
-            renderMode: .linkedText,
-            logger: Logger(),
-            callback: events.record,
-            onChallengeComplete: { _ in }
-        )
+        makeCoordinator().presentFailure(failure, callback: events.record)
 
         let error = try #require(sdkError(from: events))
-        #expect(error.code == 500)
-        #expect(error.localizedDescription == Constants.apiError(message: "request failed"))
+        #expect(events.eventCount == 1)
+        if domain == NetworkChallengeConstants.domain {
+            #expect(error === failure)
+        } else {
+            #expect(error.domain.isEmpty)
+            #expect(error.code == 500)
+            #expect(error.localizedDescription == Constants.apiError(message: "request failed"))
+        }
     }
 
-    @Test
-    func popupUsesFactoryAndPublishesOrderedEvents() {
-        let popupFactory = PlacementPopupFactorySpy()
-        let coordinator = makeCoordinator(popupFactory: popupFactory)
+    @Test(arguments: ["EMBEDDED_OVERLAY", "UNKNOWN"])
+    func popupSelectsOverlayContentAndPublishesOrderedEvents(overlayType: String) async throws {
+        let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
-        let merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
-        let placementsConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps
-        let popupModel = RTPSTestFixtures.PopupPlacementModelFixture.embedded
-        let logger = Logger()
-
-        coordinator.presentPopup(
-            popupModel,
-            overlayType: .singleProductOverlay,
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            integrationKey: "integration-key",
-            logger: logger,
-            callback: events.record
+        let response = makeResponse(
+            popupHTML: """
+                <div data-overlay-metadata data-overlay-type="\(overlayType)"></div>
+                <iframe src="about:blank"></iframe>
+                """
         )
 
-        #expect(popupFactory.integrationKey == "integration-key")
-        #expect(popupFactory.overlayType == .singleProductOverlay)
-        #expect(popupFactory.logger === logger)
+        await makeCoordinator().presentPlacement(
+            response,
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+        )
+
         let publishedEvents = events.events
-        #expect(publishedEvents.count == 2)
+        try #require(publishedEvents.count == 2)
         guard case .textClicked = publishedEvents[0] else {
             Issue.record("Expected textClicked to be published first")
             return
@@ -158,26 +146,91 @@ struct PlacementUICoordinatorTests {
             Issue.record("Expected popup controller to be published second")
             return
         }
-        #expect(view === popupFactory.controller)
+        let popup = try #require(view as? PopupController)
+        #expect(popup.integrationKey == "integration-key")
+        #expect(popup.overlayType == (overlayType == "EMBEDDED_OVERLAY" ? .embeddedOverlay : .singleProductOverlay))
         #expect(view.modalPresentationStyle == .overCurrentContext)
         #expect(view.modalTransitionStyle == .crossDissolve)
+        #expect(await reporter.calls.isEmpty)
 
-        popupFactory.callback?(.popupClosed)
+        popup.callback(.popupClosed)
         #expect(events.eventCount == 3)
+        guard case .popupClosed = events.events.last else {
+            Issue.record("Expected the popup callback to be forwarded")
+            return
+        }
+    }
+
+    @Test(arguments: [nil, "text"] as [String?])
+    func popupWithoutOverlayMetadataReportsParsingError(templateId: String?) async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+
+        await makeCoordinator().presentPlacement(
+            makeResponse(popupHTML: "<div data-overlay-metadata></div>", templateId: templateId),
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+        )
+
+        let error = try #require(sdkError(from: events))
+        #expect(events.eventCount == 1)
+        #expect(error.code == 500)
+        #expect(error.localizedDescription == Constants.popupPlacementParsingError)
+        #expect(await reporter.calls.isEmpty)
     }
 
     private func makeCoordinator(
-        textRenderer: PlacementTextRenderingSpy = PlacementTextRenderingSpy(),
         challengeFactory: PlacementChallengeFactorySpy = PlacementChallengeFactorySpy(
             controller: UIViewController()
-        ),
-        popupFactory: PlacementPopupFactorySpy = PlacementPopupFactorySpy()
-    ) -> PlacementUICoordinator {
-        PlacementUICoordinator(
-            textRenderer: textRenderer,
-            challengeFactory: challengeFactory,
-            popupFactory: popupFactory
         )
+    ) -> PlacementUICoordinator {
+        PlacementUICoordinator(challengeFactory: challengeFactory)
+    }
+
+    private func makeInput(
+        events: EventCapture,
+        reporter: any AnalyticsReporting,
+        splitTextAndAction: Bool = false,
+        forSwiftUI: Bool = false,
+        openPlacementExperience: Bool = false
+    ) -> PlacementCoordinatorInput {
+        PlacementCoordinatorInput(
+            httpClient: HTTPClientSpy(outcomes: []),
+            analyticsReporter: reporter,
+            integrationKey: "integration-key",
+            merchantConfiguration: MerchantConfiguration(),
+            placementsConfiguration: PlacementConfiguration().withDefaultPopupStylingIfMissing(),
+            splitTextAndAction: splitTextAndAction,
+            openPlacementExperience: openPlacementExperience,
+            forSwiftUI: forSwiftUI,
+            logger: Logger(),
+            callback: events.record
+        )
+    }
+
+    private func makeResponse(popupHTML: String? = nil, templateId: String? = "product-overlay") -> PlacementsResponse {
+        var content = [
+            PlacementContentModel(
+                id: "text", contentType: "text",
+                contentData: ContentDataModel(
+                    htmlContent: """
+                        <div class="ep-text-placement" data-action-type="SHOW_OVERLAY" data-action-content-id="popup">
+                            <div class="epjs-body">Offer <span class="epjs-body-action"><a>Apply</a></span></div>
+                        </div>
+                        """
+                ),
+                metadata: nil
+            )
+        ]
+        if let popupHTML {
+            content.append(
+                PlacementContentModel(
+                    id: "popup", contentType: "overlay",
+                    contentData: ContentDataModel(htmlContent: popupHTML),
+                    metadata: MetadataModel(placementId: nil, productType: nil, messageId: nil, templateId: templateId)
+                )
+            )
+        }
+        return PlacementsResponse(placements: nil, placementContent: content)
     }
 
     private func sdkError(from events: EventCapture) -> NSError? {
@@ -190,34 +243,13 @@ struct PlacementUICoordinatorTests {
 }
 
 @MainActor
-private final class PlacementTextRenderingSpy: PlacementTextRendering {
-    private(set) var modes: [PlacementTextRenderMode] = []
-    private(set) var responseModels: [PlacementsResponse] = []
-    private let error: Error?
-
-    init(error: Error? = nil) {
-        self.error = error
-    }
-
-    func renderTextPlacement(
-        responseModel: PlacementsResponse,
-        mode: PlacementTextRenderMode
-    ) async throws {
-        responseModels.append(responseModel)
-        modes.append(mode)
-        if let error {
-            throw error
-        }
-    }
-}
-
-@MainActor
 private final class PlacementChallengeFactorySpy: ChallengeControllerFactory, @unchecked Sendable {
     let controller: UIViewController
     private(set) var htmlContent: String?
     private(set) var originalURL: String?
     private(set) var logger: Logger?
     private(set) var onComplete: ((String) -> Void)?
+    private(set) var callback: ((BreadPartnerEvents) -> Void)?
 
     init(controller: UIViewController) {
         self.controller = controller
@@ -234,30 +266,6 @@ private final class PlacementChallengeFactorySpy: ChallengeControllerFactory, @u
         self.originalURL = originalURL
         self.logger = logger
         self.onComplete = onComplete
-        return controller
-    }
-}
-
-@MainActor
-private final class PlacementPopupFactorySpy: PopupFactory, @unchecked Sendable {
-    let controller = UIViewController()
-    private(set) var integrationKey: String?
-    private(set) var overlayType: PlacementOverlayType?
-    private(set) var logger: Logger?
-    private(set) var callback: ((BreadPartnerEvents) -> Void)?
-
-    func makePopupController(
-        integrationKey: String,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        popupPlacementModel: PopupPlacementModel,
-        overlayType: PlacementOverlayType,
-        logger: Logger,
-        callback: @escaping (BreadPartnerEvents) -> Void
-    ) -> UIViewController {
-        self.integrationKey = integrationKey
-        self.overlayType = overlayType
-        self.logger = logger
         self.callback = callback
         return controller
     }
