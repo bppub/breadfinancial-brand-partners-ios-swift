@@ -31,6 +31,7 @@ protocol PopupFactory: Sendable {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         popupPlacementModel: PopupPlacementModel,
+        overlayType: PlacementOverlayType,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController

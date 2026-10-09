@@ -39,6 +39,7 @@ struct LivePopupFactory: PopupFactory {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         popupPlacementModel: PopupPlacementModel,
+        overlayType: PlacementOverlayType,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController {
@@ -47,7 +48,7 @@ struct LivePopupFactory: PopupFactory {
             merchantConfiguration: merchantConfiguration,
             placementConfiguration: placementsConfiguration,
             popupModel: popupPlacementModel,
-            overlayType: .embeddedOverlay,
+            overlayType: overlayType,
             logger: logger,
             callback: callback
         )

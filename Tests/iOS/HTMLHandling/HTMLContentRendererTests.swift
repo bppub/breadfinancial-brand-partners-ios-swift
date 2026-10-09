@@ -52,6 +52,30 @@ struct HTMLContentRendererTests {
         #expect(error.localizedDescription == Constants.noTextPlacementError)
     }
 
+    @Test
+    func textPlacementParserFailureReportsParsingErrorWithoutAnalytics() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(
+            reporter: reporter,
+            events: events,
+            textPlacementParser: { _ in
+                throw NSError(domain: "TextPlacementParserTests", code: 1)
+            }
+        )
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: textHTML))
+
+        #expect(await reporter.calls.isEmpty)
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(error) = try #require(events.first) else {
+            Issue.record("Expected the existing text placement parsing error")
+            return
+        }
+        #expect((error as NSError).code == 500)
+        #expect(error.localizedDescription == Constants.textPlacementParsingError)
+    }
+
     @Test(arguments: [false, true], [false, true])
     func successfulTextReportsOneViewAndPreservesRenderCallback(splitTextAndAction: Bool, forSwiftUI: Bool) async throws
     {
@@ -78,6 +102,56 @@ struct HTMLContentRendererTests {
         #expect(calls.first?.event == .viewPlacement)
         #expect(calls.first?.placementResponse.placementContent?.first?.id == "text")
         #expect(events.eventCount == 1)
+    }
+
+    @Test(arguments: [
+        PlacementTextRenderMode.linkedText,
+        PlacementTextRenderMode.splitTextAndAction,
+        PlacementTextRenderMode.swiftUILinkedText,
+        PlacementTextRenderMode.swiftUISplitTextAndAction,
+    ])
+    func rendererAdapterMapsRenderModeToFlagsAndCallbacks(mode: PlacementTextRenderMode) async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(reporter: reporter, events: events)
+
+        try await renderer.renderTextPlacement(responseModel: makeResponse(textHTML: textHTML), mode: mode)
+
+        #expect(events.eventCount == 1)
+        switch mode {
+        case .linkedText:
+            #expect(!renderer.splitTextAndAction)
+            #expect(!renderer.forSwiftUI)
+            guard case .renderTextViewWithLink = try #require(events.first) else {
+                Issue.record("Expected the UIKit linked-text callback")
+                return
+            }
+        case .splitTextAndAction:
+            #expect(renderer.splitTextAndAction)
+            #expect(!renderer.forSwiftUI)
+            guard case .renderSeparateTextAndButton = try #require(events.first) else {
+                Issue.record("Expected the UIKit split-text callback")
+                return
+            }
+        case .swiftUILinkedText:
+            #expect(!renderer.splitTextAndAction)
+            #expect(renderer.forSwiftUI)
+            guard case .renderSwiftUITextViewWithLink = try #require(events.first) else {
+                Issue.record("Expected the SwiftUI linked-text callback")
+                return
+            }
+        case .swiftUISplitTextAndAction:
+            #expect(renderer.splitTextAndAction)
+            #expect(renderer.forSwiftUI)
+            guard case .renderSwiftUISeparateTextAndButton = try #require(events.first) else {
+                Issue.record("Expected the SwiftUI split-text callback")
+                return
+            }
+        }
+
+        let calls = await reporter.calls(atLeast: 1)
+        #expect(calls.count == 1)
+        #expect(calls.first?.event == .viewPlacement)
     }
 
     @Test
@@ -138,6 +212,42 @@ struct HTMLContentRendererTests {
     }
 
     @Test
+    func popupWithoutContentDataUsesEmptyHTMLAndPreservesMissingOverlayError() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(reporter: reporter, events: events)
+        let response = PlacementsResponse(
+            placements: nil,
+            placementContent: [
+                PlacementContentModel(
+                    id: "text",
+                    contentType: "text",
+                    contentData: ContentDataModel(htmlContent: textHTML),
+                    metadata: nil
+                ),
+                PlacementContentModel(
+                    id: "popup",
+                    contentType: "overlay",
+                    contentData: nil,
+                    metadata: nil
+                ),
+            ]
+        )
+        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
+
+        await renderer.handlePopupPlacement(responseModel: response, textPlacementModel: model)
+
+        #expect(await reporter.calls.isEmpty)
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(error) = try #require(events.first) else {
+            Issue.record("Expected the missing popup overlay error")
+            return
+        }
+        #expect((error as NSError).code == 500)
+        #expect(error.localizedDescription == Constants.missingPopupPlacementError)
+    }
+
+    @Test
     func noActionTapPreservesTextClickedWithoutClickAnalytics() async throws {
         let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
@@ -185,7 +295,10 @@ struct HTMLContentRendererTests {
         reporter: any AnalyticsReporting,
         events: EventCapture,
         splitTextAndAction: Bool = false,
-        forSwiftUI: Bool = false
+        forSwiftUI: Bool = false,
+        textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
+            try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
+        }
     ) -> HTMLContentRenderer {
         return HTMLContentRenderer(
             integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
@@ -193,7 +306,8 @@ struct HTMLContentRendererTests {
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI,
             logger: Logger(),
             analyticsReporter: reporter,
-            callback: events.record
+            callback: events.record,
+            textPlacementParser: textPlacementParser
         )
     }
 

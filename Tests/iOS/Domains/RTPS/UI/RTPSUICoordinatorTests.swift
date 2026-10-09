@@ -191,6 +191,7 @@ private final class PopupFactorySpy: PopupFactory, @unchecked Sendable {
     private(set) var merchantConfiguration: MerchantConfiguration?
     private(set) var placementsConfiguration: PlacementConfiguration?
     private(set) var popupPlacementModel: PopupPlacementModel?
+    private(set) var overlayType: PlacementOverlayType?
     private(set) var logger: Logger?
     private(set) var callback: ((BreadPartnerEvents) -> Void)?
 
@@ -199,6 +200,7 @@ private final class PopupFactorySpy: PopupFactory, @unchecked Sendable {
         merchantConfiguration: MerchantConfiguration,
         placementsConfiguration: PlacementConfiguration,
         popupPlacementModel: PopupPlacementModel,
+        overlayType: PlacementOverlayType,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController {
@@ -206,6 +208,7 @@ private final class PopupFactorySpy: PopupFactory, @unchecked Sendable {
         self.merchantConfiguration = merchantConfiguration
         self.placementsConfiguration = placementsConfiguration
         self.popupPlacementModel = popupPlacementModel
+        self.overlayType = overlayType
         self.logger = logger
         self.callback = callback
         return controller
