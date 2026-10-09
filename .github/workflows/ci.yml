@@ -76,30 +76,46 @@ jobs:
               ["xccov", "view", "--report", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
               { encoding: "utf8" }
             ));
+            const workspace = process.env.GITHUB_WORKSPACE;
             const reports = [
-              readReport("TestSupportResults.xcresult"),
-              readReport("CoreTestResults.xcresult"),
-              readReport("iOSTestResults.xcresult")
+              {
+                name: "TestSupport",
+                report: readReport("TestSupportResults.xcresult"),
+                sourceRoot: path.join(workspace, "Tests", "TestSupport"),
+                excludedRoot: path.join(workspace, "Tests", "TestSupport", "Tests")
+              },
+              {
+                name: "Core",
+                report: readReport("CoreTestResults.xcresult"),
+                sourceRoot: path.join(workspace, "Sources", "BreadPartnersCore")
+              },
+              {
+                name: "iOS",
+                report: readReport("iOSTestResults.xcresult"),
+                sourceRoot: path.join(workspace, "Sources", "BreadPartners")
+              }
             ];
-            const sourceRoot = `${path.sep}Sources${path.sep}`;
-            const sourceTargets = new Set(["BreadPartnersCore", "BreadPartners"]);
             const filesByPath = new Map();
 
-            for (const target of reports.flatMap(report => report.targets || [])) {
-              for (const file of target.files || []) {
-                const filePath = String(file.path || "");
-                const relativePath = filePath.split(sourceRoot)[1];
-                const sourceTarget = relativePath?.split(path.sep)[0];
-                if (!sourceTargets.has(sourceTarget)) continue;
+            for (const { report, sourceRoot, excludedRoot } of reports) {
+              const sourcePrefix = `${sourceRoot}${path.sep}`;
+              const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
+              for (const target of report.targets || []) {
+                for (const file of target.files || []) {
+                  const filePath = String(file.path || "");
+                  if (!filePath.startsWith(sourcePrefix)) continue;
+                  if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
+                  const relativePath = path.relative(sourceRoot, filePath);
 
-                const previous = filesByPath.get(filePath) || {
-                  name: relativePath,
-                  coveredLines: 0,
-                  executableLines: 0
-                };
-                previous.coveredLines += toNumber(file.coveredLines);
-                previous.executableLines += toNumber(file.executableLines);
-                filesByPath.set(filePath, previous);
+                  if (filesByPath.has(filePath)) {
+                    throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
+                  }
+                  filesByPath.set(filePath, {
+                    name: relativePath,
+                    coveredLines: toNumber(file.coveredLines),
+                    executableLines: toNumber(file.executableLines)
+                  });
+                }
               }
             }
 
@@ -113,7 +129,7 @@ jobs:
 
             if (files.length === 0) {
               const targetNames = reports
-                .flatMap(report => report.targets || [])
+                .flatMap(({ report }) => report.targets || [])
                 .map(target => target.name)
                 .join(", ");
               throw new Error(`No package source files found. Coverage targets: ${targetNames}`);
@@ -133,7 +149,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | Core + iOS |",
+              "| Test Runs Combined | TestSupport + Core + iOS |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -142,7 +158,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
