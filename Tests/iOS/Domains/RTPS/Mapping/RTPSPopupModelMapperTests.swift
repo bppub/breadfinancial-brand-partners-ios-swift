@@ -28,6 +28,40 @@ struct RTPSPopupModelMapperTests {
     }
 
     @Test
+    func overridesParsedPopupValuesWithRTPSPlacementValues() async throws {
+        let model = try await RTPSPopupModelMapper().map(
+            response(
+                contentData: ContentDataModel(
+                    htmlContent: """
+                        <div data-overlay-metadata data-overlay-type="SINGLE_PRODUCT_OVERLAY"></div>
+                        <iframe src="https://html.test"></iframe>
+                        <div class="epjs-css-overlay-title">Title</div>
+                        """
+                ),
+                renderContext: RenderContextModel(
+                    LOCATION: "rtps-checkout",
+                    subchannel: nil,
+                    RTPS_ID: nil,
+                    PREQUAL_ID: nil,
+                    PRICE: nil,
+                    DATETIME: nil,
+                    SDK_TID: nil,
+                    BUYER_ID: nil,
+                    channel: nil,
+                    PREQUAL_CREDIT_LIMIT: nil,
+                    ENV: nil,
+                    ALLOW_CHECKOUT: nil,
+                    embeddedUrl: "https://rtps.test"
+                )
+            )
+        )
+
+        #expect(model.overlayType == "EMBEDDED_OVERLAY")
+        #expect(model.location == "rtps-checkout")
+        #expect(model.webViewUrl == "https://rtps.test")
+    }
+
+    @Test
     func rejectsMissingPlacement() async {
         do {
             _ = try await RTPSPopupModelMapper().map(
