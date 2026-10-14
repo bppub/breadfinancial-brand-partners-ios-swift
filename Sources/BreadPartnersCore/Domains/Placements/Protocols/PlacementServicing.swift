@@ -7,7 +7,7 @@
 //  providing UI components and functionalities to integrate Bread Financial
 //  services into partner applications.
 //
-//  9 2026 Bread Financial
+//  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
 package protocol PlacementServicing: Sendable {
