@@ -9,6 +9,35 @@ import Testing
 @MainActor
 struct PlacementCoordinatorTests {
     @Test
+    func defaultUICoordinatorFactoryForwardsMappedFailure() async throws {
+        let error = NSError(
+            domain: "Transport",
+            code: 401,
+            userInfo: [NSLocalizedDescriptionKey: "request failed"]
+        )
+        let events = EventCapture()
+        let coordinator = PlacementCoordinator(
+            environment: .stage,
+            endpointProvider: PlacementCoordinatorEndpointStub(url: endpoint)
+        )
+
+        await coordinator.runFlow(
+            makeInput(
+                client: HTTPClientSpy(outcomes: [.failure(error)]),
+                callback: events.record
+            )
+        )
+
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(actualError) = try #require(events.first) else {
+            Issue.record("Expected the live UI coordinator to publish an SDK error")
+            return
+        }
+        #expect((actualError as NSError).code == 500)
+        #expect(actualError.localizedDescription == Constants.apiError(message: "request failed"))
+    }
+
+    @Test
     func successBuildsRequestAndForwardsResponseAndRenderContext() async throws {
         let client = HTTPClientSpy(outcomes: [.success(Data("{\"placementContent\":[{\"id\":\"offer\"}]}".utf8))])
         let ui = PlacementCoordinatorUISpy()
@@ -116,7 +145,8 @@ struct PlacementCoordinatorTests {
 
     private func makeInput(
         client: HTTPClientSpy,
-        analyticsReporter: any AnalyticsReporting = PlacementCoordinatorAnalyticsSpy()
+        analyticsReporter: any AnalyticsReporting = PlacementCoordinatorAnalyticsSpy(),
+        callback: @escaping @Sendable (BreadPartnerEvents) -> Void = { _ in }
     ) -> PlacementCoordinatorInput {
         PlacementCoordinatorInput(
             httpClient: client,
@@ -128,7 +158,7 @@ struct PlacementCoordinatorTests {
             openPlacementExperience: true,
             forSwiftUI: true,
             logger: Logger(),
-            callback: { _ in }
+            callback: callback
         )
     }
 }
