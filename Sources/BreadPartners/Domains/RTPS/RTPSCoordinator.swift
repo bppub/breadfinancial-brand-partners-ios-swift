@@ -24,7 +24,7 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
     init(
         environment: BreadPartnersEnvironment,
         endpointProvider: any APIEndpointProviding,
-        placementService: any PlacementServicing,
+        placementService: any PlacementServicing = PlacementService(),
         makeUICoordinator: @escaping @MainActor @Sendable () -> any RTPSUICoordinating = {
             RTPSUICoordinator.live
         }
@@ -126,22 +126,33 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
         uiCoordinator: any RTPSUICoordinating,
     ) async {
         do {
-            let response = try await placementService.fetch(
-                request: PlacementRequest(
-                    placements: [
-                        PlacementRequestBody(
-                            context: ContextRequestBody(
-                                ENV: input.merchantConfiguration.env?.rawValue,
-                                LOCATION: "RTPS-Approval",
-                                embeddedUrl: makePlacementEmbeddedURLString(for: input)
+            let outcome = await placementService.execute(
+                PlacementServiceInput(
+                    httpClient: input.httpClient,
+                    request: PlacementRequest(
+                        placements: [
+                            PlacementRequestBody(
+                                context: ContextRequestBody(
+                                    ENV: input.merchantConfiguration.env?.rawValue,
+                                    LOCATION: "RTPS-Approval",
+                                    embeddedUrl: makePlacementEmbeddedURLString(for: input)
+                                )
                             )
-                        )
-                    ],
-                    brandId: input.integrationKey
-                ),
-                from: endpointProvider.url(for: .generatePlacements),
-                httpClient: input.httpClient
+                        ],
+                        brandId: input.integrationKey
+                    ),
+                    url: endpointProvider.url(for: .generatePlacements)
+                )
             )
+            let response: PlacementsResponse
+            switch outcome {
+            case let .success(placementsResponse):
+                response = placementsResponse
+
+            case let .challenge(_, _, error), let .failure(error):
+                throw error
+            }
+
             let popupPlacementModel = try await popupModelMapper.map(response)
 
             await uiCoordinator.presentPlacement(

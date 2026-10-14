@@ -24,7 +24,6 @@ struct RTPSCoordinatorTests {
     @Test
     func makePlacementEmbeddedURLStringBuildsBPSURLForAcceptedOffer() throws {
         let coordinator = makeCoordinator(
-            placementService: PlacementServiceSpy(result: .success(placementResponse)),
             uiCoordinator: RTPSUICoordinatorSpy(),
             endpointProvider: EndpointProviderStub()
         )
@@ -44,7 +43,6 @@ struct RTPSCoordinatorTests {
     @Test
     func makePlacementEmbeddedURLStringBuildsRTPSURLForUnacceptedOffer() throws {
         let coordinator = makeCoordinator(
-            placementService: PlacementServiceSpy(result: .success(placementResponse)),
             uiCoordinator: RTPSUICoordinatorSpy(),
             endpointProvider: EndpointProviderStub()
         )
@@ -63,18 +61,24 @@ struct RTPSCoordinatorTests {
 
     @Test
     func batchPrescreenFetchesMapsAndPresentsPlacement() async throws {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
+        let httpClient = HTTPClientSpy(outcomes: [
+            .success(try JSONEncoder().encode(placementResponse))
+        ])
         let uiCoordinator = RTPSUICoordinatorSpy()
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator
         )
 
-        await coordinator.runFlow(input())
+        await coordinator.runFlow(input(httpClient: httpClient))
 
-        #expect(placementService.callCount == 1)
-        #expect(placementService.request?.brandId == "integration-key")
-        #expect(placementService.url != nil)
+        let requests = await httpClient.requests
+        #expect(requests.count == 1)
+        #expect(requests.first?.url == LiveAPIEndpointProvider(environment: .stage).url(for: .generatePlacements))
+        #expect(requests.first?.cookies == nil)
+        let body = try #require(requests.first?.body)
+        let placementRequest = try JSONDecoder().decode(PlacementRequest.self, from: body)
+        #expect(placementRequest.brandId == "integration-key")
+        #expect(placementRequest.placements?.first?.context?.LOCATION == "RTPS-Approval")
         #expect(uiCoordinator.popupPlacementModel?.overlayType == "EMBEDDED_OVERLAY")
         #expect(uiCoordinator.popupPlacementModel?.location == "checkout")
         #expect(uiCoordinator.popupPlacementModel?.webViewUrl == "https://embedded.test")
@@ -82,9 +86,11 @@ struct RTPSCoordinatorTests {
 
     @Test
     func approvedPrescreenBuildsRTPSWebURLAndPresentsPlacement() async throws {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
-        let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
+        let httpClient = HTTPClientSpy(outcomes: [
+            .success(Data()),
+            .success(try JSONEncoder().encode(placementResponse)),
+        ])
         let response = RTPSResponse(
             returnCode: "01",
             prescreenId: 9001,
@@ -92,7 +98,6 @@ struct RTPSCoordinatorTests {
             cardType: "storeCard"
         )
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator,
             responses: [.rtps(response)]
         )
@@ -101,26 +106,22 @@ struct RTPSCoordinatorTests {
             input(httpClient: httpClient, rtpsData: RTPSData(locationType: .checkout))
         )
 
-        #expect(await httpClient.requestCount == 1)
-        #expect(placementService.callCount == 1)
+        #expect(await httpClient.requestCount == 2)
         #expect(uiCoordinator.placementCallCount == 1)
     }
 
     @Test
     func noActionDoesNotPresentOrFetchPlacementsAndPublishesLogs() async {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
         let logger = makeLogger(enabled: true, events: events)
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
 
         await coordinator.runFlow(input(rtpsData: RTPSData(), logger: logger))
 
-        #expect(placementService.callCount == 0)
         #expect(uiCoordinator.challengeCallCount == 0)
         #expect(uiCoordinator.failureCallCount == 0)
         #expect(uiCoordinator.placementCallCount == 0)
@@ -130,12 +131,10 @@ struct RTPSCoordinatorTests {
 
     @Test
     func disabledLoggingDoesNotPublishLogCallbacks() async {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
         let logger = makeLogger(enabled: false, events: events)
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
         )
@@ -147,14 +146,12 @@ struct RTPSCoordinatorTests {
 
     @Test
     func challengeForwardsContentAndRetriesWithCookie() async {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let httpClient = HTTPClientSpy(outcomes: [
             .failure(RTPSTestFixtures.Error.incapsula),
             .failure(NSError(domain: "Retry", code: 7)),
         ])
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator,
         )
 
@@ -164,7 +161,6 @@ struct RTPSCoordinatorTests {
         #expect(uiCoordinator.challengeHTMLContent == "<html>challenge</html>")
         #expect(uiCoordinator.challengeOriginalURL == "https://challenge.test")
         #expect(uiCoordinator.failureCallCount == 0)
-        #expect(placementService.callCount == 0)
 
         uiCoordinator.completeChallenge(with: "incap_ses=test-cookie")
 
@@ -184,10 +180,8 @@ struct RTPSCoordinatorTests {
 
     @Test
     func failureForwardsMissingFieldsToUICoordinator() async {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator
         )
 
@@ -203,12 +197,10 @@ struct RTPSCoordinatorTests {
             Issue.record("Expected missing required fields failure")
             return
         }
-        #expect(placementService.callCount == 0)
     }
 
     @Test
     func nilEnvironmentAndRTPSDataUseDefaults() async throws {
-        let placementService = PlacementServiceSpy(result: .success(placementResponse))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let recaptcha = RecaptchaStub()
         let httpClient = HTTPClientSpy(outcomes: [.success(Data())])
@@ -220,7 +212,6 @@ struct RTPSCoordinatorTests {
         var merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
         merchantConfiguration.env = nil
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator,
             recaptcha: recaptcha,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
@@ -238,7 +229,6 @@ struct RTPSCoordinatorTests {
         #expect(await httpClient.requestCount == 1)
         let recaptchaSiteKey = await recaptcha.lastSiteKey
         #expect(recaptchaSiteKey == "production-site-key")
-        #expect(placementService.callCount == 0)
         #expect(uiCoordinator.placementCallCount == 0)
     }
 
@@ -253,7 +243,6 @@ struct RTPSCoordinatorTests {
         var merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
         merchantConfiguration.env = .uat
         let coordinator = makeCoordinator(
-            placementService: PlacementServiceSpy(result: .success(placementResponse)),
             uiCoordinator: RTPSUICoordinatorSpy(),
             recaptcha: recaptcha,
             responses: [.rtps(RTPSTestFixtures.Response.neutral)]
@@ -279,7 +268,7 @@ struct RTPSCoordinatorTests {
         let coordinator = RTPSCoordinator(
             environment: .stage,
             endpointProvider: LiveAPIEndpointProvider(environment: .stage),
-            placementService: LivePlacementService()
+            placementService: PlacementService()
         )
 
         await coordinator.runFlow(input(httpClient: httpClient, callback: events.record))
@@ -294,14 +283,12 @@ struct RTPSCoordinatorTests {
 
     @Test
     func placementServiceFailurePublishesAPIError() async throws {
-        let placementService = PlacementServiceSpy(
-            result: .failure(
-                NSError(
-                    domain: "Placement", code: 7,
-                    userInfo: [
-                        NSLocalizedDescriptionKey: "network failure"
-                    ]))
+        let expectedError = NSError(
+            domain: "Placement",
+            code: 7,
+            userInfo: [NSLocalizedDescriptionKey: "network failure"]
         )
+        let placementService = PlacementServiceSpy(outcome: .failure(expectedError))
         let uiCoordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
         let coordinator = makeCoordinator(
@@ -312,33 +299,68 @@ struct RTPSCoordinatorTests {
         await coordinator.runFlow(input(callback: events.record))
 
         let error = try #require(sdkError(from: events))
+        #expect(error.domain.isEmpty)
         #expect(error.code == 500)
         #expect(error.localizedDescription == Constants.apiError(message: "network failure"))
         #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(uiCoordinator.challengeCallCount == 0)
+        #expect(uiCoordinator.failureCallCount == 0)
+        #expect(placementService.callCount == 1)
+        #expect(
+            placementService.input?.url == LiveAPIEndpointProvider(environment: .stage).url(for: .generatePlacements))
+        #expect(placementService.input?.cookies == nil)
     }
 
     @Test
     func invalidPlacementResponsePublishesParsingError() async throws {
-        let placementService = PlacementServiceSpy(
-            result: .success(PlacementsResponse(placements: [], placementContent: nil))
-        )
+        let httpClient = HTTPClientSpy(outcomes: [
+            .success(try JSONEncoder().encode(PlacementsResponse(placements: [], placementContent: nil)))
+        ])
         let uiCoordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
         let coordinator = makeCoordinator(
-            placementService: placementService,
             uiCoordinator: uiCoordinator
         )
 
-        await coordinator.runFlow(input(callback: events.record))
+        await coordinator.runFlow(input(httpClient: httpClient, callback: events.record))
 
         let error = try #require(sdkError(from: events))
+        #expect(error.domain.isEmpty)
         #expect(error.code == 500)
         #expect(error.localizedDescription == Constants.popupPlacementParsingError)
         #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(await httpClient.requestCount == 1)
+    }
+
+    @Test
+    func placementChallengePublishesAPIErrorWithoutPresentingOrRetrying() async throws {
+        let challengeError = NSError(
+            domain: NetworkChallengeConstants.domain,
+            code: 403,
+            userInfo: [
+                NSLocalizedDescriptionKey: "Security challenge detected.",
+                NetworkChallengeConstants.htmlContentKey: "<html>challenge</html>",
+                NetworkChallengeConstants.urlKey: "https://challenge.test/original",
+            ]
+        )
+        let httpClient = HTTPClientSpy(outcomes: [.failure(challengeError)])
+        let uiCoordinator = RTPSUICoordinatorSpy()
+        let events = EventCapture()
+        let coordinator = makeCoordinator(uiCoordinator: uiCoordinator)
+
+        await coordinator.runFlow(input(httpClient: httpClient, callback: events.record))
+
+        let error = try #require(sdkError(from: events))
+        #expect(error.code == 500)
+        #expect(error.localizedDescription == Constants.apiError(message: challengeError.localizedDescription))
+        #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(uiCoordinator.challengeCallCount == 0)
+        #expect(uiCoordinator.failureCallCount == 0)
+        #expect(await httpClient.requestCount == 1)
     }
 
     private func makeCoordinator(
-        placementService: PlacementServiceSpy,
+        placementService: any PlacementServicing = PlacementService(),
         uiCoordinator: RTPSUICoordinatorSpy,
         endpointProvider: any APIEndpointProviding = LiveAPIEndpointProvider(environment: .stage),
         recaptcha: RecaptchaStub = RecaptchaStub(),
@@ -460,23 +482,17 @@ private struct EndpointProviderStub: APIEndpointProviding {
 }
 
 private final class PlacementServiceSpy: PlacementServicing, @unchecked Sendable {
-    private let result: Result<PlacementsResponse, NSError>
+    let outcome: PlacementOutcome
     private(set) var callCount = 0
-    private(set) var request: PlacementRequest?
-    private(set) var url: URL?
+    private(set) var input: PlacementServiceInput?
 
-    init(result: Result<PlacementsResponse, NSError>) {
-        self.result = result
+    init(outcome: PlacementOutcome) {
+        self.outcome = outcome
     }
 
-    func fetch(
-        request: PlacementRequest,
-        from url: URL,
-        httpClient: any HTTPClient
-    ) async throws -> PlacementsResponse {
+    func execute(_ input: PlacementServiceInput) async -> PlacementOutcome {
         callCount += 1
-        self.request = request
-        self.url = url
-        return try result.get()
+        self.input = input
+        return outcome
     }
 }
