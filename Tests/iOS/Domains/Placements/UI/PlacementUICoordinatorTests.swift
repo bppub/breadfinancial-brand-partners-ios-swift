@@ -178,6 +178,25 @@ struct PlacementUICoordinatorTests {
         #expect(await reporter.calls.isEmpty)
     }
 
+    @Test
+    func emptyPlacementContentReportsParsingError() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let response = PlacementsResponse(placements: nil, placementContent: [])
+
+        await makeCoordinator().presentPlacement(
+            response,
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+        )
+
+        let error = try #require(sdkError(from: events))
+        #expect(events.eventCount == 1)
+        #expect(error.domain.isEmpty)
+        #expect(error.code == 500)
+        #expect(error.localizedDescription == Constants.popupPlacementParsingError)
+        #expect(await reporter.calls.isEmpty)
+    }
+
     private func makeCoordinator(
         challengeFactory: PlacementChallengeFactorySpy = PlacementChallengeFactorySpy(
             controller: UIViewController()
