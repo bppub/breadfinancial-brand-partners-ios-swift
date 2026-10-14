@@ -204,7 +204,7 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
     /// - Parameters:
     ///   - callback: A callback to handle the error if dependencies are missing.
     /// - Returns: The SDK dependencies if available, otherwise `nil`.
-    private func requireDependencies(
+    internal func requireDependencies(
         callback: @Sendable @escaping (BreadPartnerEvents) -> Void
     ) -> SDKDependencies? {
         guard let dependencies else {
