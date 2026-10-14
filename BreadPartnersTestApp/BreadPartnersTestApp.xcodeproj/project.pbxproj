@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,18 @@
 		3000000000000000000000C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000000000000B1 /* ContentView.swift */; };
 		3000000000000000000000C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2000000000000000000000B2 /* Assets.xcassets */; };
 		3000000000000000000000C3 /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 4000000000000000000000D1 /* BreadPartners */; };
+		4E3C51C13080012000784F9D /* PopupStyling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BC3080012000784F9D /* PopupStyling.swift */; };
+		4E3C51C23080012000784F9D /* VersionInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BF3080012000784F9D /* VersionInfoView.swift */; };
+		4E3C51C33080012000784F9D /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BD3080012000784F9D /* PreferencesManager.swift */; };
+		4E3C51C43080012000784F9D /* DynamicFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BA3080012000784F9D /* DynamicFonts.swift */; };
+		4E3C51C53080012000784F9D /* Functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BB3080012000784F9D /* Functions.swift */; };
+		4E3C51C63080012000784F9D /* TestAppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51BE3080012000784F9D /* TestAppConstants.swift */; };
+		4E3C51C73080012000784F9D /* DynamicColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51B93080012000784F9D /* DynamicColors.swift */; };
+		4E3C51CE308001B300784F9D /* PlacementFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CC308001B300784F9D /* PlacementFormView.swift */; };
+		4E3C51CF308001B300784F9D /* FormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51C8308001B300784F9D /* FormViewModel.swift */; };
+		4E3C51D0308001B300784F9D /* RTPSFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CD308001B300784F9D /* RTPSFormView.swift */; };
+		4E3C51D1308001B300784F9D /* PlacementFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51C9308001B300784F9D /* PlacementFormData.swift */; };
+		4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CA308001B300784F9D /* RTPSFormData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +30,18 @@
 		2000000000000000000000B0 /* BreadPartnersTestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersTestApp.swift; sourceTree = "<group>"; };
 		2000000000000000000000B1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2000000000000000000000B2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4E3C51B93080012000784F9D /* DynamicColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicColors.swift; sourceTree = "<group>"; };
+		4E3C51BA3080012000784F9D /* DynamicFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicFonts.swift; sourceTree = "<group>"; };
+		4E3C51BB3080012000784F9D /* Functions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functions.swift; sourceTree = "<group>"; };
+		4E3C51BC3080012000784F9D /* PopupStyling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupStyling.swift; sourceTree = "<group>"; };
+		4E3C51BD3080012000784F9D /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
+		4E3C51BE3080012000784F9D /* TestAppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAppConstants.swift; sourceTree = "<group>"; };
+		4E3C51BF3080012000784F9D /* VersionInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionInfoView.swift; sourceTree = "<group>"; };
+		4E3C51C8308001B300784F9D /* FormViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViewModel.swift; sourceTree = "<group>"; };
+		4E3C51C9308001B300784F9D /* PlacementFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementFormData.swift; sourceTree = "<group>"; };
+		4E3C51CA308001B300784F9D /* RTPSFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormData.swift; sourceTree = "<group>"; };
+		4E3C51CC308001B300784F9D /* PlacementFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementFormView.swift; sourceTree = "<group>"; };
+		4E3C51CD308001B300784F9D /* RTPSFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,11 +75,39 @@
 		1000000000000000000000A5 /* BreadPartnersTestApp */ = {
 			isa = PBXGroup;
 			children = (
+				4E3C51C8308001B300784F9D /* FormViewModel.swift */,
+				4E3C51CB308001B300784F9D /* Models */,
+				4E3C51CC308001B300784F9D /* PlacementFormView.swift */,
+				4E3C51CD308001B300784F9D /* RTPSFormView.swift */,
 				2000000000000000000000B0 /* BreadPartnersTestApp.swift */,
 				2000000000000000000000B1 /* ContentView.swift */,
+				4E3C51C03080012000784F9D /* Utils */,
 				2000000000000000000000B2 /* Assets.xcassets */,
 			);
 			path = BreadPartnersTestApp;
+			sourceTree = "<group>";
+		};
+		4E3C51C03080012000784F9D /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				4E3C51B93080012000784F9D /* DynamicColors.swift */,
+				4E3C51BA3080012000784F9D /* DynamicFonts.swift */,
+				4E3C51BB3080012000784F9D /* Functions.swift */,
+				4E3C51BC3080012000784F9D /* PopupStyling.swift */,
+				4E3C51BD3080012000784F9D /* PreferencesManager.swift */,
+				4E3C51BE3080012000784F9D /* TestAppConstants.swift */,
+				4E3C51BF3080012000784F9D /* VersionInfoView.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		4E3C51CB308001B300784F9D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4E3C51C9308001B300784F9D /* PlacementFormData.swift */,
+				4E3C51CA308001B300784F9D /* RTPSFormData.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -133,8 +185,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E3C51CE308001B300784F9D /* PlacementFormView.swift in Sources */,
+				4E3C51CF308001B300784F9D /* FormViewModel.swift in Sources */,
+				4E3C51D0308001B300784F9D /* RTPSFormView.swift in Sources */,
+				4E3C51D1308001B300784F9D /* PlacementFormData.swift in Sources */,
+				4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */,
 				3000000000000000000000C1 /* ContentView.swift in Sources */,
 				3000000000000000000000C0 /* BreadPartnersTestApp.swift in Sources */,
+				4E3C51C13080012000784F9D /* PopupStyling.swift in Sources */,
+				4E3C51C23080012000784F9D /* VersionInfoView.swift in Sources */,
+				4E3C51C33080012000784F9D /* PreferencesManager.swift in Sources */,
+				4E3C51C43080012000784F9D /* DynamicFonts.swift in Sources */,
+				4E3C51C53080012000784F9D /* Functions.swift in Sources */,
+				4E3C51C63080012000784F9D /* TestAppConstants.swift in Sources */,
+				4E3C51C73080012000784F9D /* DynamicColors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,7 +338,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,7 +366,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -342,7 +406,7 @@
 /* Begin XCLocalSwiftPackageReference section */
 		4000000000000000000000D0 /* XCLocalSwiftPackageReference ".." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "..";
+			relativePath = ..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
