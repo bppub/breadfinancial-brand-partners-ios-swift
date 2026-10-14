@@ -54,62 +54,44 @@ internal class HTMLContentRenderer {
     func handleTextPlacement(responseModel: PlacementsResponse) async {
         self.responseModel = responseModel
 
-        do {
-            guard
-                let placementContent = responseModel.placementContent?.first?
-                    .contentData?.htmlContent
-            else {
-                return callback(
-                    .sdkError(
-                        error: NSError(
-                            domain: "", code: 500,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: Constants
-                                    .noTextPlacementError
-                            ])))
-            }
-
-            guard
-                let parseTextPlacementModel =
-                    try await HTMLContentParser().extractTextPlacementModel(
-                        htmlContent: placementContent)
-            else {
-                return callback(
-                    .sdkError(
-                        error: NSError(
-                            domain: "", code: 500,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: Constants
-                                    .textPlacementParsingError
-                            ])))
-            }
-
-            textPlacementModel = parseTextPlacementModel
-            guard let textPlacementModel = textPlacementModel else { return }
-
-            logger.logTextPlacementModelDetails(textPlacementModel)
-
-            Task {
-                await analyticsReporter.send(
-                    event: .viewPlacement,
-                    placementResponse: responseModel)
-            }
-
-            if self.splitTextAndAction {
-                renderTextAndButton()
-            } else {
-                renderTextViewWithLink()
-            }
-        } catch {
-
+        guard
+            let placementContent = responseModel.placementContent?.first?
+                .contentData?.htmlContent
+        else {
             return callback(
                 .sdkError(
                     error: NSError(
                         domain: "", code: 500,
                         userInfo: [
-                            NSLocalizedDescriptionKey: Constants.catchError(
-                                message: error.localizedDescription)
+                            NSLocalizedDescriptionKey: Constants
+                                .noTextPlacementError
                         ])))
+        }
+
+        guard let textPlacementModel = try? TextPlacementHTMLParser().extract(htmlContent: placementContent) else {
+            return callback(
+                .sdkError(
+                    error: NSError(
+                        domain: "", code: 500,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: Constants
+                                .textPlacementParsingError
+                        ])))
+        }
+
+        self.textPlacementModel = textPlacementModel
+        logger.logTextPlacementModelDetails(textPlacementModel)
+
+        Task {
+            await analyticsReporter.send(
+                event: .viewPlacement,
+                placementResponse: responseModel)
+        }
+
+        if self.splitTextAndAction {
+            renderTextAndButton()
+        } else {
+            renderTextViewWithLink()
         }
     }
 

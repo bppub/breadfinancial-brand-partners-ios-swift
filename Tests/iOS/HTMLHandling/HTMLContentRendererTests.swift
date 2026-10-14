@@ -87,7 +87,7 @@ struct HTMLContentRendererTests {
         let renderer = makeRenderer(
             reporter: reporter, events: events)
         let response = makeResponse(textHTML: textHTML, popupHTML: popupHTML)
-        let model = try #require(try await HTMLContentParser().extractTextPlacementModel(htmlContent: textHTML))
+        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
 
         await renderer.handlePopupPlacement(responseModel: response, textPlacementModel: model)
 
@@ -119,7 +119,7 @@ struct HTMLContentRendererTests {
         let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(reporter: reporter, events: events)
-        let model = try #require(try await HTMLContentParser().extractTextPlacementModel(htmlContent: textHTML))
+        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
 
         await renderer.handlePopupPlacement(
             responseModel: makeResponse(textHTML: textHTML, popupHTML: popupHTML), textPlacementModel: model
