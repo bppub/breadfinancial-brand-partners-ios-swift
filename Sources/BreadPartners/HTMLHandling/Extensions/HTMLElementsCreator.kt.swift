@@ -10,21 +10,7 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import SwiftSoup
 import UIKit
-
-extension Document {
-    /// Extracts plain text from the first matching element.
-    func textFrom(_ selector: String) -> String {
-        return (try? self.select(selector).first()?.text()) ?? ""
-    }
-
-    /// Extracts and converts HTML content to an NSAttributedString.
-    func htmlFrom(_ selector: String) -> NSAttributedString {
-        let htmlContent = (try? self.select(selector).html()) ?? ""
-        return htmlContent.toAttributedString()
-    }
-}
 
 extension String {
     /// Converts an HTML string to an NSAttributedString while preserving formatting.
