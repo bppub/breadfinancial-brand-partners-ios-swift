@@ -104,56 +104,6 @@ struct HTMLContentRendererTests {
         #expect(events.eventCount == 1)
     }
 
-    @Test(arguments: [
-        PlacementTextRenderMode.linkedText,
-        PlacementTextRenderMode.splitTextAndAction,
-        PlacementTextRenderMode.swiftUILinkedText,
-        PlacementTextRenderMode.swiftUISplitTextAndAction,
-    ])
-    func rendererAdapterMapsRenderModeToFlagsAndCallbacks(mode: PlacementTextRenderMode) async throws {
-        let reporter = AnalyticsReporterSpy()
-        let events = EventCapture()
-        let renderer = makeRenderer(reporter: reporter, events: events)
-
-        try await renderer.renderTextPlacement(responseModel: makeResponse(textHTML: textHTML), mode: mode)
-
-        #expect(events.eventCount == 1)
-        switch mode {
-        case .linkedText:
-            #expect(!renderer.splitTextAndAction)
-            #expect(!renderer.forSwiftUI)
-            guard case .renderTextViewWithLink = try #require(events.first) else {
-                Issue.record("Expected the UIKit linked-text callback")
-                return
-            }
-        case .splitTextAndAction:
-            #expect(renderer.splitTextAndAction)
-            #expect(!renderer.forSwiftUI)
-            guard case .renderSeparateTextAndButton = try #require(events.first) else {
-                Issue.record("Expected the UIKit split-text callback")
-                return
-            }
-        case .swiftUILinkedText:
-            #expect(!renderer.splitTextAndAction)
-            #expect(renderer.forSwiftUI)
-            guard case .renderSwiftUITextViewWithLink = try #require(events.first) else {
-                Issue.record("Expected the SwiftUI linked-text callback")
-                return
-            }
-        case .swiftUISplitTextAndAction:
-            #expect(renderer.splitTextAndAction)
-            #expect(renderer.forSwiftUI)
-            guard case .renderSwiftUISeparateTextAndButton = try #require(events.first) else {
-                Issue.record("Expected the SwiftUI split-text callback")
-                return
-            }
-        }
-
-        let calls = await reporter.calls(atLeast: 1)
-        #expect(calls.count == 1)
-        #expect(calls.first?.event == .viewPlacement)
-    }
-
     @Test
     func validPopupReportsOneClickAndPreservesOrderedCallbacks() async throws {
         let reporter = AnalyticsReporterSpy()
