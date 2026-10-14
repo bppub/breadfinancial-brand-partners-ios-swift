@@ -168,6 +168,7 @@ struct BreadPartnersSDKTests {
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
             placementService: LivePlacementService(),
+            analyticsFactory: LiveAnalyticsReporterFactory(endpointProvider: endpointProvider),
             rtpsCoordinator: coordinator
         )
     }
