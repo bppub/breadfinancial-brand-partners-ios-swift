@@ -17,6 +17,7 @@ import BreadPartnersCore
 @testable import BreadPartners
 
 @Suite
+@MainActor
 struct SDKDependenciesTests {
     @Test
     func initializerPreservesDependencies() throws {
@@ -36,14 +37,19 @@ struct SDKDependenciesTests {
             endpointProvider: endpointProvider,
             placementService: placementService
         )
+        let placementCoordinator = PlacementCoordinator(
+            environment: .stage,
+            endpointProvider: endpointProvider,
+            makeUICoordinator: { PlacementUICoordinator.live }
+        )
 
         let dependencies = SDKDependencies(
             environment: .stage,
             httpClientFactory: httpClientFactory,
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
-            placementService: placementService,
             analyticsFactory: analyticsFactory,
+            placementCoordinator: placementCoordinator,
             rtpsCoordinator: coordinator
         )
 
@@ -56,6 +62,8 @@ struct SDKDependenciesTests {
         )
         #expect(storedAnalyticsFactory === analyticsFactory)
         #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
+        let storedPlacementCoordinator = try #require(dependencies.placementCoordinator as? PlacementCoordinator)
+        #expect(storedPlacementCoordinator === placementCoordinator)
         #expect(dependencies.brandConfigurationService is BrandConfigurationService)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
@@ -68,6 +76,7 @@ struct SDKDependenciesTests {
         let dependencies = SDKDependencies.live(environment: .uat)
 
         #expect(dependencies.environment == .uat)
+        #expect(dependencies.placementCoordinator is PlacementCoordinator)
         #expect(dependencies.httpClientFactory is LiveHTTPClientFactory)
         #expect(dependencies.analyticsFactory is LiveAnalyticsReporterFactory)
         #expect(dependencies.endpointProvider is LiveAPIEndpointProvider)
