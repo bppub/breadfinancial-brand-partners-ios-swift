@@ -142,16 +142,24 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
                 BreadPartnerEvents
             ) -> Void
     ) async {
-        guard requireDependencies(callback: callback) != nil else { return }
+        guard let dependencies = requireDependencies(callback: callback) else { return }
 
-        await fetchPlacementData(
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
-            splitTextAndAction: splitTextAndAction,
-            openPlacementExperience: false,
-            forSwiftUI: forSwiftUI,
-            logger: makeLogger(callback: callback),
-            callback: callback
+        let logger = makeLogger(callback: callback)
+        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
+
+        await dependencies.placementCoordinator.runFlow(
+            PlacementCoordinatorInput(
+                httpClient: httpClient,
+                analyticsReporter: dependencies.analyticsFactory.makeReporter(httpClient: httpClient),
+                integrationKey: integrationKey,
+                merchantConfiguration: merchantConfiguration,
+                placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
+                splitTextAndAction: splitTextAndAction,
+                openPlacementExperience: false,
+                forSwiftUI: forSwiftUI,
+                logger: logger,
+                callback: callback
+            )
         )
     }
 
@@ -170,16 +178,24 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
                 BreadPartnerEvents
             ) -> Void
     ) async {
-        guard requireDependencies(callback: callback) != nil else { return }
+        guard let dependencies = requireDependencies(callback: callback) else { return }
 
-        await fetchPlacementData(
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
-            splitTextAndAction: false,
-            openPlacementExperience: true,
-            forSwiftUI: false,
-            logger: makeLogger(callback: callback),
-            callback: callback
+        let logger = makeLogger(callback: callback)
+        let httpClient = dependencies.httpClientFactory.makeClient(logger: logger)
+
+        await dependencies.placementCoordinator.runFlow(
+            PlacementCoordinatorInput(
+                httpClient: httpClient,
+                analyticsReporter: dependencies.analyticsFactory.makeReporter(httpClient: httpClient),
+                integrationKey: integrationKey,
+                merchantConfiguration: merchantConfiguration,
+                placementsConfiguration: placementsConfiguration.withDefaultPopupStylingIfMissing(),
+                splitTextAndAction: false,
+                openPlacementExperience: true,
+                forSwiftUI: false,
+                logger: logger,
+                callback: callback
+            )
         )
     }
 
