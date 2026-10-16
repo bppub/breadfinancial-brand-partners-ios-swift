@@ -12,6 +12,7 @@
 
 import Foundation
 import Testing
+import BreadPartnersCore
 
 @testable import BreadPartners
 
@@ -26,7 +27,7 @@ struct SDKDependenciesTests {
                 endpointProvider: endpointProvider
             )
         )
-        let placementService = LivePlacementService()
+        let placementService = PlacementService()
         let analyticsFactory = LiveAnalyticsReporterFactory(
             endpointProvider: endpointProvider
         )
@@ -55,9 +56,7 @@ struct SDKDependenciesTests {
         )
         #expect(storedAnalyticsFactory === analyticsFactory)
         #expect(dependencies.rtpsCoordinator is RTPSCoordinator)
-        #expect(dependencies.placementService is LivePlacementService)
         #expect(dependencies.brandConfigurationService is BrandConfigurationService)
-        #expect(dependencies.placementService is LivePlacementService)
         #expect(
             dependencies.endpointProvider.url(for: .prescreen)
                 == endpointProvider.url(for: .prescreen)

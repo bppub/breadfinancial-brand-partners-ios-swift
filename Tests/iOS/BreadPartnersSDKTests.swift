@@ -232,7 +232,7 @@ struct BreadPartnersSDKTests {
             httpClientFactory: HTTPClientFactorySpy(client: httpClient),
             endpointProvider: endpointProvider,
             brandConfigurationService: brandConfigurationService,
-            placementService: LivePlacementService(),
+            placementService: PlacementService(),
             analyticsFactory: analyticsFactory
                 ?? LiveAnalyticsReporterFactory(
                     endpointProvider: endpointProvider

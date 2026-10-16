@@ -12,7 +12,7 @@
 
 import Foundation
 
-package struct PlacementService: Sendable {
+package struct PlacementService: PlacementServicing, Sendable {
     package init() {}
 
     package func execute(_ input: PlacementServiceInput) async -> PlacementOutcome {

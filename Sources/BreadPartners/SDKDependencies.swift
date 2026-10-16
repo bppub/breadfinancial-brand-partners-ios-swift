@@ -43,7 +43,6 @@ struct SDKDependencies {
         environment: BreadPartnersEnvironment
     ) -> SDKDependencies {
         let endpointProvider = LiveAPIEndpointProvider(environment: environment)
-        let placementService = LivePlacementService()
 
         return SDKDependencies(
             environment: environment,
@@ -54,14 +53,13 @@ struct SDKDependencies {
                     endpointProvider: endpointProvider
                 )
             ),
-            placementService: placementService,
+            placementService: PlacementService(),
             analyticsFactory: LiveAnalyticsReporterFactory(
                 endpointProvider: endpointProvider
             ),
             rtpsCoordinator: RTPSCoordinator(
                 environment: environment,
-                endpointProvider: endpointProvider,
-                placementService: placementService
+                endpointProvider: endpointProvider
             )
         )
     }

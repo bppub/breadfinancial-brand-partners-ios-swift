@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 
 import BreadPartnersTestSupport
+import BreadPartnersCore
 import Foundation
 import Testing
 import WebKit
@@ -146,7 +147,7 @@ struct RTPSChallengeIntegrationTests {
                 requestBuilder: RTPSRequestBuilder(),
                 responseDecoder: decoder
             ),
-            placementService: LivePlacementService(),
+            placementService: PlacementService(),
             makeUICoordinator: { RTPSUICoordinator.live }
         )
     }
