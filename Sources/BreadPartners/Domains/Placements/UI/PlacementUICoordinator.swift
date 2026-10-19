@@ -30,13 +30,12 @@ final class PlacementUICoordinator: PlacementUICoordinating {
         input: PlacementCoordinatorInput
     ) async {
         if input.openPlacementExperience {
-            let htmlContent = PlacementContentResolver().overlayHTMLContent(in: response)
-
             guard
-                let htmlContent,
-                let popupPlacementModel = try? await HTMLContentParser().extractPopupPlacementModel(
-                    from: htmlContent
-                )
+                let htmlContent = try? PlacementContentResolver()
+                    .firstOverlayTemplate(in: response)
+                    .contentData?.htmlContent,
+                let popupPlacementModel = try? await HTMLContentParser()
+                    .extractPopupPlacementModel(from: htmlContent)
             else {
                 return input.callback(
                     .sdkError(
