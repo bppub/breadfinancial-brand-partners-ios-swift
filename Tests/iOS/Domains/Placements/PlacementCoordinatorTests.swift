@@ -74,7 +74,63 @@ struct PlacementCoordinatorTests {
         #expect(ui.input?.logger === input.logger)
         #expect((ui.input?.httpClient as? HTTPClientSpy) === client)
         #expect((ui.input?.analyticsReporter as? PlacementCoordinatorAnalyticsSpy) === analyticsReporter)
+        #expect(ui.onFetchPlacement != nil)
         #expect(ui.actions == ["placement"])
+    }
+
+    @Test
+    func followUpBuildsCTARequestWithOriginalContext() async throws {
+        let initialResponse = Data("{\"placementContent\":[{\"id\":\"offer\"}]}".utf8)
+        let followUpResponse = Data("{\"placementContent\":[{\"id\":\"follow-up\"}]}".utf8)
+        let client = HTTPClientSpy(outcomes: [.success(initialResponse), .success(followUpResponse)])
+        let ui = PlacementCoordinatorUISpy()
+
+        await makeCoordinator(ui: ui).runFlow(makeInput(client: client))
+        let onFetchPlacement = try #require(ui.onFetchPlacement)
+        let response = try await onFetchPlacement("cta-fetch-id")
+
+        #expect(response.placementContent?.first?.id == "follow-up")
+        let requests = await client.requests
+        #expect(requests.count == 2)
+        #expect(requests[1].url == endpoint)
+        let followUpRequest = try JSONDecoder().decode(PlacementRequest.self, from: #require(requests[1].body))
+        #expect(followUpRequest.brandId == "brand-key")
+        #expect(followUpRequest.placements?.first?.id == "cta-fetch-id")
+        #expect(followUpRequest.placements?.first?.context?.ENV == BreadPartnersEnvironment.stage.rawValue)
+    }
+
+    @Test
+    func followUpFailureIsReportedByCoordinatorAndThrows() async throws {
+        let error = NSError(
+            domain: "Transport",
+            code: 503,
+            userInfo: [NSLocalizedDescriptionKey: "service unavailable"]
+        )
+        let client = HTTPClientSpy(
+            outcomes: [
+                .success(Data("{\"placementContent\":[{\"id\":\"offer\"}]}".utf8)),
+                .failure(error),
+            ]
+        )
+        let events = EventCapture()
+        let ui = PlacementCoordinatorUISpy()
+
+        await makeCoordinator(ui: ui).runFlow(makeInput(client: client, callback: events.record))
+        let onFetchPlacement = try #require(ui.onFetchPlacement)
+
+        do {
+            _ = try await onFetchPlacement("cta-fetch-id")
+            Issue.record("Expected follow-up failure to throw after reporting")
+        } catch {
+            #expect(error.localizedDescription == "service unavailable")
+        }
+
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(actualError) = try #require(events.first) else {
+            Issue.record("Expected the coordinator to report the follow-up service failure")
+            return
+        }
+        #expect(actualError.localizedDescription == Constants.apiError(message: "service unavailable"))
     }
 
     @Test(arguments: ["Transport", NetworkChallengeConstants.domain])
@@ -89,7 +145,6 @@ struct PlacementCoordinatorTests {
         #expect(ui.actions == ["failure"])
         #expect(await client.requestCount == 1)
     }
-
     @Test
     func challengeRetriesWithCookieAndOriginalContext() async throws {
         let error = NSError(
@@ -189,6 +244,7 @@ private struct PlacementCoordinatorEndpointStub: APIEndpointProviding {
 private final class PlacementCoordinatorUISpy: PlacementUICoordinating {
     private(set) var response: PlacementsResponse?
     private(set) var input: PlacementCoordinatorInput?
+    private(set) var onFetchPlacement: (@MainActor @Sendable (String?) async throws -> PlacementsResponse)?
     private(set) var failure: NSError?
     private(set) var htmlContent: String?
     private(set) var originalURL: String?
@@ -203,10 +259,12 @@ private final class PlacementCoordinatorUISpy: PlacementUICoordinating {
 
     func presentPlacement(
         _ response: PlacementsResponse,
-        input: PlacementCoordinatorInput
+        input: PlacementCoordinatorInput,
+        onFetchFollowUpPlacement: @escaping @MainActor @Sendable (String?) async throws -> PlacementsResponse
     ) async {
         self.response = response
         self.input = input
+        self.onFetchPlacement = onFetchFollowUpPlacement
         actions.append("placement")
         continuation.yield("placement")
     }

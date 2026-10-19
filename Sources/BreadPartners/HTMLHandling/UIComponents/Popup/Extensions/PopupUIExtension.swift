@@ -26,7 +26,19 @@ extension PopupController {
         }
 
         if overlayType == .singleProductOverlay {
-            await fetchWebViewPlacement()
+            await loadFollowUpPopupModel()
+        }
+    }
+
+    internal func loadFollowUpPopupModel() async {
+        guard let onLoadFollowUpPopupModel else { return }
+
+        do {
+            webViewPlacementModel = try await onLoadFollowUpPopupModel(
+                popupModel.primaryActionButtonAttributes?.dataContentFetch
+            )
+        } catch {
+            return
         }
     }
 

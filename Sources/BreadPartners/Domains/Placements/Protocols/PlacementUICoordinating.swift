@@ -17,7 +17,8 @@ import Foundation
 protocol PlacementUICoordinating: Sendable {
     func presentPlacement(
         _ response: PlacementsResponse,
-        input: PlacementCoordinatorInput
+        input: PlacementCoordinatorInput,
+        onFetchFollowUpPlacement: @escaping @MainActor @Sendable (String?) async throws -> PlacementsResponse
     ) async
     func presentChallenge(
         htmlContent: String,
