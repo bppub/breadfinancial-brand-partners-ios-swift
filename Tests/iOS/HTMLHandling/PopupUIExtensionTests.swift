@@ -34,6 +34,18 @@ struct PopupUIExtensionTests {
     }
 
     @Test
+    func missingFollowUpLoaderLeavesPopupModelUnchanged() async {
+        let events = EventCapture()
+        let controller = makeController(onLoadFollowUpPopupModel: nil, callback: events.record)
+        controller.webViewPlacementModel = makePopupModel(title: "Existing popup")
+
+        await controller.loadFollowUpPopupModel()
+
+        #expect(controller.webViewPlacementModel?.overlayTitle.string == "Existing popup")
+        #expect(events.eventCount == 0)
+    }
+
+    @Test
     func failedFetchLeavesMissingModelForActionFallback() async {
         let error = NSError(
             domain: "Transport",
