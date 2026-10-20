@@ -30,7 +30,11 @@ struct PlacementUICoordinatorTests {
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI
         )
 
-        await makeCoordinator().presentPlacement(makeResponse(), input: input)
+        await makeCoordinator().presentPlacement(
+            makeResponse(),
+            input: input,
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
+        )
 
         #expect(events.eventCount == 1)
         switch (splitTextAndAction, forSwiftUI, try #require(events.first)) {
@@ -53,7 +57,8 @@ struct PlacementUICoordinatorTests {
 
         await makeCoordinator().presentPlacement(
             RTPSTestFixtures.Response.emptyPlacements,
-            input: makeInput(events: events, reporter: reporter)
+            input: makeInput(events: events, reporter: reporter),
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
         )
 
         let error = try #require(sdkError(from: events))
@@ -133,7 +138,8 @@ struct PlacementUICoordinatorTests {
 
         await makeCoordinator().presentPlacement(
             response,
-            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
         )
 
         let publishedEvents = events.events
@@ -168,7 +174,8 @@ struct PlacementUICoordinatorTests {
 
         await makeCoordinator().presentPlacement(
             makeResponse(popupHTML: "<div data-overlay-metadata></div>", templateId: templateId),
-            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
         )
 
         let error = try #require(sdkError(from: events))
@@ -186,7 +193,8 @@ struct PlacementUICoordinatorTests {
 
         await makeCoordinator().presentPlacement(
             response,
-            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true)
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
         )
 
         let error = try #require(sdkError(from: events))
@@ -197,12 +205,187 @@ struct PlacementUICoordinatorTests {
         #expect(await reporter.calls.isEmpty)
     }
 
+    @Test
+    func followUpResponseIsMappedBeforePopupReceivesIt() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let followUpResponse = PlacementsResponse(
+            placements: nil,
+            placementContent: [
+                PlacementContentModel(
+                    id: "follow-up",
+                    contentType: "overlay",
+                    contentData: ContentDataModel(
+                        htmlContent: """
+                            <div data-overlay-metadata data-overlay-type="EMBEDDED_OVERLAY"></div>
+                            <div class="epjs-css-overlay-title">Fetched model</div>
+                            <iframe src="https://application.test"></iframe>
+                            """
+                    ),
+                    metadata: nil
+                )
+            ]
+        )
+        let fetcher = PlacementFollowUpResponseSpy(response: followUpResponse)
+        let initialHTML = """
+            <div data-overlay-metadata data-overlay-type="SINGLE_PRODUCT_OVERLAY"></div>
+            <button class="action-button" data-content-fetch="cta-fetch-id"><span>Continue</span></button>
+            """
+
+        await makeCoordinator().presentPlacement(
+            makeResponse(popupHTML: initialHTML),
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: { id in await fetcher.fetch(id) }
+        )
+
+        guard case let .renderPopupView(view) = events.events.last else {
+            Issue.record("Expected the initial placement popup to be rendered")
+            return
+        }
+        let popup = try #require(view as? PopupController)
+        await popup.loadFollowUpPopupModel()
+
+        let requestedIDs = await fetcher.requestedIDs
+        #expect(!requestedIDs.isEmpty)
+        #expect(requestedIDs.allSatisfy { $0 == "cta-fetch-id" })
+        #expect(popup.webViewPlacementModel?.overlayTitle.string == "Fetched model")
+        #expect(popup.webViewPlacementModel?.webViewUrl == "https://application.test")
+    }
+
+    @Test
+    func followUpParserErrorReportsMappedAPIError() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let parsingError = NSError(
+            domain: "PopupParser",
+            code: 42,
+            userInfo: [NSLocalizedDescriptionKey: "popup parsing failed"]
+        )
+        let fetcher = PlacementFollowUpResponseSpy(
+            response: PlacementsResponse(
+                placements: nil,
+                placementContent: [
+                    PlacementContentModel(
+                        id: "follow-up",
+                        contentType: "overlay",
+                        contentData: ContentDataModel(htmlContent: "<div>follow-up</div>"),
+                        metadata: nil
+                    )
+                ]
+            )
+        )
+        let initialHTML = """
+            <div data-overlay-metadata data-overlay-type="SINGLE_PRODUCT_OVERLAY"></div>
+            <button class="action-button" data-content-fetch="cta-fetch-id"><span>Continue</span></button>
+            """
+        let coordinator = makeCoordinator(followUpPopupModelParser: { _ in
+            throw parsingError
+        })
+
+        await coordinator.presentPlacement(
+            makeResponse(popupHTML: initialHTML),
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: { id in await fetcher.fetch(id) }
+        )
+
+        guard case let .renderPopupView(view) = events.events.last else {
+            Issue.record("Expected the initial placement popup to be rendered")
+            return
+        }
+        let popup = try #require(view as? PopupController)
+        await popup.loadFollowUpPopupModel()
+
+        let error = try #require(sdkError(from: events))
+        #expect(error.localizedDescription == Constants.apiError(message: parsingError.localizedDescription))
+        #expect(popup.webViewPlacementModel == nil)
+    }
+
+    @Test
+    func malformedFollowUpResponseReportsPopupParsingErrorInUICoordinator() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let fetcher = PlacementFollowUpResponseSpy(
+            response: PlacementsResponse(placements: nil, placementContent: [])
+        )
+        let initialHTML = """
+            <div data-overlay-metadata data-overlay-type="SINGLE_PRODUCT_OVERLAY"></div>
+            <button class="action-button" data-content-fetch="cta-fetch-id"><span>Continue</span></button>
+            """
+
+        await makeCoordinator().presentPlacement(
+            makeResponse(popupHTML: initialHTML),
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: { id in await fetcher.fetch(id) }
+        )
+
+        guard case let .renderPopupView(view) = events.events.last else {
+            Issue.record("Expected the initial placement popup to be rendered")
+            return
+        }
+        let popup = try #require(view as? PopupController)
+        await popup.loadFollowUpPopupModel()
+
+        let error = try #require(sdkError(from: events))
+        #expect(error.localizedDescription == Constants.popupPlacementParsingError)
+        #expect(popup.webViewPlacementModel == nil)
+    }
+
+    @Test
+    func followUpContentWithoutHTMLUsesEmptyStringFallback() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let fetcher = PlacementFollowUpResponseSpy(
+            response: PlacementsResponse(
+                placements: nil,
+                placementContent: [
+                    PlacementContentModel(
+                        id: "follow-up",
+                        contentType: "overlay",
+                        contentData: ContentDataModel(htmlContent: nil),
+                        metadata: nil
+                    )
+                ]
+            )
+        )
+        let initialHTML = """
+            <div data-overlay-metadata data-overlay-type="SINGLE_PRODUCT_OVERLAY"></div>
+            <button class="action-button" data-content-fetch="cta-fetch-id"><span>Continue</span></button>
+            """
+
+        await makeCoordinator().presentPlacement(
+            makeResponse(popupHTML: initialHTML),
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: { id in await fetcher.fetch(id) }
+        )
+
+        guard case let .renderPopupView(view) = events.events.last else {
+            Issue.record("Expected the initial placement popup to be rendered")
+            return
+        }
+        let popup = try #require(view as? PopupController)
+        await popup.loadFollowUpPopupModel()
+
+        #expect(!events.containsSDKError)
+        #expect(popup.webViewPlacementModel?.overlayTitle.string.isEmpty == true)
+    }
+
     private func makeCoordinator(
         challengeFactory: PlacementChallengeFactorySpy = PlacementChallengeFactorySpy(
             controller: UIViewController()
-        )
+        ),
+        followUpPopupModelParser: (@Sendable (String) async throws -> PopupPlacementModel?)? = nil
     ) -> PlacementUICoordinator {
-        PlacementUICoordinator(challengeFactory: challengeFactory)
+        guard let followUpPopupModelParser else {
+            return PlacementUICoordinator(challengeFactory: challengeFactory)
+        }
+        return PlacementUICoordinator(
+            challengeFactory: challengeFactory,
+            followUpPopupModelParser: followUpPopupModelParser
+        )
+    }
+
+    private var unusedFollowUpPlacementFetcher: @MainActor @Sendable (String?) async throws -> PlacementsResponse {
+        { _ in PlacementsResponse(placements: nil, placementContent: []) }
     }
 
     private func makeInput(
@@ -253,11 +436,13 @@ struct PlacementUICoordinatorTests {
     }
 
     private func sdkError(from events: EventCapture) -> NSError? {
-        guard case let .sdkError(error) = events.first else {
-            Issue.record("Expected an SDK error event")
-            return nil
+        for event in events.events {
+            if case let .sdkError(error) = event {
+                return error as NSError
+            }
         }
-        return error as NSError
+        Issue.record("Expected an SDK error event")
+        return nil
     }
 }
 
@@ -287,5 +472,19 @@ private final class PlacementChallengeFactorySpy: ChallengeControllerFactory, @u
         self.onComplete = onComplete
         self.callback = callback
         return controller
+    }
+}
+
+private actor PlacementFollowUpResponseSpy {
+    private let response: PlacementsResponse
+    private(set) var requestedIDs: [String?] = []
+
+    init(response: PlacementsResponse) {
+        self.response = response
+    }
+
+    func fetch(_ placementID: String?) -> PlacementsResponse {
+        requestedIDs.append(placementID)
+        return response
     }
 }

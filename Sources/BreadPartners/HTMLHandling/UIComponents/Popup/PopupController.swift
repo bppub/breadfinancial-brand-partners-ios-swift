@@ -10,6 +10,7 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
+import BreadPartnersCore
 import Foundation
 import UIKit
 import WebKit
@@ -50,7 +51,7 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
     var brandLogoHeight: Double = 50
     var webView: WKWebView!
     var webViewManager: BreadFinancialWebViewInterstitial!
-    var webViewPlacementModel: PopupPlacementModel!
+    var webViewPlacementModel: PopupPlacementModel?
 
     var loader: LoaderIndicator!
 
@@ -59,6 +60,7 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
 
     var logger: Logger = Logger()
     let callback: ((BreadPartnerEvents) -> Void)
+    let onLoadFollowUpPopupModel: (@MainActor @Sendable (String?) async throws -> PopupPlacementModel?)?
 
     init(
         integrationKey: String,
@@ -67,7 +69,8 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
         popupModel: PopupPlacementModel,
         overlayType: PlacementOverlayType,
         logger: Logger,
-        callback: @escaping (BreadPartnerEvents) -> Void
+        callback: @escaping (BreadPartnerEvents) -> Void,
+        onLoadFollowUpPopupModel: (@MainActor @Sendable (String?) async throws -> PopupPlacementModel?)? = nil
     ) {
         self.integrationKey = integrationKey
         self.merchantConfiguration = merchantConfiguration
@@ -76,6 +79,7 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
         self.overlayType = overlayType
         self.logger = logger
         self.callback = callback
+        self.onLoadFollowUpPopupModel = onLoadFollowUpPopupModel
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -85,6 +89,7 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
         Task {
             await setupUI()
         }
@@ -105,7 +110,6 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
     }
 
     func displayEmbeddedOverlay(popupModel: PopupPlacementModel) {
-
         setupLoader()
 
         overlayProductView.isHidden = false
@@ -147,7 +151,6 @@ internal class PopupController: UIViewController, @MainActor AppRestartListener,
     }
 
     func onAppRestartClicked(url: String) {
-
         if let oldWebView = webView {
             oldWebView.removeFromSuperview()
             oldWebView.stopLoading()

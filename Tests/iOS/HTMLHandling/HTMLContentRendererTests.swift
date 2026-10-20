@@ -10,6 +10,7 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
+import BreadPartnersTestSupport
 import Foundation
 import Testing
 import UIKit
@@ -37,7 +38,8 @@ struct HTMLContentRendererTests {
             integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
             placementsConfiguration: PlacementConfiguration(), logger: Logger(),
             analyticsReporter: reporter,
-            callback: events.record
+            callback: events.record,
+            onLoadFollowUpPopupModel: { _ in nil }
         )
 
         await renderer.handleTextPlacement(responseModel: PlacementsResponse(placements: nil, placementContent: nil))
@@ -257,6 +259,7 @@ struct HTMLContentRendererTests {
             logger: Logger(),
             analyticsReporter: reporter,
             callback: events.record,
+            onLoadFollowUpPopupModel: { _ in nil },
             textPlacementParser: textPlacementParser
         )
     }

@@ -10,6 +10,7 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
+import BreadPartnersCore
 import Foundation
 import UIKit
 
@@ -27,6 +28,7 @@ internal class HTMLContentRenderer {
     var logger: Logger = Logger()
     let analyticsReporter: any AnalyticsReporting
     let callback: (BreadPartnerEvents) -> Void
+    let onLoadFollowUpPopupModel: @MainActor @Sendable (String?) async throws -> PopupPlacementModel?
     private let textPlacementParser: (String) throws -> TextPlacementModel
 
     init(
@@ -38,6 +40,7 @@ internal class HTMLContentRenderer {
         logger: Logger,
         analyticsReporter: any AnalyticsReporting,
         callback: @escaping ((BreadPartnerEvents) -> Void),
+        onLoadFollowUpPopupModel: @escaping @MainActor @Sendable (String?) async throws -> PopupPlacementModel?,
         textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
             try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
         }
@@ -50,6 +53,7 @@ internal class HTMLContentRenderer {
         self.logger = logger
         self.analyticsReporter = analyticsReporter
         self.callback = callback
+        self.onLoadFollowUpPopupModel = onLoadFollowUpPopupModel
         self.textPlacementParser = textPlacementParser
     }
 
@@ -163,7 +167,8 @@ internal class HTMLContentRenderer {
             popupModel: popupPlacementModel,
             overlayType: overlayType,
             logger: logger,
-            callback: callback
+            callback: callback,
+            onLoadFollowUpPopupModel: onLoadFollowUpPopupModel
         )
         configurePopupPresentation(popupViewController)
     }
