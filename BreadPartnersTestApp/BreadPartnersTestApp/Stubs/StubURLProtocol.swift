@@ -22,15 +22,8 @@ import Foundation
 /// directly to the API paths (e.g. `/config`, `/generatePlacements`, `/api/prescreen`).
 final class StubURLProtocol: URLProtocol {
 
-    /// A single canned response.
-    struct Stub {
-        let data: Data
-        let statusCode: Int
-        let headers: [String: String]
-    }
-
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var stubs: [(match: String, stub: Stub)] = []
+    nonisolated(unsafe) private static var stubs: [HTTPStub] = []
 
     /// When `true`, any request that does not match a registered stub receives an
     /// empty `{}` 200 JSON response instead of hitting the real network. This keeps
@@ -48,8 +41,13 @@ final class StubURLProtocol: URLProtocol {
         statusCode: Int = 200,
         headers: [String: String] = ["Content-Type": "application/json"]
     ) {
+        register(HTTPStub(match: match, json: json, statusCode: statusCode, headers: headers))
+    }
+
+    /// Registers a prebuilt `HTTPStub`.
+    static func register(_ stub: HTTPStub) {
         lock.lock(); defer { lock.unlock() }
-        stubs.append((match, Stub(data: json, statusCode: statusCode, headers: headers)))
+        stubs.append(stub)
     }
 
     /// Removes all registered stubs.
@@ -58,9 +56,9 @@ final class StubURLProtocol: URLProtocol {
         stubs.removeAll()
     }
 
-    private static func stub(for url: URL) -> Stub? {
+    private static func stub(for url: URL) -> HTTPStub? {
         lock.lock(); defer { lock.unlock() }
-        return stubs.first { url.absoluteString.contains($0.match) }?.stub
+        return stubs.first { url.absoluteString.contains($0.match) }
     }
 
     // MARK: - URLProtocol
@@ -79,10 +77,10 @@ final class StubURLProtocol: URLProtocol {
             return
         }
 
-        let resolved = Self.stub(for: url) ?? Stub(
-            data: Data("{}".utf8),
-            statusCode: 200,
-            headers: ["Content-Type": "application/json"]
+        let resolved = Self.stub(for: url) ?? HTTPStub(
+            match: "",
+            json: Data("{}".utf8),
+            statusCode: 200
         )
 
         guard let response = HTTPURLResponse(
@@ -96,7 +94,7 @@ final class StubURLProtocol: URLProtocol {
         }
 
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: resolved.data)
+        client?.urlProtocol(self, didLoad: resolved.json)
         client?.urlProtocolDidFinishLoading(self)
     }
 

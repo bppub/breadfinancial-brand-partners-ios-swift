@@ -25,6 +25,8 @@
 		4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CA308001B300784F9D /* RTPSFormData.swift */; };
 		4E73EF98308810C3000F2E23 /* StubsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EF9730881091000F2E23 /* StubsConstants.swift */; };
 		4E73EF9C3088136A000F2E23 /* StubsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EF9730881091000F2E23 /* StubsConstants.swift */; };
+		4E73EFAF30882DD0000F2E23 /* HTTPStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EFAE30882DCB000F2E23 /* HTTPStub.swift */; };
+		4E73EFB030882DEE000F2E23 /* HTTPStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EFAE30882DCB000F2E23 /* HTTPStub.swift */; };
 		4EAABF8C3087EE7D0042F57F /* StubBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */; };
 		4EAABF8D3087EE7D0042F57F /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */; };
 /* End PBXBuildFile section */
@@ -58,6 +60,7 @@
 		4E3C51CD308001B300784F9D /* RTPSFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormView.swift; sourceTree = "<group>"; };
 		4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersTestAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E73EF9730881091000F2E23 /* StubsConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubsConstants.swift; sourceTree = "<group>"; };
+		4E73EFAE30882DCB000F2E23 /* HTTPStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPStub.swift; sourceTree = "<group>"; };
 		4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubBootstrap.swift; sourceTree = "<group>"; };
 		4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -145,6 +148,7 @@
 		4E73EF9630881063000F2E23 /* Stubs */ = {
 			isa = PBXGroup;
 			children = (
+				4E73EFAE30882DCB000F2E23 /* HTTPStub.swift */,
 				4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */,
 				4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */,
 				4E73EF9730881091000F2E23 /* StubsConstants.swift */,
@@ -269,6 +273,7 @@
 				4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */,
 				3000000000000000000000C1 /* ContentView.swift in Sources */,
 				3000000000000000000000C0 /* BreadPartnersTestApp.swift in Sources */,
+				4E73EFAF30882DD0000F2E23 /* HTTPStub.swift in Sources */,
 				4E3C51C13080012000784F9D /* PopupStyling.swift in Sources */,
 				4E3C51C23080012000784F9D /* VersionInfoView.swift in Sources */,
 				4E3C51C33080012000784F9D /* PreferencesManager.swift in Sources */,
@@ -287,6 +292,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4E73EF9C3088136A000F2E23 /* StubsConstants.swift in Sources */,
+				4E73EFB030882DEE000F2E23 /* HTTPStub.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
