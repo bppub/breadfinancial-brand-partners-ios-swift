@@ -10,12 +10,6 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import Foundation
-
-protocol PlacementServicing: Sendable {
-    func fetch(
-        request: PlacementRequest,
-        from url: URL,
-        httpClient: any HTTPClient
-    ) async throws -> PlacementsResponse
+package protocol PlacementServicing: Sendable {
+    func execute(_ input: PlacementServiceInput) async -> PlacementOutcome
 }

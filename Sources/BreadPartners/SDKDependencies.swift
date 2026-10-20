@@ -17,7 +17,7 @@ struct SDKDependencies {
     let httpClientFactory: any HTTPClientFactory
     let endpointProvider: any APIEndpointProviding
     let brandConfigurationService: any BrandConfigurationServicing
-    let placementService: any PlacementServicing
+    let placementCoordinator: any PlacementCoordinating
     let analyticsFactory: any AnalyticsReporterFactory
     let rtpsCoordinator: any RealTimePrescreenCoordinating
 
@@ -26,15 +26,15 @@ struct SDKDependencies {
         httpClientFactory: any HTTPClientFactory,
         endpointProvider: any APIEndpointProviding,
         brandConfigurationService: any BrandConfigurationServicing,
-        placementService: any PlacementServicing,
         analyticsFactory: any AnalyticsReporterFactory,
+        placementCoordinator: any PlacementCoordinating,
         rtpsCoordinator: any RealTimePrescreenCoordinating
     ) {
         self.environment = environment
         self.httpClientFactory = httpClientFactory
         self.endpointProvider = endpointProvider
         self.brandConfigurationService = brandConfigurationService
-        self.placementService = placementService
+        self.placementCoordinator = placementCoordinator
         self.analyticsFactory = analyticsFactory
         self.rtpsCoordinator = rtpsCoordinator
     }
@@ -43,7 +43,6 @@ struct SDKDependencies {
         environment: BreadPartnersEnvironment
     ) -> SDKDependencies {
         let endpointProvider = LiveAPIEndpointProvider(environment: environment)
-        let placementService = LivePlacementService()
 
         return SDKDependencies(
             environment: environment,
@@ -54,14 +53,16 @@ struct SDKDependencies {
                     endpointProvider: endpointProvider
                 )
             ),
-            placementService: placementService,
             analyticsFactory: LiveAnalyticsReporterFactory(
+                endpointProvider: endpointProvider
+            ),
+            placementCoordinator: PlacementCoordinator(
+                environment: environment,
                 endpointProvider: endpointProvider
             ),
             rtpsCoordinator: RTPSCoordinator(
                 environment: environment,
-                endpointProvider: endpointProvider,
-                placementService: placementService
+                endpointProvider: endpointProvider
             )
         )
     }
