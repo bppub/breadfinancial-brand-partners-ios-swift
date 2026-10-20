@@ -184,3 +184,20 @@ jobs:
             -verbose \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      # No coverage here: it would overlap the iOS run's Sources/BreadPartners coverage.
+      - name: Run BreadPartnersTestApp UI Tests
+        run: |
+          xcodebuild test \
+            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
+            -scheme BreadPartnersTestAppUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -resultBundlePath UITestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload UI test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: UITestResults
+          path: UITestResults.xcresult
