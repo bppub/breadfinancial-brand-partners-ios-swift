@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -25,6 +25,16 @@
 		4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CA308001B300784F9D /* RTPSFormData.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4EDD11EA3087D2B300D2B335 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1000000000000000000000A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1000000000000000000000A3;
+			remoteInfo = BreadPartnersTestApp;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1000000000000000000000A4 /* BreadPartnersTestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPartnersTestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2000000000000000000000B0 /* BreadPartnersTestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersTestApp.swift; sourceTree = "<group>"; };
@@ -42,7 +52,12 @@
 		4E3C51CA308001B300784F9D /* RTPSFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormData.swift; sourceTree = "<group>"; };
 		4E3C51CC308001B300784F9D /* PlacementFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementFormView.swift; sourceTree = "<group>"; };
 		4E3C51CD308001B300784F9D /* RTPSFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormView.swift; sourceTree = "<group>"; };
+		4EDD11E43087D2B300D2B335 /* BreadPartnersTestAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersTestAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4EDD11E53087D2B300D2B335 /* BreadPartnersTestAppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BreadPartnersTestAppUITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1000000000000000000000A8 /* Frameworks */ = {
@@ -53,6 +68,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4EDD11E13087D2B300D2B335 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -60,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				1000000000000000000000A5 /* BreadPartnersTestApp */,
+				4EDD11E53087D2B300D2B335 /* BreadPartnersTestAppUITests */,
 				1000000000000000000000A2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				1000000000000000000000A4 /* BreadPartnersTestApp.app */,
+				4EDD11E43087D2B300D2B335 /* BreadPartnersTestAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -133,6 +157,29 @@
 			productReference = 1000000000000000000000A4 /* BreadPartnersTestApp.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4EDD11E33087D2B300D2B335 /* BreadPartnersTestAppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EDD11EE3087D2B300D2B335 /* Build configuration list for PBXNativeTarget "BreadPartnersTestAppUITests" */;
+			buildPhases = (
+				4EDD11E03087D2B300D2B335 /* Sources */,
+				4EDD11E13087D2B300D2B335 /* Frameworks */,
+				4EDD11E23087D2B300D2B335 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4EDD11EB3087D2B300D2B335 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4EDD11E53087D2B300D2B335 /* BreadPartnersTestAppUITests */,
+			);
+			name = BreadPartnersTestAppUITests;
+			packageProductDependencies = (
+			);
+			productName = BreadPartnersTestAppUITests;
+			productReference = 4EDD11E43087D2B300D2B335 /* BreadPartnersTestAppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -140,11 +187,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					1000000000000000000000A3 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					4EDD11E33087D2B300D2B335 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 1000000000000000000000A3;
 					};
 				};
 			};
@@ -165,6 +216,7 @@
 			projectRoot = "";
 			targets = (
 				1000000000000000000000A3 /* BreadPartnersTestApp */,
+				4EDD11E33087D2B300D2B335 /* BreadPartnersTestAppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -175,6 +227,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				3000000000000000000000C2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EDD11E23087D2B300D2B335 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,7 +261,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4EDD11E03087D2B300D2B335 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4EDD11EB3087D2B300D2B335 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1000000000000000000000A3 /* BreadPartnersTestApp */;
+			targetProxy = 4EDD11EA3087D2B300D2B335 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1000000000000000000000AA /* Debug */ = {
@@ -382,6 +456,48 @@
 			};
 			name = Release;
 		};
+		4EDD11EC3087D2B300D2B335 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2QFTJAW7V2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.cocoapods.BreadPartnersSDK.BreadPartnersTestAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersTestApp;
+			};
+			name = Debug;
+		};
+		4EDD11ED3087D2B300D2B335 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2QFTJAW7V2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.cocoapods.BreadPartnersSDK.BreadPartnersTestAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersTestApp;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -399,6 +515,15 @@
 			buildConfigurations = (
 				1000000000000000000000AD /* Debug */,
 				1000000000000000000000AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EDD11EE3087D2B300D2B335 /* Build configuration list for PBXNativeTarget "BreadPartnersTestAppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EDD11EC3087D2B300D2B335 /* Debug */,
+				4EDD11ED3087D2B300D2B335 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
