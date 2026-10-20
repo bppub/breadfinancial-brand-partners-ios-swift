@@ -13,7 +13,7 @@
 import Foundation
 
 /// Represents the possible offer response values sent by the WebView.
-public enum OfferResponse: String {
+public enum OfferResponse: String, Sendable, Equatable {
     /// The user accepted the offer.
     case yes = "YES"
     /// The user declined the offer.
