@@ -47,7 +47,7 @@ enum StubBootstrap {
         StubURLProtocol.reset()
         URLProtocol.registerClass(StubURLProtocol.self)
 
-        let raw = ProcessInfo.processInfo.environment[StubProtocolKeys.enableKey] ?? ""
+        let raw = ProcessInfo.processInfo.environment[StubProtocolKeys.stubsKey] ?? ""
         for line in raw.split(separator: StubProtocolKeys.entrySeparator, omittingEmptySubsequences: true) {
             let parts = String(line).components(separatedBy: StubProtocolKeys.fieldSeparator)
             switch parts.count {
