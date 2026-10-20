@@ -15,6 +15,11 @@ import BreadPartners
 
 @main
 struct BreadPartnersTestApp: App {
+    init() {
+        // Enables HTTP stubbing when launched by a UI test (no-op otherwise).
+        StubBootstrap.configureFromLaunchEnvironment()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

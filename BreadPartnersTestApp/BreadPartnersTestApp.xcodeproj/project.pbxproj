@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -23,7 +23,21 @@
 		4E3C51D0308001B300784F9D /* RTPSFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CD308001B300784F9D /* RTPSFormView.swift */; };
 		4E3C51D1308001B300784F9D /* PlacementFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51C9308001B300784F9D /* PlacementFormData.swift */; };
 		4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CA308001B300784F9D /* RTPSFormData.swift */; };
+		4E73EF98308810C3000F2E23 /* StubsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EF9730881091000F2E23 /* StubsConstants.swift */; };
+		4E73EF9C3088136A000F2E23 /* StubsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E73EF9730881091000F2E23 /* StubsConstants.swift */; };
+		4EAABF8C3087EE7D0042F57F /* StubBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */; };
+		4EAABF8D3087EE7D0042F57F /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4E73EF893087F060000F2E23 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1000000000000000000000A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1000000000000000000000A3;
+			remoteInfo = BreadPartnersTestApp;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1000000000000000000000A4 /* BreadPartnersTestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPartnersTestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,7 +56,15 @@
 		4E3C51CA308001B300784F9D /* RTPSFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormData.swift; sourceTree = "<group>"; };
 		4E3C51CC308001B300784F9D /* PlacementFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementFormView.swift; sourceTree = "<group>"; };
 		4E3C51CD308001B300784F9D /* RTPSFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormView.swift; sourceTree = "<group>"; };
+		4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersTestAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E73EF9730881091000F2E23 /* StubsConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubsConstants.swift; sourceTree = "<group>"; };
+		4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubBootstrap.swift; sourceTree = "<group>"; };
+		4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4E73EF843087F060000F2E23 /* BreadPartnersTestAppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BreadPartnersTestAppUITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1000000000000000000000A8 /* Frameworks */ = {
@@ -53,6 +75,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4E73EF803087F060000F2E23 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -60,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				1000000000000000000000A5 /* BreadPartnersTestApp */,
+				4E73EF843087F060000F2E23 /* BreadPartnersTestAppUITests */,
 				1000000000000000000000A2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				1000000000000000000000A4 /* BreadPartnersTestApp.app */,
+				4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +106,7 @@
 		1000000000000000000000A5 /* BreadPartnersTestApp */ = {
 			isa = PBXGroup;
 			children = (
+				4E73EF9630881063000F2E23 /* Stubs */,
 				4E3C51C8308001B300784F9D /* FormViewModel.swift */,
 				4E3C51CB308001B300784F9D /* Models */,
 				4E3C51CC308001B300784F9D /* PlacementFormView.swift */,
@@ -110,6 +142,16 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		4E73EF9630881063000F2E23 /* Stubs */ = {
+			isa = PBXGroup;
+			children = (
+				4EAABF8A3087EE7D0042F57F /* StubBootstrap.swift */,
+				4EAABF8B3087EE7D0042F57F /* StubURLProtocol.swift */,
+				4E73EF9730881091000F2E23 /* StubsConstants.swift */,
+			);
+			path = Stubs;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -133,6 +175,29 @@
 			productReference = 1000000000000000000000A4 /* BreadPartnersTestApp.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4E73EF823087F060000F2E23 /* BreadPartnersTestAppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E73EF8B3087F060000F2E23 /* Build configuration list for PBXNativeTarget "BreadPartnersTestAppUITests" */;
+			buildPhases = (
+				4E73EF7F3087F060000F2E23 /* Sources */,
+				4E73EF803087F060000F2E23 /* Frameworks */,
+				4E73EF813087F060000F2E23 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E73EF8A3087F060000F2E23 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4E73EF843087F060000F2E23 /* BreadPartnersTestAppUITests */,
+			);
+			name = BreadPartnersTestAppUITests;
+			packageProductDependencies = (
+			);
+			productName = BreadPartnersTestAppUITests;
+			productReference = 4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -140,11 +205,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					1000000000000000000000A3 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					4E73EF823087F060000F2E23 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 1000000000000000000000A3;
 					};
 				};
 			};
@@ -165,6 +234,7 @@
 			projectRoot = "";
 			targets = (
 				1000000000000000000000A3 /* BreadPartnersTestApp */,
+				4E73EF823087F060000F2E23 /* BreadPartnersTestAppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -175,6 +245,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				3000000000000000000000C2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E73EF813087F060000F2E23 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,14 +272,33 @@
 				4E3C51C13080012000784F9D /* PopupStyling.swift in Sources */,
 				4E3C51C23080012000784F9D /* VersionInfoView.swift in Sources */,
 				4E3C51C33080012000784F9D /* PreferencesManager.swift in Sources */,
+				4E73EF98308810C3000F2E23 /* StubsConstants.swift in Sources */,
 				4E3C51C43080012000784F9D /* DynamicFonts.swift in Sources */,
 				4E3C51C53080012000784F9D /* Functions.swift in Sources */,
 				4E3C51C63080012000784F9D /* TestAppConstants.swift in Sources */,
+				4EAABF8C3087EE7D0042F57F /* StubBootstrap.swift in Sources */,
+				4EAABF8D3087EE7D0042F57F /* StubURLProtocol.swift in Sources */,
 				4E3C51C73080012000784F9D /* DynamicColors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4E73EF7F3087F060000F2E23 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E73EF9C3088136A000F2E23 /* StubsConstants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4E73EF8A3087F060000F2E23 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1000000000000000000000A3 /* BreadPartnersTestApp */;
+			targetProxy = 4E73EF893087F060000F2E23 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1000000000000000000000AA /* Debug */ = {
@@ -382,6 +478,48 @@
 			};
 			name = Release;
 		};
+		4E73EF8C3087F060000F2E23 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2QFTJAW7V2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.cocoapods.BreadPartnersSDK.BreadPartnersTestAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersTestApp;
+			};
+			name = Debug;
+		};
+		4E73EF8D3087F060000F2E23 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2QFTJAW7V2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.cocoapods.BreadPartnersSDK.BreadPartnersTestAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersTestApp;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -399,6 +537,15 @@
 			buildConfigurations = (
 				1000000000000000000000AD /* Debug */,
 				1000000000000000000000AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E73EF8B3087F060000F2E23 /* Build configuration list for PBXNativeTarget "BreadPartnersTestAppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E73EF8C3087F060000F2E23 /* Debug */,
+				4E73EF8D3087F060000F2E23 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
