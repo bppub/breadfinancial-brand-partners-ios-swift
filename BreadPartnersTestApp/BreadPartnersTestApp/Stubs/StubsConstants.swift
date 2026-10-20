@@ -14,5 +14,5 @@ enum StubProtocolKeys {
     static let stubsKey = "UITEST_STUBS"
     static let fieldSeparator = "|||"
     static let entrySeparator = "\n"
-    static let enabledValue = "1"
+    static let enabledValue = "ENABLED_STUBS"
 }
