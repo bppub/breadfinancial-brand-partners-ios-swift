@@ -23,21 +23,52 @@ final class BreadPartnersTestAppUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
+    func testAppLaunchesAndShowsCoreUI() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        // The app should reach a running state after launch.
+        XCTAssertEqual(app.state, .runningForeground, "App did not reach the foreground after launch.")
+
+        // The navigation bar title set in ContentView should be present.
+        XCTAssertTrue(
+            app.staticTexts["Bread Partners Test App"].waitForExistence(timeout: 10),
+            "Expected the navigation title 'Bread Partners Test App' to be visible."
+        )
+
+        // The main TabView exposes two tabs: Placement and RTPS.
+        let placementTab = app.tabBars.buttons["Placement"]
+        let rtpsTab = app.tabBars.buttons["RTPS"]
+        XCTAssertTrue(
+            placementTab.waitForExistence(timeout: 5),
+            "Expected the 'Placement' tab to be visible."
+        )
+        XCTAssertTrue(
+            rtpsTab.waitForExistence(timeout: 5),
+            "Expected the 'RTPS' tab to be visible."
+        )
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    func testCanSwitchBetweenTabs() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        let placementTab = app.tabBars.buttons["Placement"]
+        let rtpsTab = app.tabBars.buttons["RTPS"]
+
+        XCTAssertTrue(
+            placementTab.waitForExistence(timeout: 10),
+            "Expected the 'Placement' tab to exist before switching tabs."
+        )
+
+        // Navigate to the RTPS tab and confirm it becomes selected.
+        rtpsTab.tap()
+        XCTAssertTrue(rtpsTab.isSelected, "Expected the 'RTPS' tab to be selected after tapping it.")
+
+        // Navigate back to the Placement tab and confirm it becomes selected.
+        placementTab.tap()
+        XCTAssertTrue(placementTab.isSelected, "Expected the 'Placement' tab to be selected after tapping it.")
     }
 }
