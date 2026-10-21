@@ -15,6 +15,8 @@ jobs:
   quality:
     name: Format, lint, and build
     runs-on: macos-26
+    env:
+      SOURCE_PACKAGES_DIR: .spm
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,11 +37,19 @@ jobs:
           xcode-select -p
           xcrun --sdk iphoneos --show-sdk-version
 
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.SOURCE_PACKAGES_DIR }}
+          key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Package.swift') }}
+          restore-keys: spm-${{ runner.os }}-
+
       - name: Run BreadPartnersTestSupport Tests
         run: |
           xcodebuild test \
             -scheme BreadPartnersTestSupportTests \
             -destination 'platform=macOS' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -resultBundlePath TestSupportResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
@@ -49,6 +59,7 @@ jobs:
           xcodebuild test \
             -scheme BreadPartnersCoreTests \
             -destination 'platform=macOS' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -resultBundlePath CoreTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
@@ -58,6 +69,7 @@ jobs:
           xcodebuild test \
             -scheme BreadPartnersTests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -resultBundlePath iOSTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
@@ -181,6 +193,7 @@ jobs:
             -scheme BreadPartners \
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -verbose \
             CODE_SIGNING_ALLOWED=NO \
             build
@@ -192,6 +205,8 @@ jobs:
             -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
             -scheme BreadPartnersTestAppUITests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
+            -parallel-testing-enabled NO \
             -resultBundlePath UITestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO
 
