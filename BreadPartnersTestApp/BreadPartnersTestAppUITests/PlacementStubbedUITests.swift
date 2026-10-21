@@ -52,5 +52,33 @@ final class PlacementStubbedUITests: XCTestCase {
             "Expected rendered PALA placement text to display on screen: \(expectedText)"
         )
     }
+    
+    func testRTPSPlacement() throws {
+        let app = XCUIApplication()
+        app.enableHTTPStubs([
+            Fixtures.RTPSConfig,
+            Fixtures.RTPSPrescreen,
+            Fixtures.RTPSGeneratePlacemnt,
+        ])
+        app.launch()
+
+        // The Placement tab is the default tab.
+       let rtpsTab = app.tabBars.buttons["RTPS"]
+        XCTAssertTrue(rtpsTab.waitForExistence(timeout: 10), "RTPS tab should be visible on launch")
+        rtpsTab.tap()
+
+        let testRTPSButton = app.buttons["Test RTPS"]
+        XCTAssertTrue(testRTPSButton.waitForExistence(timeout: 10), "Test RTPS button should exist")
+        var swipes = 0
+        while !testRTPSButton.isHittable && swipes < 10 {
+            app.swipeUp()
+            swipes += 1
+        }
+        testRTPSButton.tap()
+        
+        let overlay = app.webViews.firstMatch
+        XCTAssertTrue(overlay.waitForExistence(timeout: 15), "RTPS overlay should appear")
+
+    }
         
 }
