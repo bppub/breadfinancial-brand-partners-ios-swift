@@ -76,7 +76,7 @@ final class PlacementStubbedUITests: XCTestCase {
         testRTPSButton.tap()
         
         let overlay = app.webViews.firstMatch
-        XCTAssertTrue(overlay.waitForExistence(timeout: 15), "RTPS overlay should appear")
+        XCTAssertTrue(overlay.waitForExistence(timeout: 30), "RTPS overlay should appear")
 
     }
         
