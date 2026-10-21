@@ -169,6 +169,24 @@ struct BreadFinancialWebViewInterstitialTests {
     }
 
     @Test
+    func anchorTagPayloadBranchesAreNoOps() {
+        let events = EventCapture()
+        let logger = Logger()
+        logger.setCallback(events.record)
+        logger.setLogging(enabled: true)
+        let interstitial = makeInterstitial(events: events, logger: logger)
+
+        interstitial.handleScriptMessageBody([
+            "action": ["type": "AnchorTags", "payload": ["<a href=\"https://example.test\">Link</a>"] as [String]]
+        ])
+        interstitial.handleScriptMessageBody([
+            "action": ["type": "AnchorTags", "payload": "No anchors found"]
+        ])
+
+        #expect(events.eventCount == 0)
+    }
+
+    @Test
     func externalOpeningReceivesOnlyValidParsedURLs() {
         let events = EventCapture()
         var openedURLs: [URL] = []
