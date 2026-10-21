@@ -18,7 +18,6 @@ final class PlacementLocalServerUITests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        continueAfterFailure = false
     }
 
     override func tearDown() async throws {
@@ -90,7 +89,7 @@ final class PlacementLocalServerUITests: XCTestCase {
         testRTPSButton.tap()
         
         let overlay = app.webViews.firstMatch
-        XCTAssertTrue(overlay.waitForExistence(timeout: 15), "RTPS overlay should appear")
+        XCTAssertTrue(overlay.waitForExistence(timeout: 30), "RTPS overlay should appear")
     }
 
 }

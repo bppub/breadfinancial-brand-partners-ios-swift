@@ -15,7 +15,6 @@ final class PlacementStubbedUITests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        continueAfterFailure = false
     }
     
     func testPALAPlacement() throws {
