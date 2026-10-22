@@ -20,10 +20,14 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
 
     init(
         logger: Logger,
-        callback: @escaping (BreadPartnerEvents) -> Void
+        callback: @escaping (BreadPartnerEvents) -> Void,
+        openExternalURL: @escaping (URL) -> Void = { url in
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     ) {
         self.logger = logger
         self.callback = callback
+        self.openExternalURL = openExternalURL
     }
 
     var onPageLoadCompleted: ((Result<URL, Error>) -> Void)?
@@ -33,6 +37,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
 
     let logger: Logger
     let callback: ((BreadPartnerEvents) -> Void)
+    private let openExternalURL: (URL) -> Void
     var appRestartListener: AppRestartListener?
     /// Set to `true` when a LOG_OUT_OR_RESTART message is received from the web app,
     /// so the navigation confirmation dialog is shown only for that specific flow.
@@ -167,7 +172,11 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
-        if let parsedData = message.body as? [String: Any],
+        handleScriptMessageBody(message.body)
+    }
+
+    func handleScriptMessageBody(_ body: Any) {
+        if let parsedData = body as? [String: Any],
             let action = parsedData["action"] as? [String: Any],
             let type = action["type"] as? String
         {
@@ -193,7 +202,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             case "OPEN_EXTERNAL":
                 if let url = action["payload"] as? String {
                     if let externalURL = URL(string: url) {
-                        UIApplication.shared.open(externalURL, options: [:], completionHandler: nil)
+                        openExternalURL(externalURL)
                     }
                 }
             case "HEIGHT_CHANGED":
@@ -275,12 +284,12 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
 
             case "RECEIVE_ACCOUNT_EXISTS":
                 if let payload = action["payload"] as? [String: Any] {
-                    logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(message.body)")
+                    logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(body)")
                     callback(.receiveAccountExist(result: payload))
                 }
 
             default:
-                logger.printLog("BreadPartnersSDK: WebViewMessage: \(message.body)")
+                logger.printLog("BreadPartnersSDK: WebViewMessage: \(body)")
             }
         }
 
