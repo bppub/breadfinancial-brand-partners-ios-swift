@@ -119,37 +119,31 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         dismiss(animated: true)
     }
 
-    func webView(
-        _ webView: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-    ) {
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.cancel)
-            return
-        }
+    static func navigationPolicy(for url: URL?) -> WKNavigationActionPolicy {
+        guard let url else { return .cancel }
 
-        // Allow necessary domains
         let allowedDomains = [
             "comenity.net", "breadfinancial.com", "hcaptcha.com", "gstatic.com", "newassets.hcaptcha.com",
             "brands.kmsmep.com",
         ]
 
-        if let host = url.host {
-            if allowedDomains.contains(where: { host.contains($0) }) {
-                decisionHandler(.allow)
-                return
-            }
+        if let host = url.host, allowedDomains.contains(where: { host.contains($0) }) {
+            return .allow
         }
 
-        // Allow data URIs and about:blank
         if url.scheme == "data" || url.scheme == "about" {
-            decisionHandler(.allow)
-            return
+            return .allow
         }
 
-        decisionHandler(.cancel)
-        return
+        return .cancel
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
+        decisionHandler(Self.navigationPolicy(for: navigationAction.request.url))
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
