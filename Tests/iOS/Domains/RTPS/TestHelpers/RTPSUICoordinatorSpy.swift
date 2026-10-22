@@ -22,6 +22,12 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
     private(set) var challengeOriginalURL: String?
     private(set) var popupPlacementModel: PopupPlacementModel?
     private var challengeCompletion: ((String) -> Void)?
+    private let failureSignals: AsyncStream<Void>
+    private let failureContinuation: AsyncStream<Void>.Continuation
+
+    init() {
+        (failureSignals, failureContinuation) = AsyncStream.makeStream()
+    }
 
     func presentChallenge(
         htmlContent: String,
@@ -40,12 +46,17 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
         challengeCompletion?(cookie)
     }
 
+    func waitForFailure() async {
+        for await _ in failureSignals { return }
+    }
+
     func presentFailure(
         _ failure: RTPSServiceFailure,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {
         failureCallCount += 1
         lastFailure = failure
+        failureContinuation.yield(())
     }
 
     func presentPlacement(

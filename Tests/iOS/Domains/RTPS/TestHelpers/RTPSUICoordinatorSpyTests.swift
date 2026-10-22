@@ -64,6 +64,27 @@ struct RTPSUICoordinatorSpyTests {
     }
 
     @Test
+    func failureSignalResumesWhenFailureIsPresented() async {
+        let coordinator = RTPSUICoordinatorSpy()
+        let waiter = Task { await coordinator.waitForFailure() }
+
+        coordinator.presentFailure(.api(message: "network failure"), callback: { _ in })
+        await waiter.value
+
+        #expect(coordinator.failureCallCount == 1)
+    }
+
+    @Test
+    func failureSignalCanBeAwaitedAfterFailureWasPresented() async {
+        let coordinator = RTPSUICoordinatorSpy()
+        coordinator.presentFailure(.api(message: "network failure"), callback: { _ in })
+
+        await coordinator.waitForFailure()
+
+        #expect(coordinator.failureCallCount == 1)
+    }
+
+    @Test
     func placementRecordsEachInvocationWithoutPublishingEvents() {
         let coordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
