@@ -57,6 +57,31 @@ struct ChallengeControllerTests {
     }
 
     @Test
+    func closeButtonPublishesPopupClosed() throws {
+        var receivedEvent: BreadPartnerEvents?
+        let challengeController = ChallengeController(
+            htmlContent: "<html></html>",
+            originalURL: "https://challenge.test",
+            callback: { receivedEvent = $0 },
+            onComplete: { _ in },
+            logger: Logger()
+        )
+        challengeController.loadViewIfNeeded()
+
+        guard let closeButton = challengeController.view.subviews.compactMap({ $0 as? UIButton }).first else {
+            Issue.record("Expected ChallengeController to contain a close button")
+            return
+        }
+
+        closeButton.sendActions(for: .touchUpInside)
+
+        guard case .popupClosed? = receivedEvent else {
+            Issue.record("Expected the close button to publish popupClosed")
+            return
+        }
+    }
+
+    @Test
     func forwardsCompleteCookieHeaderFromCookieStore() async throws {
         let completions = AsyncStream<String>.makeStream()
         let challengeController = ChallengeController(
