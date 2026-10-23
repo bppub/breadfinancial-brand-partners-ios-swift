@@ -27,6 +27,14 @@ extension XCUIApplication {
             .joined(separator: StubProtocolKeys.entrySeparator)
     }
 
+    /// Launches with all persisted test-app data wiped so tests don't share state.
+    func launchFresh() {
+        if !launchArguments.contains(UITestLaunchFlags.resetState) {
+            launchArguments.append(UITestLaunchFlags.resetState)
+        }
+        launch()
+    }
+
     /// Expands the section, types each value into the text field with that placeholder title, then collapses it.
     /// Pass pairs in on-screen order; pickers and toggles are not handled.
     func fillDisclosureSection(

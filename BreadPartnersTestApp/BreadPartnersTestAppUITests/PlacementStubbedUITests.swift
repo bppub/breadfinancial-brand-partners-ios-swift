@@ -16,13 +16,18 @@ final class PlacementStubbedUITests: XCTestCase {
     override func setUp() {
         super.setUp()
     }
+
+    override func tearDown() {
+        XCUIApplication().terminate()
+        super.tearDown()
+    }
     
     func testPALAPlacement() throws {
         let app = XCUIApplication()
         app.enableHTTPStubs([
             Fixtures.PALAPlacement,
         ])
-        app.launch()
+        app.launchFresh()
 
         // The Placement tab is the default tab.
         let generateButton = app.buttons["Generate Placement"]
@@ -59,13 +64,26 @@ final class PlacementStubbedUITests: XCTestCase {
             Fixtures.RTPSPrescreen,
             Fixtures.RTPSGeneratePlacemnt,
         ])
-        app.launch()
+        app.launchFresh()
 
         // The Placement tab is the default tab.
        let rtpsTab = app.tabBars.buttons["RTPS"]
         XCTAssertTrue(rtpsTab.waitForExistence(timeout: 10), "RTPS tab should be visible on launch")
         rtpsTab.tap()
 
+        app.fillDisclosureSection("Customer Info", with: [
+            "First Name": "Jane",
+            "Last Name": "Doe",
+            "Address 1": "1 Main St",
+            "City": "Columbus",
+            "State": "OH",
+            "Zip Code": "43215",
+            "Country": "USA",
+        ])
+        app.fillDisclosureSection("EpJs Config", with: [
+            "API Key": "15a64a51-104d-4ad3-915f-911b6ef63cfd",
+        ])
+        
         let testRTPSButton = app.buttons["Test RTPS"]
         XCTAssertTrue(testRTPSButton.waitForExistence(timeout: 10), "Test RTPS button should exist")
         var swipes = 0
@@ -77,7 +95,5 @@ final class PlacementStubbedUITests: XCTestCase {
         
         let overlay = app.webViews.firstMatch
         XCTAssertTrue(overlay.waitForExistence(timeout: 30), "RTPS overlay should appear")
-
     }
-        
 }

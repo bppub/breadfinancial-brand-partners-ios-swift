@@ -16,6 +16,7 @@ import Network
 enum MockServerKeys {
     /// Must match `APIBaseURLs.launchOverrideKey` in the BreadPartners SDK.
     static let baseURLKey = "BREAD_PARTNERS_MOCK_BASE_URL"
+    static let resetState = "-UITestResetState"
 }
 
 /// Local HTTP/1.1 server, running in the UI test process on Network.framework, that the app
