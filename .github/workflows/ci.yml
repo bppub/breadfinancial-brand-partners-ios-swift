@@ -74,21 +74,50 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Verify Build for iOS
+        run: |
+          xcodebuild \
+            -scheme BreadPartners \
+            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
+            -verbose \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      # No coverage here: it would overlap the iOS run's Sources/BreadPartners coverage.
+      - name: Run BreadPartnersTestApp UI Tests
+        run: |
+          xcodebuild test \
+            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
+            -scheme BreadPartnersTestAppUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
+            -parallel-testing-enabled NO \
+            -resultBundlePath UITestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      # Runs after failures too so the PR shows which test run broke.
       - name: Publish combined coverage check run
+        if: ${{ !cancelled() }}
         uses: actions/github-script@v8
         with:
           script: |
             const { execFileSync } = require("node:child_process");
+            const fs = require("node:fs");
             const path = require("node:path");
 
-            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
+            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
             const toNumber = value => Number(value || 0);
-            const readReport = bundle => JSON.parse(execFileSync(
-              "xcrun",
-              ["xccov", "view", "--report", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
-              { encoding: "utf8" }
-            ));
             const workspace = process.env.GITHUB_WORKSPACE;
+            const bundlePath = bundle => path.join(workspace, bundle);
+            const xcrunJSON = args => JSON.parse(execFileSync("xcrun", args, { encoding: "utf8" }));
+            const readReport = bundle => fs.existsSync(bundlePath(bundle))
+              ? xcrunJSON(["xccov", "view", "--report", "--json", bundlePath(bundle)])
+              : { targets: [] };
+            const readTests = bundle => fs.existsSync(bundlePath(bundle))
+              ? xcrunJSON(["xcresulttool", "get", "test-results", "summary", "--path", bundlePath(bundle), "--compact"])
+              : null;
             const reports = [
               {
                 name: "TestSupport",
@@ -139,38 +168,53 @@ jobs:
               }))
               .sort((left, right) => left.lineCoverage - right.lineCoverage);
 
-            if (files.length === 0) {
-              const targetNames = reports
-                .flatMap(({ report }) => report.targets || [])
-                .map(target => target.name)
-                .join(", ");
-              throw new Error(`No package source files found. Coverage targets: ${targetNames}`);
-            }
-
             const percent = value => `${(value * 100).toFixed(2)}%`;
             const coveredLines = files.reduce((total, file) => total + file.coveredLines, 0);
             const executableLines = files.reduce((total, file) => total + file.executableLines, 0);
-            const lineCoverage = coveredLines / executableLines;
+            const hasCoverage = executableLines > 0;
+            const lineCoverage = hasCoverage ? coveredLines / executableLines : 0;
+            const coverageLabel = hasCoverage ? percent(lineCoverage) : "n/a";
             const rows = files.map(file =>
               `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
             );
+
+            const testRuns = [
+              ["TestSupport", "TestSupportResults.xcresult"],
+              ["Core", "CoreTestResults.xcresult"],
+              ["iOS", "iOSTestResults.xcresult"],
+              ["UI", "UITestResults.xcresult"],
+            ].map(([name, bundle]) => ({ name, summary: readTests(bundle) }));
+            const testRows = testRuns.map(({ name, summary }) => summary
+              ? `| ${name} | ${summary.result} | ${toNumber(summary.passedTests)} | ${toNumber(summary.failedTests)} | ${toNumber(summary.skippedTests)} |`
+              : `| ${name} | Not run | – | – | – |`);
+            const failures = testRuns.flatMap(({ name, summary }) =>
+              (summary?.testFailures ?? []).map(failure =>
+                `- **${name}** \`${escapeCell(failure.testIdentifierString ?? failure.testName)}\`: ${escapeCell(failure.failureText)}`));
+            const anyFailed = testRuns.some(({ summary }) => !summary || toNumber(summary.failedTests) > 0);
+
             const text = [
               "| Metric | Value |",
               "| --- | ---: |",
-              `| Line Coverage | **${percent(lineCoverage)}** |`,
+              `| Line Coverage | **${coverageLabel}** |`,
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS |",
+              "| Coverage Runs Combined | TestSupport + Core + iOS |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
+              "",
+              "### Test Results",
+              "| Run | Result | Passed | Failed | Skipped |",
+              "| --- | --- | ---: | ---: | ---: |",
+              ...testRows,
+              ...(failures.length ? ["", "#### Failures", ...failures] : []),
               "",
               "### Lowest Coverage Files",
               "| File | Coverage | Covered / Executable |",
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
@@ -179,36 +223,13 @@ jobs:
               name: "Coverage (Combined)",
               head_sha: context.payload.pull_request.head.sha,
               status: "completed",
-              conclusion: "success",
+              conclusion: anyFailed ? "failure" : "success",
               output: {
-                title: "Combined Coverage",
-                summary: `Line coverage: **${percent(lineCoverage)}**`,
+                title: anyFailed ? "Tests failed" : "Combined Coverage",
+                summary: `Line coverage: **${coverageLabel}**`,
                 text
               }
             });
-
-      - name: Verify Build for iOS
-        run: |
-          xcodebuild \
-            -scheme BreadPartners \
-            -destination 'generic/platform=iOS' \
-            -sdk iphoneos \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -verbose \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-
-      # No coverage here: it would overlap the iOS run's Sources/BreadPartners coverage.
-      - name: Run BreadPartnersTestApp UI Tests
-        run: |
-          xcodebuild test \
-            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
-            -scheme BreadPartnersTestAppUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -parallel-testing-enabled NO \
-            -resultBundlePath UITestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload UI test results
         if: failure()
