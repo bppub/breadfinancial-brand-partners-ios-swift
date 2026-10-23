@@ -1,15 +1,20 @@
+//------------------------------------------------------------------------------
+//  File:          MockHttpResponse.swift
+//  Author(s):     Bread Financial
+//  Date:          31 October 2026
 //
-//  HTTPStub.swift
-//  BreadPartnersTestApp
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing UI components and functionalities to integrate Bread Financial
+//  services into partner applications.
 //
-//  Created by Joncarlos Tavarez on 10/20/26.
-//
+//  © 2026 Bread Financial
+//------------------------------------------------------------------------------
 
 import Foundation
 
 /// A single stub mapping: any request URL containing `match` returns `json`
 /// with `statusCode`. Use a non-2xx `statusCode` to exercise the SDK's error path.
-struct HTTPStub {
+struct MockHttpResponse {
     let match: String
     let json: Data
     let statusCode: Int

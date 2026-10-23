@@ -15,20 +15,20 @@
 enum Fixtures {
 
     /// Minimal brand config returned from `/brands/{id}/config`.
-    static let brandConfig = HTTPStub(
+    static let brandConfig = MockHttpResponse(
         match: "/config",
         jsonString: #"{ "brandId": "test-brand", "config": {} }"#
     )
 
     /// Minimal brand style returned from `/brands/{id}/style`.
-    static let brandStyle = HTTPStub(
+    static let brandStyle = MockHttpResponse(
         match: "/style",
         jsonString: #"{ "style": {} }"#
     )
 
     /// Placeholder placements response returned from `/generatePlacements`.
     /// Replace with a captured response to assert on rendered content.
-    static let PALAPlacement = HTTPStub(
+    static let PALAPlacement = MockHttpResponse(
         match: "/generatePlacements",
         jsonString: #"""
                 {
@@ -72,7 +72,7 @@ enum Fixtures {
                 """#
     )
     
-    static let RTPSConfig =  HTTPStub(match: "/config",
+    static let RTPSConfig =  MockHttpResponse(match: "/config",
       jsonString: #"""
              {
                "config" : {
@@ -94,7 +94,7 @@ enum Fixtures {
              """#
      )
     
-    static let RTPSPrescreen = HTTPStub(
+    static let RTPSPrescreen = MockHttpResponse(
         match: "/prescreen",
         jsonString: #"""
                     {
@@ -118,7 +118,7 @@ enum Fixtures {
                     """#
         )
     
-    static let RTPSGeneratePlacemnt = HTTPStub(
+    static let RTPSGeneratePlacemnt = MockHttpResponse(
         match: "/generatePlacements",
         jsonString: #"""
                     {

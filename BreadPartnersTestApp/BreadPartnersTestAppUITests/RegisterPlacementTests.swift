@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          GeneratePlacementUITests.swift
+//  File:          RegisterPlacements.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
@@ -13,7 +13,7 @@
 import XCTest
 
 @MainActor
-final class GeneratePlacementUITests: XCTestCase {
+final class RegisterPlacements: XCTestCase {
     private var server: MockHTTPServer?
 
     override func setUp() async throws {

@@ -24,11 +24,11 @@ enum MockServerKeys {
 /// Unmatched requests get `{}` with 200.
 actor MockHTTPServer {
     private let listener: NWListener
-    private let stubs: [HTTPStub]
+    private let stubs: [MockHttpResponse]
     private let queue = DispatchQueue(label: "MockHTTPServer")
     private var paths: [String] = []
 
-    init(stubs: [HTTPStub]) throws {
+    init(stubs: [MockHttpResponse]) throws {
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
         self.listener = try NWListener(using: parameters)
@@ -96,7 +96,7 @@ actor MockHTTPServer {
 
         let stub =
             stubs.first { request.path.contains($0.match) }
-            ?? HTTPStub(match: "", jsonString: "{}")
+            ?? MockHttpResponse(match: "", jsonString: "{}")
 
         var head =
             "HTTP/1.1 \(stub.statusCode) \(HTTPURLResponse.localizedString(forStatusCode: stub.statusCode))\r\n"

@@ -11,8 +11,8 @@ import XCTest
 extension XCUIApplication {
     /// Launches with all persisted test-app data wiped so tests don't share state.
     func launchFresh() {
-        if !launchArguments.contains(UITestLaunchFlags.resetState) {
-            launchArguments.append(UITestLaunchFlags.resetState)
+        if !launchArguments.contains(MockServerKeys.resetState) {
+            launchArguments.append(MockServerKeys.resetState)
         }
         launch()
     }
