@@ -21,8 +21,6 @@ struct BreadPartnersTestApp: App {
             HTTPCookieStorage.shared.removeCookies(since: .distantPast)
             URLCache.shared.removeAllCachedResponses()
         }
-        // Enables HTTP stubbing when launched by a UI test (no-op otherwise).
-        StubBootstrap.configureFromLaunchEnvironment()
     }
 
     var body: some Scene {

@@ -1,10 +1,8 @@
 //------------------------------------------------------------------------------
-//  File:          StubbedHTTPSupport.swift
+//  File:          Fixtures.swift
 //  Author(s):     Bread Financial
 //
-//  Description:   Helpers for UI tests to drive the app's StubURLProtocol via
-//                 launch environment. Mirrors the keys defined in the app's
-//                 StubBootstrap type.
+//  Description:   Canned responses served by MockHTTPServer during UI tests.
 //
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------

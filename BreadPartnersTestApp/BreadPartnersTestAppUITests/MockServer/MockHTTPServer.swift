@@ -21,7 +21,7 @@ enum MockServerKeys {
 
 /// Local HTTP/1.1 server, running in the UI test process on Network.framework, that the app
 /// reaches through the SDK's DEBUG-only base URL override. Handles one request per connection.
-/// Unmatched requests get `{}` with 200, mirroring `StubURLProtocol.isolateUnmatchedRequests`.
+/// Unmatched requests get `{}` with 200.
 actor MockHTTPServer {
     private let listener: NWListener
     private let stubs: [HTTPStub]

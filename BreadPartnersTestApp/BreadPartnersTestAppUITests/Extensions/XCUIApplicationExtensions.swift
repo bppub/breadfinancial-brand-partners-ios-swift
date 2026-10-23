@@ -9,24 +9,6 @@ import Foundation
 import XCTest
 
 extension XCUIApplication {
-    /// Configures the app to serve `stubs` for matching requests during this launch.
-    /// Call before `launch()`.
-    ///
-    /// Each stub is encoded as `match|||statusCode|||base64json|||base64headers`.
-    func enableHTTPStubs(_ stubs: [HTTPStub]) {
-        launchEnvironment[StubProtocolKeys.enableKey] = StubProtocolKeys.enabledValue
-        launchEnvironment[StubProtocolKeys.stubsKey] = stubs
-            .map { stub in
-                [
-                    stub.match,
-                    String(stub.statusCode),
-                    stub.json.base64EncodedString(),
-                    Self.encodeHeaders(stub.headers),
-                ].joined(separator: StubProtocolKeys.fieldSeparator)
-            }
-            .joined(separator: StubProtocolKeys.entrySeparator)
-    }
-
     /// Launches with all persisted test-app data wiped so tests don't share state.
     func launchFresh() {
         if !launchArguments.contains(UITestLaunchFlags.resetState) {
@@ -147,16 +129,5 @@ extension XCUIApplication {
         let top = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.35 : 0.25))
         let bottom = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.55 : 0.8))
         (up ? bottom : top).press(forDuration: 0.05, thenDragTo: up ? top : bottom)
-    }
-
-    /// Encodes a headers dictionary as base64 JSON so it survives the field and
-    /// entry separators used in the launch-environment payload. Returns an empty
-    /// string when encoding fails, which the app treats as "use default headers".
-    private static func encodeHeaders(_ headers: [String: String]) -> String {
-        guard
-            !headers.isEmpty,
-            let data = try? JSONEncoder().encode(headers)
-        else { return "" }
-        return data.base64EncodedString()
     }
 }
