@@ -1,9 +1,14 @@
+//------------------------------------------------------------------------------
+//  File:          XCUIApplicationExtensions.swift
+//  Author(s):     Bread Financial
+//  Date:          31 October 2026
 //
-//  XCUIApplicationExtensions.swift
-//  BreadPartnersTestApp
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing UI components and functionalities to integrate Bread Financial
+//  services into partner applications.
 //
-//  Created by Joncarlos Tavarez on 10/20/26.
-//
+//  © 2026 Bread Financial
+//------------------------------------------------------------------------------
 
 import Foundation
 import XCTest

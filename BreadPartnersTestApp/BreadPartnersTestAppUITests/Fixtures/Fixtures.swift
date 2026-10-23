@@ -1,8 +1,10 @@
 //------------------------------------------------------------------------------
 //  File:          Fixtures.swift
 //  Author(s):     Bread Financial
+//  Date:          31 October 2026
 //
-//  Description:   Canned responses served by MockHTTPServer during UI tests.
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing canned JSON payloads for the endpoints exercised by UI tests.
 //
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
