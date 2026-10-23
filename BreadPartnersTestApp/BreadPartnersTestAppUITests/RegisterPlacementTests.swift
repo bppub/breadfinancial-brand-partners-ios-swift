@@ -27,7 +27,7 @@ final class RegisterPlacements: XCTestCase {
         try await super.tearDown()
     }
 
-    func testPALAPlacementFromLocalServer() async throws {
+    func testPALAPlacement() async throws {
         let server = try MockHTTPServer(stubs: [Fixtures.PALAPlacement])
         self.server = server
         let baseURL = try await server.start()
