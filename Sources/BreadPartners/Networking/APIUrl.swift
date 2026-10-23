@@ -73,7 +73,7 @@ internal actor APIUrl {
             endpoint = .virtualLookup
         }
 
-        return endpoint.url(for: environment)
+        return endpoint.url(for: environment, baseURLs: .launchOverride())
     }
 
     nonisolated var foundationURL: URL {

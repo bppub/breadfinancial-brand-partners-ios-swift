@@ -57,4 +57,18 @@ struct APIEndpointTests {
             )
         }
     }
+
+    @Test
+    func usesBaseURLOverrideWhenProvided() {
+        let override = APIBaseURLs(brands: "http://localhost:8080", rtps: "http://localhost:9090")
+
+        #expect(
+            APIEndpoint.generatePlacements.url(for: .prod, baseURLs: override)
+                == "http://localhost:8080/generatePlacements"
+        )
+        #expect(
+            APIEndpoint.prescreen.url(for: .prod, baseURLs: override)
+                == "http://localhost:9090/api/prescreen"
+        )
+    }
 }

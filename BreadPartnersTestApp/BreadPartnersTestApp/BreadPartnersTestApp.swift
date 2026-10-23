@@ -15,6 +15,14 @@ import BreadPartners
 
 @main
 struct BreadPartnersTestApp: App {
+    init() {
+        if ProcessInfo.processInfo.arguments.contains(MockServerKeys.resetState) {
+            PreferencesManager.shared.clearAll()
+            HTTPCookieStorage.shared.removeCookies(since: .distantPast)
+            URLCache.shared.removeAllCachedResponses()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
