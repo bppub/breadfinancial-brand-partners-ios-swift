@@ -30,16 +30,16 @@ enum Fixtures {
 
     /// Placeholder placements response returned from `/generatePlacements`.
     /// Replace with a captured response to assert on rendered content.
-    static let PALAPlacement = MockHttpResponse(
+     static let PALAPlacement = MockHttpResponse(
         match: "/generatePlacements",
         jsonString: #"""
                 {
                   "placementContent" : [
                     {
                       "metadata" : {
-                        "placementId" : "e6595a74-659d-431b-88d4-0146a5b4578c",
+                        "placementId" : "placementId",
                         "productType" : "CARD",
-                        "messageId" : "928d351d-06f5-4251-afd1-ed0bd2de4775",
+                        "messageId" : "messageId",
                         "templateId" : "pala-template-bold",
                         "adobe" : null
                       },
@@ -52,7 +52,7 @@ enum Fixtures {
                   ],
                   "placements" : [
                     {
-                      "id" : "e6595a74-659d-431b-88d4-0146a5b4578c",
+                      "id" : "placementId",
                       "content" : {
                         "contentId" : "0"
                       },
@@ -62,7 +62,7 @@ enum Fixtures {
                         "PRICE" : 299900,
                         "ENV" : "STAGE",
                         "STORE_NUMBER" : "8883",
-                        "UPQ_PARAMS" : "storeNumber=8883&location=checkout&checkoutAmount=2999.00&clientKey=653b0802-06a5-468a-aa94-d782a27f3c7b&epPlacementId=e6595a74-659d-431b-88d4-0146a5b4578c&embedded=true",
+                        "UPQ_PARAMS" : "UPQ_PARAMS",
                         "LOCATION" : "checkout",
                         "subchannel" : "",
                         "ALLOW_CHECKOUT" : false,
