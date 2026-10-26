@@ -71,18 +71,3 @@ struct UIKitNavigationConfirmationPresenter: NavigationConfirmationPresenting {
         return top
     }
 }
-
-#if DEBUG
-    @_spi(Testing) public enum NavigationConfirmationTestSupport {
-        @MainActor
-        public static func present(
-            onLeave: @escaping () -> Void,
-            onStay: @escaping () -> Void
-        ) -> Bool {
-            UIKitNavigationConfirmationPresenter().presentNavigationConfirmation(
-                onLeave: onLeave,
-                onStay: onStay
-            )
-        }
-    }
-#endif

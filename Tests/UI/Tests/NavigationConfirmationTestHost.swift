@@ -11,7 +11,7 @@
 //------------------------------------------------------------------------------
 
 import SwiftUI
-@_spi(Testing) import BreadPartners
+@testable import BreadPartners
 
 enum NavigationConfirmationTestHost {
     static let registration = BreadPartnersUITestHostChild(
@@ -26,7 +26,7 @@ private struct NavigationConfirmationTestHostView: View {
     var body: some View {
         VStack(spacing: 16) {
             Button("Show confirmation") {
-                let didPresent = NavigationConfirmationTestSupport.present(
+                let didPresent = UIKitNavigationConfirmationPresenter().presentNavigationConfirmation(
                     onLeave: { result = "Leave selected" },
                     onStay: { result = "Stay selected" }
                 )
