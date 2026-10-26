@@ -37,11 +37,10 @@ final class RegisterPlacements: XCTestCase {
         app.launchFresh()
 
         let generateButton = app.buttons["Generate Placement"]
-        XCTAssertTrue(
-            generateButton.waitForExistence(timeout: 10),
+         XCTAssertTrue(
+            generateButton.exists,
             "Generate Placement button should be visible on launch"
-        )
-
+         )
         generateButton.tap()
 
         let expectedText =
@@ -51,7 +50,7 @@ final class RegisterPlacements: XCTestCase {
         ).firstMatch
 
         XCTAssertTrue(
-            placementText.waitForExistence(timeout: 10),
+            placementText.waitForExistence(timeout: 0.5),
             "Expected rendered PALA placement text to display on screen: \(expectedText)"
         )
 

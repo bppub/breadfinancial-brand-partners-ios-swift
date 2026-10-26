@@ -101,33 +101,45 @@ jobs:
             const workspace = process.env.GITHUB_WORKSPACE;
             const bundlePath = bundle => path.join(workspace, bundle);
             const xcrunJSON = args => JSON.parse(execFileSync("xcrun", args, { encoding: "utf8" }));
-            const readReport = bundle => fs.existsSync(bundlePath(bundle))
-              ? xcrunJSON(["xccov", "view", "--report", "--json", bundlePath(bundle)])
-              : { targets: [] };
-            const readTests = bundle => fs.existsSync(bundlePath(bundle))
-              ? xcrunJSON(["xcresulttool", "get", "test-results", "summary", "--path", bundlePath(bundle), "--compact"])
-              : null;
-            const reports = [
+            const readBundle = (bundle, buildArgs, fallback) => fs.existsSync(bundlePath(bundle))
+              ? xcrunJSON(buildArgs(bundlePath(bundle)))
+              : fallback;
+            const readReport = bundle => readBundle(
+              bundle,
+              file => ["xccov", "view", "--report", "--json", file],
+              { targets: [] }
+            );
+            const readTests = bundle => readBundle(
+              bundle,
+              file => ["xcresulttool", "get", "test-results", "summary", "--path", file, "--compact"],
+              null
+            );
+            const testSupportRoot = path.join(workspace, "Tests", "TestSupport");
+            // Runs without a sourceRoot contribute test results only, not coverage.
+            const runs = [
               {
                 name: "TestSupport",
-                report: readReport("TestSupportResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "TestSupport"),
-                excludedRoot: path.join(workspace, "Tests", "TestSupport", "Tests")
+                bundle: "TestSupportResults.xcresult",
+                sourceRoot: testSupportRoot,
+                excludedRoot: path.join(testSupportRoot, "Tests")
               },
               {
                 name: "Core",
-                report: readReport("CoreTestResults.xcresult"),
+                bundle: "CoreTestResults.xcresult",
                 sourceRoot: path.join(workspace, "Sources", "BreadPartnersCore")
               },
               {
                 name: "iOS",
-                report: readReport("iOSTestResults.xcresult"),
+                bundle: "iOSTestResults.xcresult",
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
-              }
+              },
+              { name: "UI", bundle: "UITestResults.xcresult" }
             ];
+            const coverageRuns = runs.filter(run => run.sourceRoot);
             const filesByPath = new Map();
 
-            for (const { report, sourceRoot, excludedRoot } of reports) {
+            for (const { bundle, sourceRoot, excludedRoot } of coverageRuns) {
+              const report = readReport(bundle);
               const sourcePrefix = `${sourceRoot}${path.sep}`;
               const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
               for (const target of report.targets || []) {
@@ -167,12 +179,7 @@ jobs:
               `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
             );
 
-            const testRuns = [
-              ["TestSupport", "TestSupportResults.xcresult"],
-              ["Core", "CoreTestResults.xcresult"],
-              ["iOS", "iOSTestResults.xcresult"],
-              ["UI", "UITestResults.xcresult"],
-            ].map(([name, bundle]) => ({ name, summary: readTests(bundle) }));
+            const testRuns = runs.map(({ name, bundle }) => ({ name, summary: readTests(bundle) }));
             const testRows = testRuns.map(({ name, summary }) => summary
               ? `| ${name} | ${summary.result} | ${toNumber(summary.passedTests)} | ${toNumber(summary.failedTests)} | ${toNumber(summary.skippedTests)} |`
               : `| ${name} | Not run | – | – | – |`);
@@ -188,7 +195,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Coverage Runs Combined | TestSupport + Core + iOS |",
+              `| Coverage Runs Combined | ${coverageRuns.map(run => run.name).join(" + ")} |`,
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -203,7 +210,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
+              `Source: ${runs.map(run => `\`${run.bundle}\``).join(" + ")}`
             ].join("\n");
 
             await github.rest.checks.create({
