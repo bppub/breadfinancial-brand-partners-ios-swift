@@ -73,7 +73,13 @@ struct ChallengeControllerTests {
             return
         }
 
-        closeButton.sendActions(for: .touchUpInside)
+        let closeButtonActions = closeButton.actions(
+            forTarget: challengeController,
+            forControlEvent: .touchUpInside
+        )
+        let closeButtonSelector = NSStringFromSelector(#selector(ChallengeController.closeButtonTapped))
+        #expect(closeButtonActions?.contains(closeButtonSelector) == true)
+        challengeController.closeButtonTapped()
 
         guard case .popupClosed? = receivedEvent else {
             Issue.record("Expected the close button to publish popupClosed")

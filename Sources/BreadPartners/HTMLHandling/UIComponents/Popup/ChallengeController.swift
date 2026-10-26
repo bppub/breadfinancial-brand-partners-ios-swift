@@ -114,7 +114,7 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         webView.loadHTMLString(htmlContent, baseURL: URL(string: originalURL))
     }
 
-    @objc private func closeButtonTapped() {
+    @objc func closeButtonTapped() {
         callback?(.popupClosed)
         dismiss(animated: true)
     }
