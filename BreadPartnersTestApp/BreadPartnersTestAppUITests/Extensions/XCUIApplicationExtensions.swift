@@ -92,27 +92,19 @@ extension XCUIApplication {
         return false
     }
 
-    /// Scrolls the field above the keyboard and taps it until it actually holds keyboard focus.
-    private func focus(_ field: XCUIElement, maxScrolls: Int, attempts: Int = 3) -> Bool {
-        for _ in 0..<attempts {
-            var scrolls = 0
-            while !isReachableAboveKeyboard(field) && scrolls < maxScrolls {
-                scrollContent(up: true)
-                scrolls += 1
-            }
-            guard isReachableAboveKeyboard(field) else { return false }
-
-            // Right edge puts the caret at the end so backspaces clear the whole value.
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
-
-            let deadline = Date().addingTimeInterval(2)
-            while Date() < deadline {
-                // Private KVC key; the public API has no focus query.
-                if field.value(forKey: "hasKeyboardFocus") as? Bool == true { return true }
-                usleep(100_000)
-            }
+    private func focus(_ field: XCUIElement, maxScrolls: Int) -> Bool {
+        var scrolls = 0
+        while !field.isHittable && scrolls < maxScrolls {
+        scrollContent(up: true)
+            scrolls += 1
         }
-        return false
+
+        guard field.isHittable else { return false }
+
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
+
+        let keyboard = XCUIApplication().keyboards.firstMatch
+        return keyboard.waitForExistence(timeout: 2)
     }
 
     private func waitForKeyboardToDismiss(timeout: TimeInterval = 2) {
