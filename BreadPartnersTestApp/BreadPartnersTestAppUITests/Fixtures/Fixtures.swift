@@ -38,9 +38,9 @@ enum Fixtures {
                     {
                       "metadata" : {
                         "placementId" : "placementId",
-                        "productType" : "CARD",
+                        "productType" : "productType",
                         "messageId" : "messageId",
-                        "templateId" : "pala-template-bold",
+                        "templateId" : "templateId",
                         "adobe" : null
                       },
                       "id" : "0",
@@ -59,9 +59,9 @@ enum Fixtures {
                       "domId" : "",
                       "renderContext" : {
                         "channel" : "",
-                        "PRICE" : 299900,
+                        "PRICE" : 999999,
                         "ENV" : "STAGE",
-                        "STORE_NUMBER" : "8883",
+                        "STORE_NUMBER" : "0000",
                         "UPQ_PARAMS" : "UPQ_PARAMS",
                         "LOCATION" : "checkout",
                         "subchannel" : "",
