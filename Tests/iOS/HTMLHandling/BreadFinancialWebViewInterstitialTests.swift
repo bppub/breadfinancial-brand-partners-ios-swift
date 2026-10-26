@@ -12,6 +12,7 @@
 
 import Foundation
 import Testing
+import WebKit
 
 @testable import BreadPartners
 
@@ -141,6 +142,97 @@ struct BreadFinancialWebViewInterstitialTests {
     }
 
     @Test
+    func restartNavigationLeaveClearsStateAndLoadsRequestedURL() throws {
+        let presenter = NavigationConfirmationPresenterSpy()
+        let interstitial = makeInterstitial(events: EventCapture(), presenter: presenter)
+        let requestURL = try #require(URL(string: "https://example.test/leave"))
+        var policies: [WKNavigationActionPolicy] = []
+        var loadedURLs: [URL] = []
+        interstitial.pendingLogOutOrRestart = true
+
+        interstitial.handleRestartNavigation(
+            to: requestURL,
+            load: { loadedURLs.append($0) },
+            decisionHandler: { policies.append($0) }
+        )
+
+        #expect(policies == [.cancel])
+        #expect(interstitial.pendingNavigationURL == requestURL)
+        #expect(interstitial.pendingLogOutOrRestart)
+        #expect(presenter.presentCount == 1)
+        presenter.chooseLeave()
+
+        #expect(interstitial.pendingNavigationURL == nil)
+        #expect(!interstitial.pendingLogOutOrRestart)
+        #expect(loadedURLs == [requestURL])
+    }
+
+    @Test
+    func restartNavigationStayClearsStateWithoutLoading() throws {
+        let presenter = NavigationConfirmationPresenterSpy()
+        let interstitial = makeInterstitial(events: EventCapture(), presenter: presenter)
+        let requestURL = try #require(URL(string: "https://example.test/stay"))
+        var loadedURLs: [URL] = []
+        interstitial.pendingLogOutOrRestart = true
+
+        interstitial.handleRestartNavigation(
+            to: requestURL,
+            load: { loadedURLs.append($0) },
+            decisionHandler: { _ in }
+        )
+        presenter.chooseStay()
+
+        #expect(interstitial.pendingNavigationURL == nil)
+        #expect(!interstitial.pendingLogOutOrRestart)
+        #expect(loadedURLs.isEmpty)
+    }
+
+    @Test
+    func restartNavigationWithoutPresenterContinuesAndClearsState() throws {
+        let presenter = NavigationConfirmationPresenterSpy(isAvailable: false)
+        let interstitial = makeInterstitial(events: EventCapture(), presenter: presenter)
+        let requestURL = try #require(URL(string: "https://example.test/no-presenter"))
+        var policies: [WKNavigationActionPolicy] = []
+        var loadedURLs: [URL] = []
+        interstitial.pendingLogOutOrRestart = true
+
+        interstitial.handleRestartNavigation(
+            to: requestURL,
+            load: { loadedURLs.append($0) },
+            decisionHandler: { policies.append($0) }
+        )
+
+        #expect(policies == [.cancel])
+        #expect(presenter.presentCount == 1)
+        #expect(interstitial.pendingNavigationURL == nil)
+        #expect(!interstitial.pendingLogOutOrRestart)
+        #expect(loadedURLs == [requestURL])
+    }
+
+    @Test
+    func matchingPendingNavigationIsAllowedAndPreservesRestartFlag() throws {
+        let presenter = NavigationConfirmationPresenterSpy()
+        let interstitial = makeInterstitial(events: EventCapture(), presenter: presenter)
+        let requestURL = try #require(URL(string: "https://example.test/confirmed"))
+        var policies: [WKNavigationActionPolicy] = []
+        var loadedURLs: [URL] = []
+        interstitial.pendingNavigationURL = requestURL
+        interstitial.pendingLogOutOrRestart = true
+
+        interstitial.handleRestartNavigation(
+            to: requestURL,
+            load: { loadedURLs.append($0) },
+            decisionHandler: { policies.append($0) }
+        )
+
+        #expect(policies == [.allow])
+        #expect(interstitial.pendingNavigationURL == nil)
+        #expect(interstitial.pendingLogOutOrRestart)
+        #expect(presenter.presentCount == 0)
+        #expect(loadedURLs.isEmpty)
+    }
+
+    @Test
     func malformedUnknownAndPayloadlessMessagesEmitNoEvents() {
         let events = EventCapture()
         let interstitial = makeInterstitial(events: events)
@@ -235,12 +327,14 @@ struct BreadFinancialWebViewInterstitialTests {
     private func makeInterstitial(
         events: EventCapture,
         logger: Logger = Logger(),
-        openExternalURL: @escaping (URL) -> Void = { _ in }
+        openExternalURL: @escaping (URL) -> Void = { _ in },
+        presenter: (any NavigationConfirmationPresenting)? = nil
     ) -> BreadFinancialWebViewInterstitial {
         BreadFinancialWebViewInterstitial(
             logger: logger,
             callback: events.record,
-            openExternalURL: openExternalURL
+            openExternalURL: openExternalURL,
+            navigationConfirmationPresenter: presenter
         )
     }
 
@@ -266,5 +360,38 @@ private final class AppRestartListenerSpy: AppRestartListener {
 
     func onAppRestartClicked(url: String) {
         urls.append(url)
+    }
+}
+
+@MainActor
+private final class NavigationConfirmationPresenterSpy: NavigationConfirmationPresenting {
+    private let isAvailable: Bool
+    private(set) var presentCount = 0
+    private var onLeave: (() -> Void)?
+    private var onStay: (() -> Void)?
+
+    init(isAvailable: Bool = true) {
+        self.isAvailable = isAvailable
+    }
+
+    func presentNavigationConfirmation(
+        onLeave: @escaping () -> Void,
+        onStay: @escaping () -> Void
+    ) -> Bool {
+        presentCount += 1
+        guard isAvailable else {
+            return false
+        }
+        self.onLeave = onLeave
+        self.onStay = onStay
+        return true
+    }
+
+    func chooseLeave() {
+        onLeave?()
+    }
+
+    func chooseStay() {
+        onStay?()
     }
 }
