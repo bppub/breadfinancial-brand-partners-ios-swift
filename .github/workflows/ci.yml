@@ -133,7 +133,7 @@ jobs:
                 bundle: "iOSTestResults.xcresult",
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
               },
-              { name: "UI", bundle: "UITestResults.xcresult" }
+              { name: "Integration", bundle: "UITestResults.xcresult" }
             ];
             const coverageRuns = runs.filter(run => run.sourceRoot);
             const filesByPath = new Map();
