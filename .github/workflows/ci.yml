@@ -120,7 +120,7 @@ jobs:
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
               },
               {
-                name: "UITests",
+                name: "Integration",
                 report: readReport("UITestResults.xcresult"),
                 sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer"),
                 excludedRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer", "Tests")
