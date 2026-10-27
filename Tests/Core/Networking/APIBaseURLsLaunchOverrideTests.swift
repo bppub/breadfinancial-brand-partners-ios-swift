@@ -20,7 +20,6 @@ struct APIBaseURLsLaunchOverrideTests {
     func returnsNilWhenKeyIsMissing() {
         #expect(APIBaseURLs.launchOverride(environment: [:]) == nil)
     }
-    
     #if DEBUG
         @Test(arguments: ["http://localhost:8080", "http://127.0.0.1:8080/"])
         func acceptsLoopbackURLs(value: String) {
