@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		700000000000000000000001 /* BreadPartnersUITestHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000005 /* BreadPartnersUITestHostApp.swift */; };
-		700000000000000000000002 /* BreadPartnersUITestHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000006 /* BreadPartnersUITestHostView.swift */; };
+		700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000005 /* BreadPartnersUITestHost.swift */; };
 		700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */; };
 		700000000000000000000004 /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 		700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000025 /* NavigationConfirmationTestHost.swift */; };
@@ -25,8 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		700000000000000000000005 /* BreadPartnersUITestHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestHostApp.swift; sourceTree = "<group>"; };
-		700000000000000000000006 /* BreadPartnersUITestHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestHostView.swift; sourceTree = "<group>"; };
+		700000000000000000000005 /* BreadPartnersUITestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestHost.swift; sourceTree = "<group>"; };
 		700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationConfirmationPresenterUITests.swift; sourceTree = "<group>"; };
 		700000000000000000000008 /* BreadPartnersUITestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPartnersUITestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		700000000000000000000009 /* BreadPartnersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,22 +50,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		70000000000000000000000A /* Sources */ = {
+		70000000000000000000000B /* HTMLHandling */ = {
 			isa = PBXGroup;
 			children = (
-				700000000000000000000005 /* BreadPartnersUITestHostApp.swift */,
-				700000000000000000000006 /* BreadPartnersUITestHostView.swift */,
+				700000000000000000000026 /* UIComponents */,
 			);
-			path = Sources;
+			path = HTMLHandling;
 			sourceTree = "<group>";
 		};
-		70000000000000000000000B /* UI Tests */ = {
+		700000000000000000000026 /* UIComponents */ = {
 			isa = PBXGroup;
 			children = (
 				700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */,
 				700000000000000000000025 /* NavigationConfirmationTestHost.swift */,
 			);
-			path = Tests;
+			path = UIComponents;
+			sourceTree = "<group>";
+		};
+		700000000000000000000027 /* TestHelpers */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000005 /* BreadPartnersUITestHost.swift */,
+			);
+			path = TestHelpers;
 			sourceTree = "<group>";
 		};
 		70000000000000000000000C /* Products */ = {
@@ -82,8 +87,8 @@
 		70000000000000000000000D = {
 			isa = PBXGroup;
 			children = (
-				70000000000000000000000A /* Sources */,
-				70000000000000000000000B /* UI Tests */,
+				70000000000000000000000B /* HTMLHandling */,
+				700000000000000000000027 /* TestHelpers */,
 				70000000000000000000000C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -182,8 +187,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				700000000000000000000001 /* BreadPartnersUITestHostApp.swift in Sources */,
-				700000000000000000000002 /* BreadPartnersUITestHostView.swift in Sources */,
+				700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */,
 				700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

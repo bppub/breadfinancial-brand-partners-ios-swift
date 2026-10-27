@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          BreadPartnersUITestHostView.swift
+//  File:          BreadPartnersUITestHost.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
@@ -11,6 +11,17 @@
 //------------------------------------------------------------------------------
 
 import SwiftUI
+
+@main
+struct BreadPartnersUITestHostApp: App {
+    var body: some Scene {
+        WindowGroup {
+            BreadPartnersUITestHostView(children: [
+                NavigationConfirmationTestHost.registration
+            ])
+        }
+    }
+}
 
 struct BreadPartnersUITestHostChild {
     let identifier: String

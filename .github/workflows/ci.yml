@@ -107,7 +107,7 @@ jobs:
               {
                 name: "UI",
                 report: readReport("UITestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "UI", "Tests")
+                sourceRoot: path.join(workspace, "Tests", "UI")
               }
             ];
             const filesByPath = new Map();
