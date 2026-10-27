@@ -12,6 +12,7 @@
 
 import XCTest
 
+/// Tests for `MockHttpResponse`: the defaults it applies and that custom values are kept.
 final class MockHttpResponseTests: XCTestCase {
     func testDataInitializerDefaultsToOKAndJSONContentType() {
         let body = Data("{}".utf8)

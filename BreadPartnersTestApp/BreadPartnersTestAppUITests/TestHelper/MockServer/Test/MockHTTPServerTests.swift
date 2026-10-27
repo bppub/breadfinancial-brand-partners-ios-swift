@@ -13,10 +13,14 @@
 import Network
 import XCTest
 
+/// Tests for `MockHTTPServer`. They start a real server on a free local port and call it with
+/// `URLSession`. Nothing here launches the app or touches the network beyond this machine.
 @MainActor
 final class MockHTTPServerTests: XCTestCase {
+    /// Every server a test starts, so `tearDown` can stop them even if the test fails.
     private var servers: [MockHTTPServer] = []
 
+    /// Ephemeral so no cookies or cache carry over between tests; short timeout so a hung server fails fast.
     private let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 5
@@ -242,6 +246,7 @@ final class MockHTTPServerTests: XCTestCase {
 
     // MARK: - Helpers
 
+    /// Starts a server with the given stubs and remembers it for cleanup in `tearDown`.
     private func startServer(
         stubs: [MockHttpResponse]
     ) async throws -> (server: MockHTTPServer, baseURL: URL) {
@@ -250,6 +255,8 @@ final class MockHTTPServerTests: XCTestCase {
         return (server, try await server.start())
     }
 
+    /// Sends one request to the server and returns the body and HTTP response.
+    /// - Parameter path: Path plus optional query, appended to `baseURL`, e.g. `"/config?x=1"`.
     private func send(
         _ path: String,
         method: String = "GET",
@@ -265,6 +272,7 @@ final class MockHTTPServerTests: XCTestCase {
     }
 }
 
+/// Guards the strings the UI tests and the test app must agree on.
 final class MockServerKeysTests: XCTestCase {
     func testBaseURLKeyMatchesTheSDKLaunchOverrideKey() {
         XCTAssertEqual(MockServerKeys.baseURLKey, "BREAD_PARTNERS_MOCK_BASE_URL")
