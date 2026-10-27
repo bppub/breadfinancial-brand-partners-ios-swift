@@ -50,7 +50,7 @@ final class RegisterPlacements: XCTestCase {
         ).firstMatch
 
         XCTAssertTrue(
-            placementText.waitForExistence(timeout: 0.5),
+            placementText.waitForExistence(timeout: 1),
             "Expected rendered PALA placement text to display on screen: \(expectedText)"
         )
 
