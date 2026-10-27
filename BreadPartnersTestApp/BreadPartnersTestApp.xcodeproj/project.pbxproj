@@ -61,8 +61,8 @@
 		4E73F004308BA5A4000F2E23 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				TestHelpers/MockServer/MockHttpResponse.swift,
-				TestHelpers/MockServer/MockHTTPServer.swift,
+				TestSupport/MockServer/MockHttpResponse.swift,
+				TestSupport/MockServer/MockHTTPServer.swift,
 			);
 			target = 1000000000000000000000A3 /* BreadPartnersTestApp */;
 		};
