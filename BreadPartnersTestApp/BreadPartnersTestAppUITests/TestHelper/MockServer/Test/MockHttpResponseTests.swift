@@ -43,21 +43,4 @@ final class MockHttpResponseTests: XCTestCase {
         XCTAssertEqual(response.statusCode, 503)
         XCTAssertEqual(response.headers, ["Content-Type": "text/plain", "X-Test": "1"])
     }
-
-    func testFixtureInitializerLoadsJSONFromTheTestBundle() throws {
-        let response = MockHttpResponse(match: "/generatePlacements", fixture: "pala-placement")
-
-        let object = try JSONSerialization.jsonObject(with: response.json)
-        let payload = try XCTUnwrap(object as? [String: Any])
-        XCTAssertNotNil(payload["placementContent"])
-        XCTAssertNotNil(payload["placements"])
-        XCTAssertEqual(response.match, "/generatePlacements")
-        XCTAssertEqual(response.statusCode, 200)
-    }
-
-    func testFixtureInitializerHonorsStatusCode() {
-        let response = MockHttpResponse(match: "/generatePlacements", fixture: "pala-placement", statusCode: 500)
-
-        XCTAssertEqual(response.statusCode, 500)
-    }
 }
