@@ -74,19 +74,6 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      # Coverage is filtered to TestSupport sources when published, so it can't overlap the iOS run's Sources/BreadPartners.
-      - name: Run BreadPartnersTestApp UI Tests
-        run: |
-          xcodebuild test \
-            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
-            -scheme BreadPartnersTestAppUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -parallel-testing-enabled NO \
-            -resultBundlePath UITestResults.xcresult \
-            -enableCodeCoverage YES \
-            CODE_SIGNING_ALLOWED=NO
-
        # No coverage here: it would overlap the iOS run's Sources/BreadPartners coverage.
       - name: Run BreadPartnersTestApp UI Tests
         run: |
