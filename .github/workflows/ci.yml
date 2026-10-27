@@ -87,69 +87,42 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      # Runs after failures too so the PR shows which test run broke.
       - name: Publish combined coverage check run
-        if: ${{ !cancelled() }}
         uses: actions/github-script@v8
         with:
           script: |
             const { execFileSync } = require("node:child_process");
-            const fs = require("node:fs");
             const path = require("node:path");
 
-            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
             const toNumber = value => Number(value || 0);
+            const readReport = bundle => JSON.parse(execFileSync(
+              "xcrun",
+              ["xccov", "view", "--report", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
+              { encoding: "utf8" }
+            ));
             const workspace = process.env.GITHUB_WORKSPACE;
-            const bundlePath = bundle => path.join(workspace, bundle);
-            const xcrunJSON = args => JSON.parse(execFileSync("xcrun", args, { encoding: "utf8" }));
-            const readBundle = (bundle, buildArgs, fallback) => fs.existsSync(bundlePath(bundle))
-              ? xcrunJSON(buildArgs(bundlePath(bundle)))
-              : fallback;
-            const readReport = bundle => readBundle(
-              bundle,
-              file => ["xccov", "view", "--report", "--json", file],
-              { targets: [] }
-            );
-            const readTests = bundle => readBundle(
-              bundle,
-              file => ["xcresulttool", "get", "test-results", "summary", "--path", file, "--compact"],
-              null
-            );
-            const testSupportRoot = path.join(workspace, "Tests", "TestSupport");
-            const mockServerRoot = path.join(
-              workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer"
-            );
-            // Runs without a sourceRoot contribute test results only, not coverage.
-            const runs = [
+            const reports = [
               {
                 name: "TestSupport",
-                bundle: "TestSupportResults.xcresult",
-                sourceRoot: testSupportRoot,
-                excludedRoot: path.join(testSupportRoot, "Tests")
+                report: readReport("TestSupportResults.xcresult"),
+                sourceRoot: path.join(workspace, "Tests", "TestSupport"),
+                excludedRoot: path.join(workspace, "Tests", "TestSupport", "Tests")
               },
               {
                 name: "Core",
-                bundle: "CoreTestResults.xcresult",
+                report: readReport("CoreTestResults.xcresult"),
                 sourceRoot: path.join(workspace, "Sources", "BreadPartnersCore")
               },
               {
                 name: "iOS",
-                bundle: "iOSTestResults.xcresult",
+                report: readReport("iOSTestResults.xcresult"),
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
-              },
-              {
-                name: "Integration",
-                bundle: "UITestResults.xcresult",
-                sourceRoot: mockServerRoot,
-                excludedRoot: path.join(mockServerRoot, "Tests")
               }
             ];
-            const coverageRuns = runs.filter(run => run.sourceRoot);
             const filesByPath = new Map();
-            const ownerByPath = new Map();
 
-            for (const { bundle, sourceRoot, excludedRoot } of coverageRuns) {
-              const report = readReport(bundle);
+            for (const { report, sourceRoot, excludedRoot } of reports) {
               const sourcePrefix = `${sourceRoot}${path.sep}`;
               const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
               for (const target of report.targets || []) {
@@ -159,12 +132,9 @@ jobs:
                   if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
                   const relativePath = path.relative(sourceRoot, filePath);
 
-                  if (filesByPath.has(filePath) && ownerByPath.get(filePath) !== bundle) {
+                  if (filesByPath.has(filePath)) {
                     throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
                   }
-                  // A file compiled into several targets of one run is reported once per target.
-                  if (filesByPath.get(filePath)?.coveredLines >= toNumber(file.coveredLines)) continue;
-                  ownerByPath.set(filePath, bundle);
                   filesByPath.set(filePath, {
                     name: relativePath,
                     coveredLines: toNumber(file.coveredLines),
@@ -182,48 +152,38 @@ jobs:
               }))
               .sort((left, right) => left.lineCoverage - right.lineCoverage);
 
+            if (files.length === 0) {
+              const targetNames = reports
+                .flatMap(({ report }) => report.targets || [])
+                .map(target => target.name)
+                .join(", ");
+              throw new Error(`No package source files found. Coverage targets: ${targetNames}`);
+            }
+
             const percent = value => `${(value * 100).toFixed(2)}%`;
             const coveredLines = files.reduce((total, file) => total + file.coveredLines, 0);
             const executableLines = files.reduce((total, file) => total + file.executableLines, 0);
-            const hasCoverage = executableLines > 0;
-            const lineCoverage = hasCoverage ? coveredLines / executableLines : 0;
-            const coverageLabel = hasCoverage ? percent(lineCoverage) : "n/a";
+            const lineCoverage = coveredLines / executableLines;
             const rows = files.map(file =>
               `| ${escapeCell(file.name)} | ${percent(file.lineCoverage)} | ${file.coveredLines} / ${file.executableLines} |`
             );
-
-            const testRuns = runs.map(({ name, bundle }) => ({ name, summary: readTests(bundle) }));
-            const testRows = testRuns.map(({ name, summary }) => summary
-              ? `| ${name} | ${summary.result} | ${toNumber(summary.passedTests)} | ${toNumber(summary.failedTests)} | ${toNumber(summary.skippedTests)} |`
-              : `| ${name} | Not run | – | – | – |`);
-            const failures = testRuns.flatMap(({ name, summary }) =>
-              (summary?.testFailures ?? []).map(failure =>
-                `- **${name}** \`${escapeCell(failure.testIdentifierString ?? failure.testName)}\`: ${escapeCell(failure.failureText)}`));
-            const anyFailed = testRuns.some(({ summary }) => !summary || toNumber(summary.failedTests) > 0);
-
             const text = [
               "| Metric | Value |",
               "| --- | ---: |",
-              `| Line Coverage | **${coverageLabel}** |`,
+              `| Line Coverage | **${percent(lineCoverage)}** |`,
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              `| Coverage Runs Combined | ${coverageRuns.map(run => run.name).join(" + ")} |`,
+              "| Test Runs Combined | TestSupport + Core + iOS |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
-              "",
-              "### Test Results",
-              "| Run | Result | Passed | Failed | Skipped |",
-              "| --- | --- | ---: | ---: | ---: |",
-              ...testRows,
-              ...(failures.length ? ["", "#### Failures", ...failures] : []),
               "",
               "### Lowest Coverage Files",
               "| File | Coverage | Covered / Executable |",
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              `Source: ${runs.map(run => `\`${run.bundle}\``).join(" + ")}`
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
@@ -232,10 +192,10 @@ jobs:
               name: "Coverage (Combined)",
               head_sha: context.payload.pull_request.head.sha,
               status: "completed",
-              conclusion: anyFailed ? "failure" : "success",
+              conclusion: "success",
               output: {
-                title: anyFailed ? "Tests failed" : "Combined Coverage",
-                summary: `Line coverage: **${coverageLabel}**`,
+                title: "Combined Coverage",
+                summary: `Line coverage: **${percent(lineCoverage)}**`,
                 text
               }
             });
