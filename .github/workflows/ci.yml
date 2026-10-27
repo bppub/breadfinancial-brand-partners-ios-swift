@@ -74,7 +74,7 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      # Coverage is filtered to the MockServer sources when published, so it can't overlap the iOS run's Sources/BreadPartners.
+      # Coverage is filtered to the BreadPartnersTestAppUITests sources when published, so it can't overlap the iOS run's Sources/BreadPartners.
       - name: Run BreadPartnersTestApp UI Tests
         run: |
           xcodebuild test \
@@ -83,7 +83,7 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -parallel-testing-enabled NO \
-            -resultBundlePath UITestResults.xcresult \
+            -resultBundlePath IntegrationTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
@@ -121,14 +121,13 @@ jobs:
               },
               {
                 name: "Integration",
-                report: readReport("UITestResults.xcresult"),
-                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer"),
-                excludedRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer", "Tests")
+                report: readReport("IntegrationTestResults.xcresult"),
+                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests")
               }
             ];
             const filesByPath = new Map();
 
-            for (const { report, sourceRoot, excludedRoot } of reports) {
+            for (const { name: runName, report, sourceRoot, excludedRoot } of reports) {
               const sourcePrefix = `${sourceRoot}${path.sep}`;
               const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
               for (const target of report.targets || []) {
@@ -138,12 +137,19 @@ jobs:
                   if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
                   const relativePath = path.relative(sourceRoot, filePath);
 
-                  if (filesByPath.has(filePath)) {
+                  const coveredLines = toNumber(file.coveredLines);
+                  const existing = filesByPath.get(filePath);
+
+                  if (existing && existing.runName !== runName) {
                     throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
                   }
+                  // One run can list a file under several targets (e.g. MockServer in the app and the UI tests); keep the best-covered entry.
+                  if (existing && existing.coveredLines >= coveredLines) continue;
+
                   filesByPath.set(filePath, {
                     name: relativePath,
-                    coveredLines: toNumber(file.coveredLines),
+                    runName,
+                    coveredLines,
                     executableLines: toNumber(file.executableLines)
                   });
                 }
@@ -180,7 +186,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS + UITests |",
+              "| Test Runs Combined | TestSupport + Core + iOS + Integration |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -189,7 +195,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `IntegrationTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
