@@ -87,6 +87,18 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
+       # No coverage here: it would overlap the iOS run's Sources/BreadPartners coverage.
+      - name: Run BreadPartnersTestApp UI Tests
+        run: |
+          xcodebuild test \
+            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
+            -scheme BreadPartnersTestAppUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
+            -parallel-testing-enabled NO \
+            -resultBundlePath UITestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
       # Runs after failures too so the PR shows which test run broke.
       - name: Publish combined coverage check run
         if: ${{ !cancelled() }}
@@ -116,9 +128,6 @@ jobs:
               null
             );
             const testSupportRoot = path.join(workspace, "Tests", "TestSupport");
-            const uiTestSupportRoot = path.join(
-              workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestSupport"
-            );
             // Runs without a sourceRoot contribute test results only, not coverage.
             const runs = [
               {
@@ -137,16 +146,10 @@ jobs:
                 bundle: "iOSTestResults.xcresult",
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
               },
-              {
-                name: "Integration",
-                bundle: "UITestResults.xcresult",
-                sourceRoot: uiTestSupportRoot,
-                excludedRoot: path.join(uiTestSupportRoot, "Test")
-              }
+              { name: "Integration", bundle: "UITestResults.xcresult" }
             ];
             const coverageRuns = runs.filter(run => run.sourceRoot);
             const filesByPath = new Map();
-            const ownerByPath = new Map();
 
             for (const { bundle, sourceRoot, excludedRoot } of coverageRuns) {
               const report = readReport(bundle);
@@ -159,12 +162,9 @@ jobs:
                   if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
                   const relativePath = path.relative(sourceRoot, filePath);
 
-                  if (filesByPath.has(filePath) && ownerByPath.get(filePath) !== bundle) {
+                  if (filesByPath.has(filePath)) {
                     throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
                   }
-                  // A file compiled into several targets of one run is reported once per target.
-                  if (filesByPath.get(filePath)?.coveredLines >= toNumber(file.coveredLines)) continue;
-                  ownerByPath.set(filePath, bundle);
                   filesByPath.set(filePath, {
                     name: relativePath,
                     coveredLines: toNumber(file.coveredLines),
