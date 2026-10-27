@@ -127,29 +127,24 @@ jobs:
             ];
             const filesByPath = new Map();
 
-            for (const { name: runName, report, sourceRoot, excludedRoot } of reports) {
+            for (const { report, sourceRoot, excludedRoot } of reports) {
               const sourcePrefix = `${sourceRoot}${path.sep}`;
               const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
               for (const target of report.targets || []) {
+                // The test app also compiles some UI test files; count them once, from the test bundle.
+                if (target.name.endsWith(".app")) continue;
                 for (const file of target.files || []) {
                   const filePath = String(file.path || "");
                   if (!filePath.startsWith(sourcePrefix)) continue;
                   if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
                   const relativePath = path.relative(sourceRoot, filePath);
 
-                  const coveredLines = toNumber(file.coveredLines);
-                  const existing = filesByPath.get(filePath);
-
-                  if (existing && existing.runName !== runName) {
+                  if (filesByPath.has(filePath)) {
                     throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
                   }
-                  // One run can list a file under several targets (e.g. MockServer in the app and the UI tests); keep the best-covered entry.
-                  if (existing && existing.coveredLines >= coveredLines) continue;
-
                   filesByPath.set(filePath, {
                     name: relativePath,
-                    runName,
-                    coveredLines,
+                    coveredLines: toNumber(file.coveredLines),
                     executableLines: toNumber(file.executableLines)
                   });
                 }
