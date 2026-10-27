@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          XCUIApplicationExtensions.swift
+//  File:          XCUIApplication+DisclosureSection.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
@@ -14,14 +14,6 @@ import Foundation
 import XCTest
 
 extension XCUIApplication {
-    /// Launches with all persisted test-app data wiped so tests don't share state.
-    func launchFresh() {
-        if !launchArguments.contains(MockServerKeys.resetState) {
-            launchArguments.append(MockServerKeys.resetState)
-        }
-        launch()
-    }
-
     /// Expands the section, types each value into the text field with that placeholder title, then collapses it.
     /// Pass pairs in on-screen order; pickers and toggles are not handled.
     func fillDisclosureSection(
