@@ -49,7 +49,6 @@ import Testing
         #expect(input.cookies == "visid=abc")
         #expect(input.isLoggingEnabled)
 
-
         input.log("message")
 
         #expect(log.recordedMessages == ["message"])
