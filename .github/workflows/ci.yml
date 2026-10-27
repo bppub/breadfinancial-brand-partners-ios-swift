@@ -212,6 +212,69 @@ jobs:
               }
             });
 
+      # Runs after test failures too, as long as the UI test step produced a result bundle.
+      - name: Publish integration test results check run
+        if: ${{ !cancelled() && hashFiles('IntegrationTestResults.xcresult/**') != '' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { execFileSync } = require("node:child_process");
+            const path = require("node:path");
+
+            const bundle = path.join(process.env.GITHUB_WORKSPACE, "IntegrationTestResults.xcresult");
+            const readResults = kind => JSON.parse(execFileSync(
+              "xcrun",
+              ["xcresulttool", "get", "test-results", kind, "--path", bundle, "--compact"],
+              { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }
+            ));
+            const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+            const collectTestCases = nodes => (nodes || []).flatMap(node =>
+              node.nodeType === "Test Case" ? [node] : collectTestCases(node.children)
+            );
+
+            const summary = readResults("summary");
+            const testCases = collectTestCases(readResults("tests").testNodes)
+              .sort((left, right) => (left.result === "Passed") - (right.result === "Passed"));
+
+            const rows = testCases.map(test => {
+              const failures = (test.children || [])
+                .filter(child => child.nodeType === "Failure Message")
+                .map(child => child.name)
+                .join(" ");
+              return `| ${escapeCell(test.nodeIdentifier ?? test.name)} | ${test.result} | ${escapeCell(test.duration)} | ${escapeCell(failures)} |`;
+            });
+            const text = [
+              "| Metric | Value |",
+              "| --- | ---: |",
+              `| Result | **${summary.result}** |`,
+              `| Total Tests | ${summary.totalTestCount} |`,
+              `| Passed | ${summary.passedTests} |`,
+              `| Failed | ${summary.failedTests} |`,
+              `| Skipped | ${summary.skippedTests} |`,
+              `| Workflow Run | ${context.runId} |`,
+              "",
+              "### Tests",
+              "| Test | Result | Duration | Failure |",
+              "| --- | --- | ---: | --- |",
+              ...rows,
+              "",
+              "Source: `IntegrationTestResults.xcresult`"
+            ].join("\n");
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: "Integration Test Results",
+              head_sha: context.payload.pull_request.head.sha,
+              status: "completed",
+              conclusion: summary.result === "Passed" ? "success" : "failure",
+              output: {
+                title: summary.title,
+                summary: `${summary.passedTests} passed, ${summary.failedTests} failed, ${summary.skippedTests} skipped`,
+                text
+              }
+            });
+
       - name: Verify Build for iOS
         run: |
           xcodebuild \

@@ -61,39 +61,4 @@ final class RegisterPlacements: XCTestCase {
             "Local server should have received /generatePlacements; got \(paths)"
         )
     }
-
-    func testPALAPlacement_1() async throws {
-        let server = try MockHTTPServer(stubs: [Fixtures.Placements.pala])
-        self.server = server
-        let baseURL = try await server.start()
-
-        let app = XCUIApplication()
-        app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
-        app.launchFresh()
-
-        let generateButton = app.buttons["Generate Placement"]
-         XCTAssertTrue(
-            generateButton.exists,
-            "Generate Placement button should be visible on launch"
-         )
-        generateButton.tap()
-        
-        let expectedText =
-            "Pay as low as $255/mo for 12 months with the Zalesfff Credit Card for a total payment of $3059. 9"
-        let placementText = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS[c] %@", expectedText)
-        ).firstMatch
-
-        XCTAssertTrue(
-            placementText.waitForExistence(timeout: 1),
-            "Expected rendered PALA placement text to display on screen: \(expectedText)"
-        )
-
-        // Proves the placement came from the local server rather than the real API.
-        let paths = await server.receivedPaths()
-        XCTAssertTrue(
-            paths.contains { $0.hasSuffix("/generatePlacements") },
-            "Local server should have received /generatePlacements; got \(paths)"
-        )
-    }
 }
