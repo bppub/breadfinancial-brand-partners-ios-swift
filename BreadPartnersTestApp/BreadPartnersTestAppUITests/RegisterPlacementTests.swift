@@ -44,7 +44,7 @@ final class RegisterPlacements: XCTestCase {
         generateButton.tap()
 
         let expectedText =
-            "Pay as low as $255/mo for 12 months with the Zales Credit Card for a total payment of $3059."
+            "Pay as low as $255/mo for 12 months with the Zales Credit Card for a total payment of $3059. 9"
         let placementText = app.staticTexts.containing(
             NSPredicate(format: "label CONTAINS[c] %@", expectedText)
         ).firstMatch

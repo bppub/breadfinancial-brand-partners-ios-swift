@@ -46,7 +46,7 @@ enum Fixtures {
                       "id" : "0",
                       "contentType" : "SSRTextPlacementContent",
                       "contentData" : {
-                        "htmlContent" : "<div class=\"ep-text-placement\"data-action-type=\"NO_ACTION\" data-action-target=\"placement-primary-cta\"> Pay as low as <strong><span class=\"alliance-as-low-as-amount\">$255\/mo<\/span> for 12 months<\/strong> with the Zales Credit Card for a total payment of $3059.<sup>♢<\/sup> <\/div>"
+                        "htmlContent" : "<div class=\"ep-text-placement\"data-action-type=\"NO_ACTION\" data-action-target=\"placement-primary-cta\"> Pay as low as <strong><span class=\"alliance-as-low-as-amount\">$255\/mo<\/span> for 12 months<\/strong> with the Zales Credit Card for a total payment of $3059.<sup>9<\/sup> <\/div>"
                       }
                     }
                   ],
