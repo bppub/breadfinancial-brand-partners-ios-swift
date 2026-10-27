@@ -41,7 +41,7 @@ let package = Package(
             name: "BreadPartnersTestSupport",
             dependencies: ["BreadPartnersCore"],
             path: "Tests/TestSupport",
-            exclude: ["Tests"]
+            exclude: ["Tests", "Fixtures"]
         ),
         .target(
             name: "BreadPartners",

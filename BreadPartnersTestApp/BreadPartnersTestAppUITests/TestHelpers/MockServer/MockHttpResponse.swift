@@ -48,3 +48,24 @@ struct MockHttpResponse {
         )
     }
 }
+
+extension MockHttpResponse {
+    /// Loads the body from `<name>.json` in the UI test bundle.
+    init(match: String, fixture name: String, statusCode: Int = 200) {
+        self.init(match: match, json: FixtureLoader.data(named: name), statusCode: statusCode)
+    }
+}
+
+private enum FixtureLoader {
+    private final class BundleToken {}
+
+    static func data(named name: String) -> Data {
+        guard
+            let url = Bundle(for: BundleToken.self).url(forResource: name, withExtension: "json"),
+            let data = try? Data(contentsOf: url)
+        else {
+            preconditionFailure("Missing fixture \(name).json in the UI test bundle")
+        }
+        return data
+    }
+}
