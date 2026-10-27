@@ -213,7 +213,7 @@ final class MockHTTPServerTests: XCTestCase {
         try await client.connect()
 
         client.send("GET /split HTTP/1.1\r\nHost: localhost\r\n")
-        try await Task.sleep(seconds: 0.3)
+        try await Task.sleep(nanoseconds: 300_000_000)
         let pathsBeforeHeadersEnd = await server.receivedPaths()
         XCTAssertTrue(pathsBeforeHeadersEnd.isEmpty, "Server must not respond to partial headers")
 
@@ -232,7 +232,7 @@ final class MockHTTPServerTests: XCTestCase {
         try await client.connect()
 
         client.send("POST /upload HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhe")
-        try await Task.sleep(seconds: 0.3)
+        try await Task.sleep(nanoseconds: 300_000_000)
         let pathsBeforeBodyEnds = await server.receivedPaths()
         XCTAssertTrue(pathsBeforeBodyEnds.isEmpty, "Server must wait for Content-Length bytes")
 
