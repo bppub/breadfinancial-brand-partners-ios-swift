@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1600"
-   version = "1.7">
+   version = "1.8">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
             buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
@@ -40,21 +40,8 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      codeCoverageEnabled = "YES"
-      shouldUseLaunchSchemeArgsEnv = "YES">
-      <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "700000000000000000000015"
-               BuildableName = "BreadPartnersUITests.xctest"
-               BlueprintName = "BreadPartnersUITests"
-               ReferencedContainer = "container:BreadPartnersUiTests.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -64,17 +51,31 @@
             ReferencedContainer = "container:BreadPartnersUiTests.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "700000000000000000000015"
+               BuildableName = "BreadPartnersUITests.xctest"
+               BlueprintName = "BreadPartnersUITests"
+               ReferencedContainer = "container:BreadPartnersUiTests.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
-      debugServiceExtension = "internal">
-      <BuildableProductRunnable runnableDebuggingMode = "0">
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "700000000000000000000014"
@@ -84,8 +85,14 @@
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
-   <ProfileAction buildConfiguration = "Release" shouldUseLaunchSchemeArgsEnv = "YES" savedToolIdentifier = "">
-      <BuildableProductRunnable runnableDebuggingMode = "0">
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "700000000000000000000014"
@@ -95,6 +102,12 @@
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
-   <AnalyzeAction buildConfiguration = "Debug" />
-   <ArchiveAction buildConfiguration = "Release" revealInOrganizer = "YES" />
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealInOrganizer = "YES"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
 </Scheme>

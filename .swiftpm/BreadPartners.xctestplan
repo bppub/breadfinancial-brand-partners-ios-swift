@@ -32,6 +32,13 @@
         "identifier" : "BreadPartnersTestSupportTests",
         "name" : "BreadPartnersTestSupportTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Tests\/UI\/BreadPartnersUiTests.xcodeproj",
+        "identifier" : "700000000000000000000015",
+        "name" : "BreadPartnersUITests"
+      }
     }
   ],
   "version" : 1
