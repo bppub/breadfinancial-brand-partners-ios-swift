@@ -114,9 +114,28 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         webView.loadHTMLString(htmlContent, baseURL: URL(string: originalURL))
     }
 
-    @objc private func closeButtonTapped() {
+    @objc func closeButtonTapped() {
         callback?(.popupClosed)
         dismiss(animated: true)
+    }
+
+    static func navigationPolicy(for url: URL?) -> WKNavigationActionPolicy {
+        guard let url else { return .cancel }
+
+        let allowedDomains = [
+            "comenity.net", "breadfinancial.com", "hcaptcha.com", "gstatic.com", "newassets.hcaptcha.com",
+            "brands.kmsmep.com",
+        ]
+
+        if let host = url.host, allowedDomains.contains(where: { host.contains($0) }) {
+            return .allow
+        }
+
+        if url.scheme == "data" || url.scheme == "about" {
+            return .allow
+        }
+
+        return .cancel
     }
 
     func webView(
@@ -124,32 +143,7 @@ internal class ChallengeController: UIViewController, WKNavigationDelegate, WKHT
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.cancel)
-            return
-        }
-
-        // Allow necessary domains
-        let allowedDomains = [
-            "comenity.net", "breadfinancial.com", "hcaptcha.com", "gstatic.com", "newassets.hcaptcha.com",
-            "brands.kmsmep.com",
-        ]
-
-        if let host = url.host {
-            if allowedDomains.contains(where: { host.contains($0) }) {
-                decisionHandler(.allow)
-                return
-            }
-        }
-
-        // Allow data URIs and about:blank
-        if url.scheme == "data" || url.scheme == "about" {
-            decisionHandler(.allow)
-            return
-        }
-
-        decisionHandler(.cancel)
-        return
+        decisionHandler(Self.navigationPolicy(for: navigationAction.request.url))
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
