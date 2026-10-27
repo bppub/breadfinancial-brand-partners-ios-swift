@@ -141,7 +141,7 @@ jobs:
                 name: "Integration",
                 bundle: "UITestResults.xcresult",
                 sourceRoot: mockServerRoot,
-                excludedRoot: path.join(mockServerRoot, "Test")
+                excludedRoot: path.join(mockServerRoot, "Tests")
               }
             ];
             const coverageRuns = runs.filter(run => run.sourceRoot);
