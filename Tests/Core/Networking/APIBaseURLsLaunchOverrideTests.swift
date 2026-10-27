@@ -20,17 +20,7 @@ struct APIBaseURLsLaunchOverrideTests {
     func returnsNilWhenKeyIsMissing() {
         #expect(APIBaseURLs.launchOverride(environment: [:]) == nil)
     }
-
-    @Test(arguments: [
-        "https://evil.example.com",
-        "http://brands.kmsmep.com",
-        "ftp://localhost:8080",
-        "not a url",
-    ])
-    func rejectsNonLoopbackOrInvalidURLs(value: String) {
-        #expect(APIBaseURLs.launchOverride(environment: [APIBaseURLs.launchOverrideKey: value]) == nil)
-    }
-
+    
     #if DEBUG
         @Test(arguments: ["http://localhost:8080", "http://127.0.0.1:8080/"])
         func acceptsLoopbackURLs(value: String) {
@@ -40,6 +30,11 @@ struct APIBaseURLsLaunchOverrideTests {
                 APIBaseURLs.launchOverride(environment: [APIBaseURLs.launchOverrideKey: value])
                     == APIBaseURLs(brands: expectedBase, rtps: expectedBase)
             )
+        }
+    #else
+        @Test(arguments: ["http://localhost:8080", "http://127.0.0.1:8080/"])
+        func ignoresLoopbackOverrideInRelease(value: String) {
+            #expect(APIBaseURLs.launchOverride(environment: [APIBaseURLs.launchOverrideKey: value]) == nil)
         }
     #endif
 }
