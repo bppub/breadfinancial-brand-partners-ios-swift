@@ -70,6 +70,7 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -resultBundlePath UITestResults.xcresult \
             -enableCodeCoverage YES \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Publish combined coverage check run
