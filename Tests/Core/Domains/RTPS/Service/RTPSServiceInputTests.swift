@@ -48,7 +48,7 @@ import Testing
         #expect(input.virtualLookupURL == virtualLookupURL)
         #expect(input.cookies == "visid=abc")
         #expect(input.isLoggingEnabled)
-        #expect(1 == 2)
+
 
         input.log("message")
 

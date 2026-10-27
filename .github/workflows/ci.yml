@@ -118,6 +118,12 @@ jobs:
                 name: "iOS",
                 report: readReport("iOSTestResults.xcresult"),
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
+              },
+              {
+                name: "UITests",
+                report: readReport("UITestResults.xcresult"),
+                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer"),
+                excludedRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests", "TestHelper", "MockServer", "Tests")
               }
             ];
             const filesByPath = new Map();
@@ -174,7 +180,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS |",
+              "| Test Runs Combined | TestSupport + Core + iOS + UITests |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -183,7 +189,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
