@@ -62,6 +62,16 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Run BreadPartners UI Tests
+        run: |
+          xcodebuild test \
+            -project Tests/UI/BreadPartnersUiTests.xcodeproj \
+            -scheme BreadPartnersUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -resultBundlePath UITestResults.xcresult \
+            -enableCodeCoverage YES \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Publish combined coverage check run
         uses: actions/github-script@v8
         with:
@@ -93,6 +103,11 @@ jobs:
                 name: "iOS",
                 report: readReport("iOSTestResults.xcresult"),
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
+              },
+              {
+                name: "UI",
+                report: readReport("UITestResults.xcresult"),
+                sourceRoot: path.join(workspace, "Tests", "UI", "Tests")
               }
             ];
             const filesByPath = new Map();
@@ -149,7 +164,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS |",
+              "| Test Runs Combined | TestSupport + Core + iOS + UI |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -158,7 +173,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
