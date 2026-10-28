@@ -14,10 +14,17 @@ import Foundation
 import XCTest
 
 extension XCUIApplication {
-    /// Launches the app, then wipes its saved data so tests don't share state.
-    func launchFresh(file: StaticString = #filePath, line: UInt = #line) {
-        launch()
-        resetAppData(file: file, line: line)
+    /// Creates the app pointed at the mock server, launches it, and wipes its saved data so tests don't share state.
+    static func launchFresh(
+        mockServerURL baseURL: URL,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
+        app.launch()
+        app.resetAppData(file: file, line: line)
+        return app
     }
 
     /// Clears the app's saved data by tapping the Reset tab's button, then returns to the Placement tab.
