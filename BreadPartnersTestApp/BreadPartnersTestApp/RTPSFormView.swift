@@ -159,6 +159,9 @@ struct RTPSFormView: View {
         .onAppear {
             loadCachedFormData()
         }
+        .onReceive(NotificationCenter.default.publisher(for: AppDataReset.didClear)) { _ in
+            formData = RTPSFormData()
+        }
     }
 
     // MARK: - Cache Methods

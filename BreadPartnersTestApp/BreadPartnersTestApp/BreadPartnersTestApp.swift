@@ -20,9 +20,7 @@ struct BreadPartnersTestApp: App {
 
     init() {
         if ProcessInfo.processInfo.arguments.contains(Self.resetStateArgument) {
-            PreferencesManager.shared.clearAll()
-            HTTPCookieStorage.shared.removeCookies(since: .distantPast)
-            URLCache.shared.removeAllCachedResponses()
+            AppDataReset.clear()
         }
     }
 
