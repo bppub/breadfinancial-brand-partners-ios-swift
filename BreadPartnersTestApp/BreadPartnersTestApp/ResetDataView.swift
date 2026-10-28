@@ -27,6 +27,8 @@ struct ResetDataView: View {
                         .foregroundColor(.gray)
                 }
             }
+        }.onDisappear {
+            didReset = false
         }
     }
 }
