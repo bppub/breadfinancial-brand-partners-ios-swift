@@ -20,10 +20,6 @@ enum MockServerKeys {
     /// In DEBUG builds the SDK sends its requests there instead of to the real backend.
     /// Must match `APIBaseURLs.launchOverrideKey` in the BreadPartners SDK.
     static let baseURLKey = "BREAD_PARTNERS_MOCK_BASE_URL"
-
-    /// Launch argument that makes the test app erase its saved data on startup, so each test
-    /// begins from a clean state. Added for you by `XCUIApplication.launchFresh()`.
-    static let resetState = "-UITestResetState"
 }
 
 /// A tiny fake backend that runs inside the UI test process.
@@ -39,7 +35,7 @@ enum MockServerKeys {
 ///
 /// let app = XCUIApplication()
 /// app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
-/// app.launchFresh()
+/// app.launch()
 /// // ... drive the UI ...
 /// let paths = await server.receivedPaths()   // e.g. ["/generatePlacements"]
 /// await server.stop()
@@ -50,7 +46,7 @@ enum MockServerKeys {
 actor MockHTTPServer {
     private let listener: NWListener
     private let stubs: [MockHttpResponse]
-    private let queue = DispatchQueue(label: "MockHTTPServer")
+    private let queue = DispatchQueue(label: "MockHTTPServer", qos: .userInteractive)
     private var paths: [String] = []
 
     /// Creates the server but does not start it; call `start()` to begin listening.

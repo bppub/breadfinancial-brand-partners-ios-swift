@@ -277,10 +277,6 @@ final class MockServerKeysTests: XCTestCase {
     func testBaseURLKeyMatchesTheSDKLaunchOverrideKey() {
         XCTAssertEqual(MockServerKeys.baseURLKey, "BREAD_PARTNERS_MOCK_BASE_URL")
     }
-
-    func testResetStateIsALaunchArgument() {
-        XCTAssertEqual(MockServerKeys.resetState, "-UITestResetState")
-    }
 }
 
 /// Plain TCP client for sending a request in pieces, which `URLSession` can't do.
