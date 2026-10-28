@@ -14,29 +14,36 @@ import WebKit
 import QuickLook
 
 /// Manages WebView interactions and events within the SDK.
-internal class BreadFinancialWebViewInterstitial: NSObject,
-    WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate
-{
+internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate {
+    let callback: ((BreadPartnerEvents) -> Void)
+    let logger: Logger
 
-    init(
-        logger: Logger,
-        callback: @escaping (BreadPartnerEvents) -> Void
-    ) {
-        self.logger = logger
-        self.callback = callback
-    }
+    private let navigationConfirmationPresenter: any NavigationConfirmationPresenting
+    private let openExternalURL: (URL) -> Void
 
+    var appRestartListener: AppRestartListener?
     var onPageLoadCompleted: ((Result<URL, Error>) -> Void)?
     /// Stores a pending navigation URL that is waiting for the user to confirm
     /// they want to leave the current page (simulating a beforeunload dialog).
     var pendingNavigationURL: URL?
-
-    let logger: Logger
-    let callback: ((BreadPartnerEvents) -> Void)
-    var appRestartListener: AppRestartListener?
     /// Set to `true` when a LOG_OUT_OR_RESTART message is received from the web app,
     /// so the navigation confirmation dialog is shown only for that specific flow.
     var pendingLogOutOrRestart = false
+
+    init(
+        logger: Logger,
+        callback: @escaping (BreadPartnerEvents) -> Void,
+        openExternalURL: @escaping (URL) -> Void = { url in
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        },
+        navigationConfirmationPresenter: (any NavigationConfirmationPresenting)? = nil
+    ) {
+        self.logger = logger
+        self.callback = callback
+        self.openExternalURL = openExternalURL
+        self.navigationConfirmationPresenter =
+            navigationConfirmationPresenter ?? UIKitNavigationConfirmationPresenter()
+    }
 
     func createWebView(with url: URL) -> WKWebView {
 
@@ -100,6 +107,18 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             return
         }
 
+        handleRestartNavigation(
+            to: requestURL,
+            load: { url in webView.load(URLRequest(url: url)) },
+            decisionHandler: decisionHandler
+        )
+    }
+
+    func handleRestartNavigation(
+        to requestURL: URL,
+        load: @escaping (URL) -> Void,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         // If this URL was already confirmed by the user, allow it through.
         if let pending = pendingNavigationURL, pending == requestURL {
             pendingNavigationURL = nil
@@ -111,31 +130,25 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         decisionHandler(.cancel)
         pendingNavigationURL = requestURL
 
-        guard let rootVC = topViewController() else {
+        let didPresent = navigationConfirmationPresenter.presentNavigationConfirmation(
+            onLeave: { [weak self] in
+                self?.pendingNavigationURL = nil
+                self?.pendingLogOutOrRestart = false
+                load(requestURL)
+            },
+            onStay: { [weak self] in
+                self?.pendingNavigationURL = nil
+                self?.pendingLogOutOrRestart = false
+            }
+        )
+
+        guard didPresent else {
             // No view controller found — just proceed with navigation.
             pendingNavigationURL = nil
             pendingLogOutOrRestart = false
-            webView.load(URLRequest(url: requestURL))
+            load(requestURL)
             return
         }
-
-        let alert = UIAlertController(
-            title: Constants.confirmNavigationTitle,
-            message: Constants.confirmNavigationMessage,
-            preferredStyle: .alert
-        )
-        alert.addAction(
-            UIAlertAction(title: Constants.confirmNavigationStayButton, style: .cancel) { [weak self] _ in
-                self?.pendingNavigationURL = nil
-                self?.pendingLogOutOrRestart = false
-            })
-        alert.addAction(
-            UIAlertAction(title: Constants.confirmNavigationLeaveButton, style: .destructive) { [weak self] _ in
-                self?.pendingNavigationURL = nil
-                self?.pendingLogOutOrRestart = false
-                webView.load(URLRequest(url: requestURL))
-            })
-        rootVC.present(alert, animated: true)
     }
 
     func webView(
@@ -167,7 +180,11 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
-        if let parsedData = message.body as? [String: Any],
+        handleScriptMessageBody(message.body)
+    }
+
+    func handleScriptMessageBody(_ body: Any) {
+        if let parsedData = body as? [String: Any],
             let action = parsedData["action"] as? [String: Any],
             let type = action["type"] as? String
         {
@@ -193,7 +210,7 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
             case "OPEN_EXTERNAL":
                 if let url = action["payload"] as? String {
                     if let externalURL = URL(string: url) {
-                        UIApplication.shared.open(externalURL, options: [:], completionHandler: nil)
+                        openExternalURL(externalURL)
                     }
                 }
             case "HEIGHT_CHANGED":
@@ -275,12 +292,12 @@ internal class BreadFinancialWebViewInterstitial: NSObject,
 
             case "RECEIVE_ACCOUNT_EXISTS":
                 if let payload = action["payload"] as? [String: Any] {
-                    logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(message.body)")
+                    logger.printLog("BreadPartnersSDK: RECEIVE_ACCOUNT_EXISTS: \(body)")
                     callback(.receiveAccountExist(result: payload))
                 }
 
             default:
-                logger.printLog("BreadPartnersSDK: WebViewMessage: \(message.body)")
+                logger.printLog("BreadPartnersSDK: WebViewMessage: \(body)")
             }
         }
 

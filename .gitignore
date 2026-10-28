@@ -3,6 +3,9 @@
 
 # Xcode
 *.xcworkspace
+!BreadPartners.xcworkspace/
+BreadPartners.xcworkspace/*
+!BreadPartners.xcworkspace/contents.xcworkspacedata
 *.xcuserstate
 xcuserdata/
 DerivedData/

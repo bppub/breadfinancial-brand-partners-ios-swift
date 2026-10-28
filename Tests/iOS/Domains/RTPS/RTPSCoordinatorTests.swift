@@ -145,7 +145,7 @@ struct RTPSCoordinatorTests {
     }
 
     @Test
-    func challengeForwardsContentAndRetriesWithCookie() async {
+    func challengeForwardsContentAndRetriesWithCookie() async throws {
         let uiCoordinator = RTPSUICoordinatorSpy()
         let httpClient = HTTPClientSpy(outcomes: [
             .failure(RTPSTestFixtures.Error.incapsula),
@@ -162,15 +162,20 @@ struct RTPSCoordinatorTests {
         #expect(uiCoordinator.challengeOriginalURL == "https://challenge.test")
         #expect(uiCoordinator.failureCallCount == 0)
 
+        let retryFailure = Task { await uiCoordinator.waitForFailure() }
         uiCoordinator.completeChallenge(with: "incap_ses=test-cookie")
-
-        let retryCompleted = await waitUntil {
-            uiCoordinator.failureCallCount == 1
-        }
+        await retryFailure.value
         let requests = await httpClient.requests
-        #expect(retryCompleted)
         #expect(requests.count == 2)
-        #expect(requests[1].cookies == "incap_ses=test-cookie")
+        let initialRequest = try #require(requests.first)
+        let retryRequest = try #require(requests.last)
+        #expect(initialRequest.cookies == nil)
+        #expect(retryRequest.cookies == "incap_ses=test-cookie")
+        #expect(retryRequest.url == initialRequest.url)
+        #expect(retryRequest.method == initialRequest.method)
+        #expect(retryRequest.headers == initialRequest.headers)
+        #expect(try normalizedJSONBody(from: retryRequest.body) == normalizedJSONBody(from: initialRequest.body))
+        #expect(uiCoordinator.failureCallCount == 1)
         guard case let .api(message) = uiCoordinator.lastFailure else {
             Issue.record("Expected retry failure to be forwarded")
             return
@@ -426,6 +431,11 @@ struct RTPSCoordinatorTests {
             await Task.yield()
         }
         return false
+    }
+
+    private func normalizedJSONBody(from body: Data?) throws -> Data {
+        let object = try JSONSerialization.jsonObject(with: #require(body))
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
     }
 
     private var placementResponse: PlacementsResponse {

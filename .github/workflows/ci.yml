@@ -74,17 +74,15 @@ jobs:
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      # Coverage is filtered to the BreadPartnersTestAppUITests sources when published, so it can't overlap the iOS run's Sources/BreadPartners.
-      - name: Run BreadPartnersTestApp UI Tests
+      - name: Run BreadPartners UI Tests
         run: |
           xcodebuild test \
-            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
-            -scheme BreadPartnersTestAppUITests \
+            -project Tests/UI/BreadPartnersUiTests.xcodeproj \
+            -scheme BreadPartnersUITests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -parallel-testing-enabled NO \
-            -resultBundlePath IntegrationTestResults.xcresult \
+            -resultBundlePath UITestResults.xcresult \
             -enableCodeCoverage YES \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Publish combined coverage check run
@@ -120,9 +118,9 @@ jobs:
                 sourceRoot: path.join(workspace, "Sources", "BreadPartners")
               },
               {
-                name: "Integration",
-                report: readReport("IntegrationTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests")
+                name: "UI",
+                report: readReport("UITestResults.xcresult"),
+                sourceRoot: path.join(workspace, "Tests", "UI")
               }
             ];
             const filesByPath = new Map();
@@ -181,7 +179,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS + Integration |",
+              "| Test Runs Combined | TestSupport + Core + iOS + UI |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -190,7 +188,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `IntegrationTestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
