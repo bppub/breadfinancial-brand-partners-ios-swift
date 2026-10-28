@@ -35,7 +35,7 @@ enum MockServerKeys {
 ///
 /// let app = XCUIApplication()
 /// app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
-/// app.launch()
+/// app.launchFresh()
 /// // ... drive the UI ...
 /// let paths = await server.receivedPaths()   // e.g. ["/generatePlacements"]
 /// await server.stop()
