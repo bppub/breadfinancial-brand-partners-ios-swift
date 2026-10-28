@@ -42,7 +42,10 @@ struct SDKDependencies {
     static func live(
         environment: BreadPartnersEnvironment
     ) -> SDKDependencies {
-        let endpointProvider = LiveAPIEndpointProvider(environment: environment)
+        let endpointProvider = LiveAPIEndpointProvider(
+            environment: environment,
+            baseURLs: .launchOverride()
+        )
 
         return SDKDependencies(
             environment: environment,

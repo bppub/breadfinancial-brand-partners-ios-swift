@@ -14,13 +14,15 @@ import Foundation
 
 package struct LiveAPIEndpointProvider: APIEndpointProviding {
     private let environment: BreadPartnersEnvironment
+    private let baseURLs: APIBaseURLs?
 
-    package init(environment: BreadPartnersEnvironment) {
+    package init(environment: BreadPartnersEnvironment, baseURLs: APIBaseURLs? = nil) {
         self.environment = environment
+        self.baseURLs = baseURLs
     }
 
     package func url(for endpoint: APIEndpoint) -> URL {
-        let urlString = endpoint.url(for: environment)
+        let urlString = endpoint.url(for: environment, baseURLs: baseURLs)
 
         guard let url = URL(string: urlString) else {
             preconditionFailure("APIEndpoint produced an invalid URL: \(urlString)")

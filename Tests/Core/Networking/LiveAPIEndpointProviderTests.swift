@@ -45,4 +45,21 @@ struct LiveAPIEndpointProviderTests {
             }
         }
     }
+
+    @Test
+    func resolvesEndpointsAgainstBaseURLOverride() {
+        let provider = LiveAPIEndpointProvider(
+            environment: .prod,
+            baseURLs: APIBaseURLs(brands: "http://localhost:8080", rtps: "http://localhost:8080")
+        )
+
+        #expect(
+            provider.url(for: .brandConfig(brandId: "brand-123"))
+                == URL(string: "http://localhost:8080/brands/brand-123/config")
+        )
+        #expect(
+            provider.url(for: .virtualLookup)
+                == URL(string: "http://localhost:8080/api/virtual_lookup")
+        )
+    }
 }

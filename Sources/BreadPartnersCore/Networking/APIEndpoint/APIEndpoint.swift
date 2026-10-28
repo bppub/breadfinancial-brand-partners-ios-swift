@@ -23,18 +23,13 @@ package enum APIEndpoint: Sendable {
     case prescreen
     case virtualLookup
 
-    package func url(for environment: BreadPartnersEnvironment) -> String {
-        let baseURL = "https://brands.kmsmep.com"
-        let rtpsBaseURL: String
-
-        switch environment {
-        case .stage:
-            rtpsBaseURL = "https://acquire1stage.comenity.net"
-        case .prod:
-            rtpsBaseURL = "https://acquire1.comenity.net"
-        case .uat:
-            rtpsBaseURL = "https://acquire1uat.comenity.net"
-        }
+    package func url(
+        for environment: BreadPartnersEnvironment,
+        baseURLs override: APIBaseURLs? = nil
+    ) -> String {
+        let baseURLs = override ?? .live(for: environment)
+        let baseURL = baseURLs.brands
+        let rtpsBaseURL = baseURLs.rtps
 
         switch self {
         case let .rtpsWebUrl(type):
