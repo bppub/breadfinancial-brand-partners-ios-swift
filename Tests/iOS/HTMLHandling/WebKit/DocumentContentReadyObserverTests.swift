@@ -72,7 +72,7 @@ struct DocumentContentReadyObserverTests {
 
 @MainActor
 private func waitForCallback(
-    timeout: UInt64 = 60_000_000_000,
+    timeout: TimeInterval = 15,
     register: (AsyncStream<Void>.Continuation) -> Void
 ) async -> Bool {
     let (stream, signal) = AsyncStream<Void>.makeStream()
@@ -88,7 +88,7 @@ private func waitForCallback(
         }
 
         group.addTask {
-            try? await Task.sleep(nanoseconds: UInt64(timeout))
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
             return false
         }
 

@@ -21,14 +21,15 @@ final class DocumentContentReadyObserver: NSObject, WKNavigationDelegate, WKScri
     init(webView: WKWebView, onReady: @escaping @MainActor (WKWebView) async -> Void) {
         self.webView = webView
         self.onReady = onReady
+
+        super.init()
+
+        let controller = webView.configuration.userContentController
+        controller.removeScriptMessageHandler(forName: Self.messageHandlerName)
+        controller.add(self, name: Self.messageHandlerName)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        webView.configuration.userContentController
-            .removeScriptMessageHandler(forName: Self.messageHandlerName)
-        webView.configuration.userContentController
-            .add(self, name: Self.messageHandlerName)
-
         let js = """
             (function() {
                 function checkAndNotify() {
