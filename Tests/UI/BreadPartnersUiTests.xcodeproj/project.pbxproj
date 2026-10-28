@@ -1,0 +1,344 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000005 /* BreadPartnersUITestHost.swift */; };
+		700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */; };
+		700000000000000000000004 /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
+		700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000025 /* NavigationConfirmationTestHost.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		700000000000000000000017 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 700000000000000000000016 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 700000000000000000000014;
+			remoteInfo = BreadPartnersUITestHost;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		700000000000000000000005 /* BreadPartnersUITestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestHost.swift; sourceTree = "<group>"; };
+		700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationConfirmationPresenterUITests.swift; sourceTree = "<group>"; };
+		700000000000000000000008 /* BreadPartnersUITestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPartnersUITestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		700000000000000000000009 /* BreadPartnersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		700000000000000000000025 /* NavigationConfirmationTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationConfirmationTestHost.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		70000000000000000000000F /* App Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				700000000000000000000004 /* BreadPartners in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		700000000000000000000012 /* UI Test Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		70000000000000000000000B /* HTMLHandling */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000026 /* UIComponents */,
+			);
+			path = HTMLHandling;
+			sourceTree = "<group>";
+		};
+		700000000000000000000026 /* UIComponents */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */,
+				700000000000000000000025 /* NavigationConfirmationTestHost.swift */,
+			);
+			path = UIComponents;
+			sourceTree = "<group>";
+		};
+		700000000000000000000027 /* TestHelpers */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000005 /* BreadPartnersUITestHost.swift */,
+			);
+			path = TestHelpers;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000008 /* BreadPartnersUITestHost.app */,
+				700000000000000000000009 /* BreadPartnersUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		70000000000000000000000D = {
+			isa = PBXGroup;
+			children = (
+				70000000000000000000000B /* HTMLHandling */,
+				700000000000000000000027 /* TestHelpers */,
+				70000000000000000000000C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		700000000000000000000014 /* BreadPartnersUITestHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000020 /* Build configuration list for PBXNativeTarget "BreadPartnersUITestHost" */;
+			buildPhases = (
+				70000000000000000000000E /* App Sources */,
+				70000000000000000000000F /* App Frameworks */,
+				700000000000000000000010 /* App Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BreadPartnersUITestHost;
+			packageProductDependencies = (
+				700000000000000000000023 /* BreadPartners */,
+			);
+			productName = BreadPartnersUITestHost;
+			productReference = 700000000000000000000008 /* BreadPartnersUITestHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+		700000000000000000000015 /* BreadPartnersUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000021 /* Build configuration list for PBXNativeTarget "BreadPartnersUITests" */;
+			buildPhases = (
+				700000000000000000000011 /* UI Test Sources */,
+				700000000000000000000012 /* UI Test Frameworks */,
+				700000000000000000000013 /* UI Test Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				700000000000000000000018 /* PBXTargetDependency */,
+			);
+			name = BreadPartnersUITests;
+			productName = BreadPartnersUITests;
+			productReference = 700000000000000000000009 /* BreadPartnersUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		700000000000000000000016 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					700000000000000000000014 = { CreatedOnToolsVersion = 16.0; };
+					700000000000000000000015 = { CreatedOnToolsVersion = 16.0; TestTargetID = 700000000000000000000014; };
+				};
+			};
+			buildConfigurationList = 70000000000000000000001F /* Build configuration list for PBXProject "BreadPartnersUITests" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base,);
+			mainGroup = 70000000000000000000000D;
+			packageReferences = (
+				700000000000000000000022 /* XCLocalSwiftPackageReference */,
+			);
+			productRefGroup = 70000000000000000000000C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				700000000000000000000014 /* BreadPartnersUITestHost */,
+				700000000000000000000015 /* BreadPartnersUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		700000000000000000000010 /* App Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		700000000000000000000013 /* UI Test Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		70000000000000000000000E /* App Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */,
+				700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		700000000000000000000011 /* UI Test Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		700000000000000000000018 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 700000000000000000000014 /* BreadPartnersUITestHost */;
+			targetProxy = 700000000000000000000017 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		700000000000000000000019 /* Project Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		70000000000000000000001A /* Project Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		70000000000000000000001B /* App Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.breadfinancial.BreadPartnersUITestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		70000000000000000000001C /* App Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.breadfinancial.BreadPartnersUITestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		70000000000000000000001D /* UI Test Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.breadfinancial.BreadPartnersUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersUITestHost;
+			};
+			name = Debug;
+		};
+		70000000000000000000001E /* UI Test Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.breadfinancial.BreadPartnersUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BreadPartnersUITestHost;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		70000000000000000000001F /* Project Configuration List */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				700000000000000000000019 /* Project Debug */,
+				70000000000000000000001A /* Project Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		700000000000000000000020 /* App Configuration List */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70000000000000000000001B /* App Debug */,
+				70000000000000000000001C /* App Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		700000000000000000000021 /* UI Test Configuration List */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70000000000000000000001D /* UI Test Debug */,
+				70000000000000000000001E /* UI Test Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		700000000000000000000022 /* XCLocalSwiftPackageReference */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		700000000000000000000023 /* BreadPartners */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 700000000000000000000022 /* XCLocalSwiftPackageReference */;
+			productName = BreadPartners;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 700000000000000000000016 /* Project object */;
+}

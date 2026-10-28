@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace version = "1.0">
+   <FileRef location = "self:">
+   </FileRef>
+   <FileRef location = "group:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj">
+   </FileRef>
+   <FileRef location = "group:Tests/UI/BreadPartnersUiTests.xcodeproj">
+   </FileRef>
+</Workspace>
