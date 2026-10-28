@@ -85,6 +85,18 @@ jobs:
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Run BreadPartnersTestApp UI Tests
+        run: |
+          xcodebuild test \
+            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
+            -scheme BreadPartnersTestAppUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
+            -resultBundlePath IntegrationTestResults.xcresult \
+            -enableCodeCoverage YES \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Publish combined coverage check run
         uses: actions/github-script@v8
         with:
@@ -121,6 +133,11 @@ jobs:
                 name: "UI",
                 report: readReport("UITestResults.xcresult"),
                 sourceRoot: path.join(workspace, "Tests", "UI")
+              },
+              {
+                name: "Integration",
+                report: readReport("IntegrationTestResults.xcresult"),
+                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests")
               }
             ];
             const filesByPath = new Map();
@@ -179,7 +196,7 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS + UI |",
+              "| Test Runs Combined | TestSupport + Core + iOS + UI + Integration |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -188,7 +205,7 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult`"
+              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult` + `IntegrationTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
