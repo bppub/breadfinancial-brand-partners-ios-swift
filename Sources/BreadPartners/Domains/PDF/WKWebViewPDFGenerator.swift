@@ -13,11 +13,6 @@
 import WebKit
 
 @MainActor
-protocol PDFGenerating {
-    func generate(from webView: WKWebView) async throws -> Data
-}
-
-@MainActor
 struct WKWebViewPDFGenerator: PDFGenerating {
     func generate(from webView: WKWebView) async throws -> Data {
         try await withCheckedThrowingContinuation { continuation in
