@@ -15,17 +15,6 @@ import BreadPartners
 
 @main
 struct BreadPartnersTestApp: App {
-    /// Must match `MockServerKeys.resetState` in the UI tests; they run in a separate target.
-    private static let resetStateArgument = "-UITestResetState"
-
-    init() {
-        if ProcessInfo.processInfo.arguments.contains(Self.resetStateArgument) {
-            PreferencesManager.shared.clearAll()
-            HTTPCookieStorage.shared.removeCookies(since: .distantPast)
-            URLCache.shared.removeAllCachedResponses()
-        }
-    }
-
     var body: some Scene {
         WindowGroup {
             ContentView()

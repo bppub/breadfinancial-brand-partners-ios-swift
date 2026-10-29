@@ -14,14 +14,43 @@ import Foundation
 import XCTest
 
 extension XCUIApplication {
-    /// Launches with all persisted test-app data wiped so tests don't share state.
-    func launchFresh() {
-        if !launchArguments.contains(MockServerKeys.resetState) {
-            launchArguments.append(MockServerKeys.resetState)
-        }
-        launch()
+    /// Creates the app pointed at the mock server, launches it, and wipes its saved data so tests don't share state.
+    static func launchFresh(
+        mockServerURL baseURL: URL,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
+        app.launch()
+        app.resetAppData(file: file, line: line)
+        return app
     }
-    
+
+    /// Clears the app's saved data by tapping the Reset tab's button, then returns to the Placement tab.
+    /// Call after `launch()` so each test starts from the same state.
+    func resetAppData(file: StaticString = #filePath, line: UInt = #line) {
+        let resetTab = tabBars.buttons["Reset"]
+        guard resetTab.waitForExistence(timeout: 10) else {
+            XCTFail("Reset tab not found", file: file, line: line)
+            return
+        }
+        resetTab.tap()
+
+        let resetButton = buttons["Reset App Data"]
+        guard resetButton.waitForExistence(timeout: 5) else {
+            XCTFail("Reset App Data button not found", file: file, line: line)
+            return
+        }
+        resetButton.tap()
+
+        XCTAssertTrue(
+            staticTexts["App data cleared."].waitForExistence(timeout: 5),
+            "App data was not cleared", file: file, line: line)
+
+        tabBars.buttons["Placement"].tap()
+    }
+
     /// Expands the section, types each value into the text field with that placeholder title, then collapses it.
     /// Pass pairs in on-screen order; pickers and toggles are not handled.
     func fillDisclosureSection(

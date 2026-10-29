@@ -28,6 +28,10 @@ struct ContentView: View {
                     Image(systemName: "cart.fill")
                     Text("RTPS")
                 }
+                ResetDataView().tabItem {
+                    Image(systemName: "trash.fill")
+                    Text("Reset")
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

@@ -32,9 +32,7 @@ final class RegisterPlacements: XCTestCase {
         self.server = server
         let baseURL = try await server.start()
 
-        let app = XCUIApplication()
-        app.launchEnvironment[MockServerKeys.baseURLKey] = baseURL.absoluteString
-        app.launchFresh()
+        let app = XCUIApplication.launchFresh(mockServerURL: baseURL)
 
         let generateButton = app.buttons["Generate Placement"]
          XCTAssertTrue(

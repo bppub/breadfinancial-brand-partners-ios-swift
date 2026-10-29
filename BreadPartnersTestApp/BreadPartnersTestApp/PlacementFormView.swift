@@ -369,6 +369,9 @@ struct PlacementFormView: View {
       saveTimer?.invalidate()
       saveFormData()
     }
+    .onReceive(NotificationCenter.default.publisher(for: AppDataReset.didClear)) { _ in
+      resetFormState()
+    }
     .modifier(PlacementInfoChangeModifier(formData: formData, onSave: scheduleSave))
     .modifier(CardholderInfoChangeModifier(formData: formData, onSave: scheduleSave))
     .modifier(CheckoutSettingsChangeModifier(formData: formData, onSave: scheduleSave))
@@ -385,6 +388,12 @@ struct PlacementFormView: View {
       formData = cachedData
       identifiableItems = formData.items.map { IdentifiableItem(item: $0) }
     }
+  }
+
+  private func resetFormState() {
+    saveTimer?.invalidate()
+    formData = PlacementFormData()
+    identifiableItems = []
   }
 
   private func scheduleSave() {

@@ -23,6 +23,8 @@
 		4E3C51D0308001B300784F9D /* RTPSFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CD308001B300784F9D /* RTPSFormView.swift */; };
 		4E3C51D1308001B300784F9D /* PlacementFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51C9308001B300784F9D /* PlacementFormData.swift */; };
 		4E3C51D2308001B300784F9D /* RTPSFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51CA308001B300784F9D /* RTPSFormData.swift */; };
+		4E3C51D7308001B300784F9D /* AppDataReset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51D6308001B300784F9D /* AppDataReset.swift */; };
+		4E3C51D9308001B300784F9D /* ResetDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3C51D8308001B300784F9D /* ResetDataView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		4E3C51CA308001B300784F9D /* RTPSFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormData.swift; sourceTree = "<group>"; };
 		4E3C51CC308001B300784F9D /* PlacementFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementFormView.swift; sourceTree = "<group>"; };
 		4E3C51CD308001B300784F9D /* RTPSFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTPSFormView.swift; sourceTree = "<group>"; };
+		4E3C51D6308001B300784F9D /* AppDataReset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataReset.swift; sourceTree = "<group>"; };
+		4E3C51D8308001B300784F9D /* ResetDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetDataView.swift; sourceTree = "<group>"; };
 		4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersTestAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -103,6 +107,7 @@
 				4E3C51CB308001B300784F9D /* Models */,
 				4E3C51CC308001B300784F9D /* PlacementFormView.swift */,
 				4E3C51CD308001B300784F9D /* RTPSFormView.swift */,
+				4E3C51D8308001B300784F9D /* ResetDataView.swift */,
 				2000000000000000000000B0 /* BreadPartnersTestApp.swift */,
 				2000000000000000000000B1 /* ContentView.swift */,
 				4E3C51C03080012000784F9D /* Utils */,
@@ -114,6 +119,7 @@
 		4E3C51C03080012000784F9D /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				4E3C51D6308001B300784F9D /* AppDataReset.swift */,
 				4E3C51B93080012000784F9D /* DynamicColors.swift */,
 				4E3C51BA3080012000784F9D /* DynamicFonts.swift */,
 				4E3C51BB3080012000784F9D /* Functions.swift */,
@@ -258,6 +264,8 @@
 				4E3C51C53080012000784F9D /* Functions.swift in Sources */,
 				4E3C51C63080012000784F9D /* TestAppConstants.swift in Sources */,
 				4E3C51C73080012000784F9D /* DynamicColors.swift in Sources */,
+				4E3C51D7308001B300784F9D /* AppDataReset.swift in Sources */,
+				4E3C51D9308001B300784F9D /* ResetDataView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
