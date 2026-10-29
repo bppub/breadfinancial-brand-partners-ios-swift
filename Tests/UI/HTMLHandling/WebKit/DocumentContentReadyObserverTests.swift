@@ -29,7 +29,8 @@ final class DocumentContentReadyObserverTests: XCTestCase {
             didBecomeReady = true
             contentBecameReady.fulfill()
         }
-        let navigationDelegate = NavigationDelegateForwarder(observer: observer) {
+        let navigationDelegate = WKNavigationDelegateSpy { finishedWebView, navigation in
+            observer.webView(finishedWebView, didFinish: navigation)
             didFinishNavigation = true
             navigationFinished.fulfill()
         }
@@ -54,7 +55,8 @@ final class DocumentContentReadyObserverTests: XCTestCase {
             didBecomeReady = true
             contentBecameReady.fulfill()
         }
-        let navigationDelegate = NavigationDelegateForwarder(observer: observer) {
+        let navigationDelegate = WKNavigationDelegateSpy { finishedWebView, navigation in
+            observer.webView(finishedWebView, didFinish: navigation)
             didFinishNavigation = true
             navigationFinished.fulfill()
             Task { @MainActor in
@@ -74,21 +76,5 @@ final class DocumentContentReadyObserverTests: XCTestCase {
         await fulfillment(of: [navigationFinished, contentBecameReady], timeout: 30, enforceOrder: true)
         XCTAssertTrue(didFinishNavigation, "WKWebView did not call didFinishNavigation")
         XCTAssertTrue(didBecomeReady, "The observer did not report document readiness")
-    }
-}
-
-@MainActor
-private final class NavigationDelegateForwarder: NSObject, WKNavigationDelegate {
-    private let observer: DocumentContentReadyObserver
-    private let onFinish: () -> Void
-
-    init(observer: DocumentContentReadyObserver, onFinish: @escaping () -> Void = {}) {
-        self.observer = observer
-        self.onFinish = onFinish
-    }
-
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        observer.webView(webView, didFinish: navigation)
-        onFinish()
     }
 }
