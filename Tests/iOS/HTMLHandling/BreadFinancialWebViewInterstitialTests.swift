@@ -20,6 +20,23 @@ import WebKit
 @MainActor
 struct BreadFinancialWebViewInterstitialTests {
     @Test
+    func disclosureCaptureSessionRetainsWebViewAndRejectsDuplicates() throws {
+        let interstitial = makeInterstitial(events: EventCapture())
+        weak var retainedWebView: WKWebView?
+
+        do {
+            let webView = try #require(
+                interstitial.makeDisclosureCaptureWebView(with: WKWebViewConfiguration())
+            )
+            retainedWebView = webView
+            #expect(webView.navigationDelegate is DocumentContentReadyObserver)
+        }
+
+        #expect(retainedWebView != nil)
+        #expect(interstitial.makeDisclosureCaptureWebView(with: WKWebViewConfiguration()) == nil)
+    }
+
+    @Test
     func unifiedCheckoutResultEmitsExistingCallbacksInOrder() throws {
         let events = EventCapture()
         let interstitial = makeInterstitial(events: events)

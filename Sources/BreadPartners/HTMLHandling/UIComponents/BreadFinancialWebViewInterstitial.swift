@@ -10,8 +10,23 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
+import BreadPartnersCore
 import WebKit
-import QuickLook
+
+protocol AppRestartListener {
+    func onAppRestartClicked(url: String)
+}
+
+private struct DisclosurePDFCaptureSession {
+    let webView: WKWebView
+    let contentReadyObserver: DocumentContentReadyObserver
+}
+
+private extension UIViewController {
+    @objc func dismissSelf() {
+        dismiss(animated: true)
+    }
+}
 
 /// Manages WebView interactions and events within the SDK.
 internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate {
@@ -20,6 +35,19 @@ internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate
 
     private let navigationConfirmationPresenter: any NavigationConfirmationPresenting
     private let openExternalURL: (URL) -> Void
+
+    @MainActor
+    private var disclosureCaptureSession: DisclosurePDFCaptureSession?
+
+    @MainActor
+    private lazy var disclosurePDFExportCoordinator = PDFExportCoordinator(
+        onFailure: { [weak self] error in
+            self?.callback(.sdkError(error: error))
+        },
+        onFinish: { [weak self] in
+            self?.disclosureCaptureSession = nil
+        }
+    )
 
     var appRestartListener: AppRestartListener?
     var onPageLoadCompleted: ((Result<URL, Error>) -> Void)?
@@ -46,7 +74,6 @@ internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate
     }
 
     func createWebView(with url: URL) -> WKWebView {
-
         let contentController = WKUserContentController()
         contentController.add(self, name: "messageHandler")
 
@@ -332,83 +359,33 @@ internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate
     ///
     /// Called from the `WKUIDelegate` new-window callback when the requested URL is empty.
     /// The web view is given a large off-screen frame (800×1200) for a reasonable PDF page
-    /// size, and is retained via associated objects so it survives until the asynchronous
-    /// PDF export completes. A one-shot `DisclosurePDFLoader` is attached as its navigation
-    /// delegate to wait for the HTML to load and then trigger PDF generation.
+    /// size, and is retained by a capture session until the asynchronous
+    /// PDF export completes. A one-shot `DocumentContentReadyObserver` is attached as its
+    /// navigation delegate to wait for the HTML to load and then trigger PDF generation.
     ///
     /// - Parameter configuration: The WebKit-supplied config, reused so the popup shares the
     ///   parent's process pool and data store.
-    /// - Returns: The off-screen `WKWebView` for WebKit to write disclosure content into.
-    private func makeDisclosureCaptureWebView(with configuration: WKWebViewConfiguration) -> WKWebView {
+    /// - Returns: The capture WebView, or `nil` if another disclosure session is active.
+    func makeDisclosureCaptureWebView(with configuration: WKWebViewConfiguration) -> WKWebView? {
+        guard disclosureCaptureSession == nil else { return nil }
+
         // Use a large off-screen frame so the PDF page size is reasonable.
         let offscreenFrame = CGRect(x: 0, y: 0, width: 800, height: 1200)
         let popupWebView = WKWebView(frame: offscreenFrame, configuration: configuration)
-        popupWebView.navigationDelegate = self
 
-        // Hold a strong reference so the capture webView isn't deallocated before PDF is ready.
-        objc_setAssociatedObject(
-            self, &BreadFinancialWebViewInterstitial.popupWebViewKey, popupWebView, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        let contentReadyObserver = DocumentContentReadyObserver(webView: popupWebView) { [weak self] webView in
+            guard let self else { return }
 
-        // didFinish fires on popupWebView too (same delegate). We capture it via
-        // a one-shot navigation delegate wrapper below.
-        let loader = DisclosurePDFLoader(owner: self, webView: popupWebView)
-        objc_setAssociatedObject(
-            popupWebView, &BreadFinancialWebViewInterstitial.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        popupWebView.navigationDelegate = loader
+            await disclosurePDFExportCoordinator.export(from: webView)
+        }
+
+        disclosureCaptureSession = DisclosurePDFCaptureSession(
+            webView: popupWebView,
+            contentReadyObserver: contentReadyObserver
+        )
+        popupWebView.navigationDelegate = contentReadyObserver
 
         return popupWebView
-    }
-
-    private static var popupWebViewKey: UInt8 = 0
-    private static var loaderKey: UInt8 = 0
-    private static var dataSourceKey: UInt8 = 0
-    /// Re-entrancy guard for `presentDisclosureAsPDF(from:)`.
-    /// Since PDF generation is asynchronous, this flag prevents the method from
-    /// being triggered a second time (e.g. by a duplicate `disclosureReady` message)
-    /// before the first `QLPreviewController` has finished presenting.
-    private var isDisclosurePresenting = false
-
-    /// Presents the disclosure content as a PDF using QLPreviewController.
-    /// UIPrintPageRenderer to generate the PDF from the webview's content.
-    internal func presentDisclosureAsPDF(from webView: WKWebView) {
-        guard !isDisclosurePresenting else { return }
-        isDisclosurePresenting = true
-
-        let config = WKPDFConfiguration()
-        webView.createPDF(configuration: config) { [weak self] result in
-            switch result {
-            case .success(let data):
-                self?.presentPDF(data: data)
-            case .failure(let error):
-                self?.callback(.sdkError(error: error))
-            }
-        }
-    }
-
-    private func presentPDF(data: Data) {
-        // Write to a temp file so QLPreviewController can read it.
-        let tmpURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("disclosure.pdf")
-        do {
-            try data.write(to: tmpURL)
-        } catch {
-            callback(.sdkError(error: error))
-            return
-        }
-
-        DispatchQueue.main.async { [weak self] in
-            guard let topVC = self?.topViewController() else { return }
-            let previewVC = QLPreviewController()
-            let dataSource = DisclosurePDFPreviewDataSource(url: tmpURL)
-            objc_setAssociatedObject(
-                previewVC, &BreadFinancialWebViewInterstitial.dataSourceKey, dataSource,
-                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            previewVC.dataSource = dataSource
-            previewVC.modalPresentationStyle = .pageSheet
-            topVC.present(previewVC, animated: true) {
-                self?.isDisclosurePresenting = false
-            }
-        }
     }
 
     func injectAnchorInterceptorScript(view: WKWebView?) {
@@ -501,110 +478,4 @@ internal class BreadFinancialWebViewInterstitial: NSObject, WKNavigationDelegate
         appRestartListener?.onAppRestartClicked(url: url)
     }
 
-    /// Returns the topmost active view controller in a backwards-compatible way.
-    ///
-    /// This is needed because `WKUIDelegate` methods for JavaScript dialogs
-    /// (`alert`, `confirm`, `prompt`) and the "Leave this page?" beforeunload
-    /// dialog all require presenting a `UIAlertController` from a live view
-    /// controller. `WKWebView` itself is not a view controller, so we must
-    /// locate one at runtime.
-    ///
-    /// - On iOS 15+, `keyWindow` is available directly on `UIWindowScene`.
-    /// - The presentation chain is walked so the alert is never presented on a
-    ///   controller that is already presenting another one.
-    private func topViewController() -> UIViewController? {
-        var root: UIViewController?
-
-        root =
-            UIApplication.shared.connectedScenes
-            .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
-            .first
-
-        // Walk up the presentation chain to get the topmost presented view controller,
-        // so the alert is not presented on a controller that is already presenting another one.
-        var top = root
-        while let presented = top?.presentedViewController {
-            top = presented
-        }
-        return top
-    }
-}
-
-protocol AppRestartListener {
-    func onAppRestartClicked(url: String)
-}
-
-private extension UIViewController {
-    @objc func dismissSelf() {
-        dismiss(animated: true)
-    }
-}
-
-// MARK: - Disclosure PDF helpers
-
-/// One-shot WKNavigationDelegate: waits for popup WKWebView to finish loading
-/// disclosure HTML, then triggers PDF export via the owner.
-private class DisclosurePDFLoader: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-    weak var owner: BreadFinancialWebViewInterstitial?
-    weak var webView: WKWebView?
-
-    init(owner: BreadFinancialWebViewInterstitial, webView: WKWebView) {
-        self.owner = owner
-        self.webView = webView
-    }
-
-    /// Called when the initial about:blank navigation completes.
-    /// We inject a MutationObserver that watches for document.write() content
-    /// and posts a message back when the body has meaningful HTML.
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Add ourselves as a script message handler so JS can notify us.
-        webView.configuration.userContentController
-            .removeScriptMessageHandler(forName: "disclosureReady")
-        webView.configuration.userContentController
-            .add(self, name: "disclosureReady")
-
-        // Inject a MutationObserver that fires as soon as body has content.
-        // document.write() populates the body synchronously, so this may
-        // already have content by the time we run.
-        let js = """
-            (function() {
-                function checkAndNotify() {
-                    if (document.body && document.body.innerHTML.trim().length > 0) {
-                        window.webkit.messageHandlers.disclosureReady.postMessage("ready");
-                        return true;
-                    }
-                    return false;
-                }
-                // Content may already be there (document.write is synchronous)
-                if (!checkAndNotify()) {
-                    var observer = new MutationObserver(function() {
-                        if (checkAndNotify()) { observer.disconnect(); }
-                    });
-                    observer.observe(document.documentElement, { childList: true, subtree: true });
-                }
-            })();
-            """
-        webView.evaluateJavaScript(js, completionHandler: nil)
-    }
-
-    /// Called by JS MutationObserver when body content is ready.
-    func userContentController(
-        _ userContentController: WKUserContentController,
-        didReceive message: WKScriptMessage
-    ) {
-        guard message.name == "disclosureReady", let wv = webView else { return }
-        // Remove handler to prevent duplicate calls
-        userContentController.removeScriptMessageHandler(forName: "disclosureReady")
-        owner?.presentDisclosureAsPDF(from: wv)
-    }
-}
-
-/// QLPreviewController data source that serves a single local PDF file.
-private class DisclosurePDFPreviewDataSource: NSObject, QLPreviewControllerDataSource {
-    let url: URL
-    init(url: URL) { self.url = url }
-    func numberOfPreviewItems(in controller: QLPreviewController) -> Int { 1 }
-    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        url as QLPreviewItem
-    }
 }
