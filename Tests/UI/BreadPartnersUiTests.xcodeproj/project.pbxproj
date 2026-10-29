@@ -11,6 +11,8 @@
 		700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */; };
 		700000000000000000000004 /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 		700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000025 /* NavigationConfirmationTestHost.swift */; };
+		700000000000000000000029 /* DocumentContentReadyObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70000000000000000000002A /* DocumentContentReadyObserverTests.swift */; };
+		70000000000000000000002B /* BreadPartners in UI Test Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +31,7 @@
 		700000000000000000000008 /* BreadPartnersUITestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPartnersUITestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		700000000000000000000009 /* BreadPartnersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		700000000000000000000025 /* NavigationConfirmationTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationConfirmationTestHost.swift; sourceTree = "<group>"; };
+		70000000000000000000002A /* DocumentContentReadyObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentContentReadyObserverTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				70000000000000000000002B /* BreadPartners in UI Test Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,9 +57,18 @@
 		70000000000000000000000B /* HTMLHandling */ = {
 			isa = PBXGroup;
 			children = (
+				70000000000000000000002C /* WebKit */,
 				700000000000000000000026 /* UIComponents */,
 			);
 			path = HTMLHandling;
+			sourceTree = "<group>";
+		};
+		70000000000000000000002C /* WebKit */ = {
+			isa = PBXGroup;
+			children = (
+				70000000000000000000002A /* DocumentContentReadyObserverTests.swift */,
+			);
+			path = WebKit;
 			sourceTree = "<group>";
 		};
 		700000000000000000000026 /* UIComponents */ = {
@@ -130,6 +143,9 @@
 				700000000000000000000018 /* PBXTargetDependency */,
 			);
 			name = BreadPartnersUITests;
+			packageProductDependencies = (
+				700000000000000000000023 /* BreadPartners */,
+			);
 			productName = BreadPartnersUITests;
 			productReference = 700000000000000000000009 /* BreadPartnersUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -197,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */,
+				700000000000000000000029 /* DocumentContentReadyObserverTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
