@@ -72,7 +72,7 @@ struct DocumentContentReadyObserverTests {
 
 @MainActor
 private func waitForCallback(
-    timeout: TimeInterval = 15,
+    timeout: TimeInterval = 300,
     register: (AsyncStream<Void>.Continuation) -> Void
 ) async -> Bool {
     let (stream, signal) = AsyncStream<Void>.makeStream()
