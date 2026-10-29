@@ -12,7 +12,8 @@
 		700000000000000000000004 /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 		700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000025 /* NavigationConfirmationTestHost.swift */; };
 		700000000000000000000029 /* DocumentContentReadyObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70000000000000000000002A /* DocumentContentReadyObserverTests.swift */; };
-		70000000000000000000002B /* BreadPartners in UI Test Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
+		70000000000000000000002B /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
+		C356964E3093ECCA00E805CE /* BreadPartnersUITestLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C356964D3093ECCA00E805CE /* BreadPartnersUITestLauncher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,10 +33,11 @@
 		700000000000000000000009 /* BreadPartnersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		700000000000000000000025 /* NavigationConfirmationTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationConfirmationTestHost.swift; sourceTree = "<group>"; };
 		70000000000000000000002A /* DocumentContentReadyObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentContentReadyObserverTests.swift; sourceTree = "<group>"; };
+		C356964D3093ECCA00E805CE /* BreadPartnersUITestLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestLauncher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		70000000000000000000000F /* App Frameworks */ = {
+		70000000000000000000000F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -43,11 +45,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		700000000000000000000012 /* UI Test Frameworks */ = {
+		700000000000000000000012 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				70000000000000000000002B /* BreadPartners in UI Test Frameworks */,
+				70000000000000000000002B /* BreadPartners in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,31 +63,6 @@
 				700000000000000000000026 /* UIComponents */,
 			);
 			path = HTMLHandling;
-			sourceTree = "<group>";
-		};
-		70000000000000000000002C /* WebKit */ = {
-			isa = PBXGroup;
-			children = (
-				70000000000000000000002A /* DocumentContentReadyObserverTests.swift */,
-			);
-			path = WebKit;
-			sourceTree = "<group>";
-		};
-		700000000000000000000026 /* UIComponents */ = {
-			isa = PBXGroup;
-			children = (
-				700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */,
-				700000000000000000000025 /* NavigationConfirmationTestHost.swift */,
-			);
-			path = UIComponents;
-			sourceTree = "<group>";
-		};
-		700000000000000000000027 /* TestHelpers */ = {
-			isa = PBXGroup;
-			children = (
-				700000000000000000000005 /* BreadPartnersUITestHost.swift */,
-			);
-			path = TestHelpers;
 			sourceTree = "<group>";
 		};
 		70000000000000000000000C /* Products */ = {
@@ -106,6 +83,32 @@
 			);
 			sourceTree = "<group>";
 		};
+		700000000000000000000026 /* UIComponents */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000007 /* NavigationConfirmationPresenterUITests.swift */,
+				700000000000000000000025 /* NavigationConfirmationTestHost.swift */,
+			);
+			path = UIComponents;
+			sourceTree = "<group>";
+		};
+		700000000000000000000027 /* TestHelpers */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000005 /* BreadPartnersUITestHost.swift */,
+				C356964D3093ECCA00E805CE /* BreadPartnersUITestLauncher.swift */,
+			);
+			path = TestHelpers;
+			sourceTree = "<group>";
+		};
+		70000000000000000000002C /* WebKit */ = {
+			isa = PBXGroup;
+			children = (
+				70000000000000000000002A /* DocumentContentReadyObserverTests.swift */,
+			);
+			path = WebKit;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -113,9 +116,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 700000000000000000000020 /* Build configuration list for PBXNativeTarget "BreadPartnersUITestHost" */;
 			buildPhases = (
-				70000000000000000000000E /* App Sources */,
-				70000000000000000000000F /* App Frameworks */,
-				700000000000000000000010 /* App Resources */,
+				70000000000000000000000E /* Sources */,
+				70000000000000000000000F /* Frameworks */,
+				700000000000000000000010 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -133,9 +136,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 700000000000000000000021 /* Build configuration list for PBXNativeTarget "BreadPartnersUITests" */;
 			buildPhases = (
-				700000000000000000000011 /* UI Test Sources */,
-				700000000000000000000012 /* UI Test Frameworks */,
-				700000000000000000000013 /* UI Test Resources */,
+				700000000000000000000011 /* Sources */,
+				700000000000000000000012 /* Frameworks */,
+				700000000000000000000013 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -160,18 +163,26 @@
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					700000000000000000000014 = { CreatedOnToolsVersion = 16.0; };
-					700000000000000000000015 = { CreatedOnToolsVersion = 16.0; TestTargetID = 700000000000000000000014; };
+					700000000000000000000014 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					700000000000000000000015 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 700000000000000000000014;
+					};
 				};
 			};
-			buildConfigurationList = 70000000000000000000001F /* Build configuration list for PBXProject "BreadPartnersUITests" */;
+			buildConfigurationList = 70000000000000000000001F /* Build configuration list for PBXProject "BreadPartnersUiTests" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
-			knownRegions = (en, Base,);
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = 70000000000000000000000D;
 			packageReferences = (
-				700000000000000000000022 /* XCLocalSwiftPackageReference */,
+				700000000000000000000022 /* XCLocalSwiftPackageReference "../.." */,
 			);
 			productRefGroup = 70000000000000000000000C /* Products */;
 			projectDirPath = "";
@@ -184,31 +195,34 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		700000000000000000000010 /* App Resources */ = {
+		700000000000000000000010 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		700000000000000000000013 /* UI Test Resources */ = {
+		700000000000000000000013 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		70000000000000000000000E /* App Sources */ = {
+		70000000000000000000000E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */,
+				C356964E3093ECCA00E805CE /* BreadPartnersUITestLauncher.swift in Sources */,
 				700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		700000000000000000000011 /* UI Test Sources */ = {
+		700000000000000000000011 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -228,7 +242,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		700000000000000000000019 /* Project Debug */ = {
+		700000000000000000000019 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -240,7 +254,7 @@
 			};
 			name = Debug;
 		};
-		70000000000000000000001A /* Project Release */ = {
+		70000000000000000000001A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -251,7 +265,7 @@
 			};
 			name = Release;
 		};
-		70000000000000000000001B /* App Debug */ = {
+		70000000000000000000001B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -267,7 +281,7 @@
 			};
 			name = Debug;
 		};
-		70000000000000000000001C /* App Release */ = {
+		70000000000000000000001C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -281,7 +295,7 @@
 			};
 			name = Release;
 		};
-		70000000000000000000001D /* UI Test Debug */ = {
+		70000000000000000000001D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -296,7 +310,7 @@
 			};
 			name = Debug;
 		};
-		70000000000000000000001E /* UI Test Release */ = {
+		70000000000000000000001E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -313,29 +327,29 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		70000000000000000000001F /* Project Configuration List */ = {
+		70000000000000000000001F /* Build configuration list for PBXProject "BreadPartnersUiTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				700000000000000000000019 /* Project Debug */,
-				70000000000000000000001A /* Project Release */,
+				700000000000000000000019 /* Debug */,
+				70000000000000000000001A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		700000000000000000000020 /* App Configuration List */ = {
+		700000000000000000000020 /* Build configuration list for PBXNativeTarget "BreadPartnersUITestHost" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				70000000000000000000001B /* App Debug */,
-				70000000000000000000001C /* App Release */,
+				70000000000000000000001B /* Debug */,
+				70000000000000000000001C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		700000000000000000000021 /* UI Test Configuration List */ = {
+		700000000000000000000021 /* Build configuration list for PBXNativeTarget "BreadPartnersUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				70000000000000000000001D /* UI Test Debug */,
-				70000000000000000000001E /* UI Test Release */,
+				70000000000000000000001D /* Debug */,
+				70000000000000000000001E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -343,7 +357,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		700000000000000000000022 /* XCLocalSwiftPackageReference */ = {
+		700000000000000000000022 /* XCLocalSwiftPackageReference "../.." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../..;
 		};
@@ -352,7 +366,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		700000000000000000000023 /* BreadPartners */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 700000000000000000000022 /* XCLocalSwiftPackageReference */;
+			package = 700000000000000000000022 /* XCLocalSwiftPackageReference "../.." */;
 			productName = BreadPartners;
 		};
 /* End XCSwiftPackageProductDependency section */
