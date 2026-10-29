@@ -60,7 +60,6 @@ public class BreadPartnersSDK: NSObject, UITextViewDelegate {
         enableLog: Bool,
         dependencies: SDKDependencies
     ) async {
-        await APIUrl.setEnvironment(environment)
         self.integrationKey = integrationKey
         self.isLoggingEnabled = enableLog
         self.dependencies = dependencies
