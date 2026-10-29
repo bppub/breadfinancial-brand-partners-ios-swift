@@ -13,28 +13,34 @@
 import SwiftUI
 
 @main
-struct BreadPartnersUITestHostApp: App {
+struct UITestHostApp: App {
     var body: some Scene {
         WindowGroup {
-            BreadPartnersUITestHostView(children: [
-                NavigationConfirmationTestHost.registration
-            ])
+            UITestHostView()
         }
     }
 }
 
-struct BreadPartnersUITestHostChild {
-    let identifier: String
-    let makeView: () -> AnyView
+protocol UITestHostProviding: AnyObject {
+    @MainActor static func makeView() -> AnyView
 }
 
-struct BreadPartnersUITestHostView: View {
+struct UITestHostView: View {
     private let content: AnyView
 
-    init(children: [BreadPartnersUITestHostChild]) {
-        let selectedIdentifier = ProcessInfo.processInfo.environment["BREAD_PARTNERS_UI_TEST_CHILD"]
-        let selectedChild = children.first { $0.identifier == selectedIdentifier }
-        content = selectedChild?.makeView() ?? AnyView(Text("No UI test child selected"))
+    @MainActor
+    init() {
+        let hostName = ProcessInfo.processInfo.environment["BREAD_PARTNERS_UI_TEST_HOST"]
+
+        guard let hostName else {
+            fatalError("Missing BREAD_PARTNERS_UI_TEST_HOST launch configuration.")
+        }
+
+        guard let hostType = NSClassFromString(hostName) as? UITestHostProviding.Type else {
+            fatalError("Unable to resolve UI test host '\(hostName)'.")
+        }
+
+        content = hostType.makeView()
     }
 
     var body: some View {
