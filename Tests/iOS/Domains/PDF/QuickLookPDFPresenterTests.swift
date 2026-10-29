@@ -36,7 +36,7 @@ struct QuickLookPDFPresenterTests {
 
     @Test
     func ignoresDismissalFromUnrelatedPreviewController() throws {
-        let viewController = PresentationRecordingViewController()
+        let viewController = PresentedViewControllerStub()
         let presenter = QuickLookPDFPresenter(rootViewControllerProvider: { viewController })
         let initialPreview = QLPreviewController()
         let pdfURL = URL(fileURLWithPath: "/tmp/disclosure.pdf")
@@ -64,11 +64,37 @@ struct QuickLookPDFPresenterTests {
         #expect(dismissalCount == 1)
         #expect(presenter.numberOfPreviewItems(in: activePreview) == 0)
     }
+
+    @Test
+    func presentsFromDeepestPresentedViewController() {
+        let root = PresentedViewControllerStub()
+        let presented = PresentedViewControllerStub()
+        let deepest = PresentedViewControllerStub()
+        root.nextPresentedViewController = presented
+        presented.nextPresentedViewController = deepest
+        let presenter = QuickLookPDFPresenter(rootViewControllerProvider: { root })
+
+        #expect(
+            presenter.present(
+                pdfURL: URL(fileURLWithPath: "/tmp/disclosure.pdf"),
+                onDismiss: {}
+            )
+        )
+
+        #expect(root.presentedController == nil)
+        #expect(presented.presentedController == nil)
+        #expect(deepest.presentedController is QLPreviewController)
+    }
 }
 
 @MainActor
-private final class PresentationRecordingViewController: UIViewController {
+private final class PresentedViewControllerStub: UIViewController {
+    var nextPresentedViewController: UIViewController?
     private(set) var presentedController: UIViewController?
+
+    override var presentedViewController: UIViewController? {
+        nextPresentedViewController ?? presentedController
+    }
 
     override func present(
         _ viewControllerToPresent: UIViewController,
@@ -76,5 +102,6 @@ private final class PresentationRecordingViewController: UIViewController {
         completion: (() -> Void)? = nil
     ) {
         presentedController = viewControllerToPresent
+        completion?()
     }
 }
