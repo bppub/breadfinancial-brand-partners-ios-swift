@@ -13,61 +13,19 @@
 internal class Constants {
 
     // API constants
-    static let headerClientKey = "X-Client-Key"
-    static let headerRequestedWithKey = "X-Requested-With"
-    static let headerRequestedWithValue = "XMLHttpRequest"
     static let headerUserAgentKey = "User-Agent"
     static let headerContentType = "Content-Type"
     static let headerContentTypeValue = "application/json"
     static let headerOriginKey = "Origin"
     static let headerOriginValue = "https://brand-sdk.kmsmep.com"
-    static let headerAuthorityKey = "authority"
-    static let headerAuthorityValue = "metrics.kmsmep.com"
-    static let headerAcceptKey = "Accept"
     static let headerPlatformKey = "platform"
     static let headerPlatformValue = "ios"
-    static let headerAcceptValue = "*/*"
-    static let headerAcceptEncodingKey = "Accept-Encoding"
-    static let headerAcceptEncodingValue = "gzip, deflate, br, zstd"
-    static let headerAcceptLanguageKey = "Accept-Language"
-    static let headerAcceptLanguageValue = "en-GB,en-US;q=0.9,en;q=0.8"
-    static let headerAccessControlRequestHeadersKey = "Access-Control-Request-Headers"
-    static let headerAccessControlRequestHeadersValue = "content-type"
-    static let headerAccessControlRequestMethodKey = "Access-Control-Request-Method"
-    static let headerAccessControlRequestMethodValue = "POST"
-    static let htmlContent = NetworkChallengeConstants.htmlContentKey
-    static let url = NetworkChallengeConstants.urlKey
-    static func nativeSDKAlertTitle() -> String {
-        return "Bread Partner"
-    }
-
-    static func catchError(message: String) -> String {
-        RTPSConstants.catchError(message: message)
-    }
-
-    static let securityCheckAlertTitle = "Re-CAPTCHA Verification"
-    static let securityCheckFailureAlertTitle = "Unable to Verify. Please call us at 1-800-xxx-xxxx for assistance."
-    static let securityCheckSuccessAlertTitle = "Congratulations!!"
-    static let securityCheckSuccessAlertSubTitle = "You have been preapproved* for Credit Card!."
-    static let okButton = "Ok"
-
-    static let securityCheckAlertAcknolwedgeMessage =
-        "Your web view will load once the captcha verification is successfully completed. This ensures that all transactions are secure."
-
-    static func securityCheckAlertFailedMessage(error: String) -> String {
-        return "Error: \(error)"
-    }
 
     static let error = RTPSConstants.error
 
     static func apiError(message: String) -> String {
         RTPSConstants.apiError(message: message)
     }
-    static let consecutivePlacementRequestDataError = "Consecutive placement request data not found"
-
-    static let apiResToJsonMapError = "Unable to convert response to map."
-
-    static let textPlacementError = "\(error) Unable to handle text placement type."
     static let missingTextPlacementError = "Unhandled text placement type."
     static let noTextPlacementError = "No text placement type found."
     static let textPlacementParsingError = "Unable to parse text placement."
@@ -82,7 +40,6 @@ internal class Constants {
         return "\(error) Web Url Loading Issue: \(message)"
     }
 
-    static let incapsulaChallenge = NetworkChallengeConstants.domain
     // Confirm Navigation dialog (mirrors Android WebView onJsBeforeUnload system dialog)
     static let confirmNavigationTitle = "Confirm Navigation"
     static let confirmNavigationMessage =
