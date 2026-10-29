@@ -57,6 +57,7 @@
 		4E3C51D6308001B300784F9D /* AppDataReset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataReset.swift; sourceTree = "<group>"; };
 		4E3C51D8308001B300784F9D /* ResetDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetDataView.swift; sourceTree = "<group>"; };
 		4E73EF833087F060000F2E23 /* BreadPartnersTestAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPartnersTestAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EB0BD7330939F70001C00C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -103,6 +104,7 @@
 		1000000000000000000000A5 /* BreadPartnersTestApp */ = {
 			isa = PBXGroup;
 			children = (
+				4EB0BD7330939F70001C00C0 /* Info.plist */,
 				4E3C51C8308001B300784F9D /* FormViewModel.swift */,
 				4E3C51CB308001B300784F9D /* Models */,
 				4E3C51CC308001B300784F9D /* PlacementFormView.swift */,
@@ -416,6 +418,7 @@
 				DEVELOPMENT_TEAM = 2QFTJAW7V2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BreadPartnersTestApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -446,6 +449,7 @@
 				DEVELOPMENT_TEAM = 2QFTJAW7V2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BreadPartnersTestApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
