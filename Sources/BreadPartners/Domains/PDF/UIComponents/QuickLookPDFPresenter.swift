@@ -15,11 +15,6 @@ import QuickLook
 import UIKit
 
 @MainActor
-protocol PDFPresenting {
-    func present(pdfURL: URL, onDismiss: @escaping () -> Void) -> Bool
-}
-
-@MainActor
 final class QuickLookPDFPresenter: NSObject, PDFPresenting,
     QLPreviewControllerDataSource, @preconcurrency QLPreviewControllerDelegate
 {
