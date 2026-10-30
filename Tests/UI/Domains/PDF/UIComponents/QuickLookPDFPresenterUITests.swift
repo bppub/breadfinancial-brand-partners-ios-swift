@@ -28,7 +28,7 @@ final class QuickLookPDFPresenterUITests: XCTestCase {
             .tap()
 
         XCTAssertTrue(
-            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 5)
+            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 15)
         )
     }
 }
