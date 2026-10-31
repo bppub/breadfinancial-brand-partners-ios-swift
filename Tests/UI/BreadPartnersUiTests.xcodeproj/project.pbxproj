@@ -17,6 +17,8 @@
 		C356964F3093EDA300E805CE /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 		700000000000000000000037 /* DocumentContentReadyObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000038 /* DocumentContentReadyObserverTests.swift */; };
 		700000000000000000000040 /* WKNavigationDelegateSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000041 /* WKNavigationDelegateSpy.swift */; };
+		700000000000000000000047 /* PlacementTextComponentsTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000045 /* PlacementTextComponentsTestHost.swift */; };
+		700000000000000000000048 /* PlacementTextComponentsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000046 /* PlacementTextComponentsUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +42,8 @@
 		700000000000000000000036 /* BreadPartnersUITestLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestLauncher.swift; sourceTree = "<group>"; };
 		700000000000000000000038 /* DocumentContentReadyObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentContentReadyObserverTests.swift; sourceTree = "<group>"; };
 		700000000000000000000041 /* WKNavigationDelegateSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKNavigationDelegateSpy.swift; sourceTree = "<group>"; };
+		700000000000000000000045 /* PlacementTextComponentsTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementTextComponentsTestHost.swift; sourceTree = "<group>"; };
+		700000000000000000000046 /* PlacementTextComponentsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementTextComponentsUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +133,7 @@
 			isa = PBXGroup;
 			children = (
 				700000000000000000000033 /* PDF */,
+				700000000000000000000043 /* Placements */,
 			);
 			path = Domains;
 			sourceTree = "<group>";
@@ -146,6 +151,23 @@
 			children = (
 				700000000000000000000030 /* QuickLookPDFPresenterTestHost.swift */,
 				700000000000000000000031 /* QuickLookPDFPresenterUITests.swift */,
+			);
+			path = UIComponents;
+			sourceTree = "<group>";
+		};
+		700000000000000000000043 /* Placements */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000044 /* UIComponents */,
+			);
+			path = Placements;
+			sourceTree = "<group>";
+		};
+		700000000000000000000044 /* UIComponents */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000045 /* PlacementTextComponentsTestHost.swift */,
+				700000000000000000000046 /* PlacementTextComponentsUITests.swift */,
 			);
 			path = UIComponents;
 			sourceTree = "<group>";
@@ -260,6 +282,7 @@
 				700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */,
 				700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */,
 				700000000000000000000029 /* QuickLookPDFPresenterTestHost.swift in Sources */,
+				700000000000000000000047 /* PlacementTextComponentsTestHost.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +295,7 @@
 				700000000000000000000035 /* BreadPartnersUITestLauncher.swift in Sources */,
 				700000000000000000000037 /* DocumentContentReadyObserverTests.swift in Sources */,
 				700000000000000000000040 /* WKNavigationDelegateSpy.swift in Sources */,
+				700000000000000000000048 /* PlacementTextComponentsUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

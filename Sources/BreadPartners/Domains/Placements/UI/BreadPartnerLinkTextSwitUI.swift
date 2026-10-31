@@ -15,13 +15,13 @@ import UIKit
 
 /// A SwiftUI view for displaying tappable link-styled text in Bread Partner UI.
 public struct BreadPartnerLinkTextSwitUI: View {
-    private var text: String
+    var text: String
     private var links: [String]
-    private var onTap: (() -> Void)?
+    var onTap: (() -> Void)?
     private var linkColor: Color
     private var linkFontName: String
     private var linkFontSize: CGFloat
-    private var attributedText: NSAttributedString?
+    var attributedText: NSAttributedString?
 
     public init(
         _ text: String, links: [String] = [], onTap: (() -> Void)? = nil,

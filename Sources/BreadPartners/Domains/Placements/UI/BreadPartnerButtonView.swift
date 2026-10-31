@@ -21,7 +21,7 @@ public struct BreadPartnerButtonView: View {
     private var cornerRadius: CGFloat = 8.0
     private var padding: CGFloat = 8.0
     private var alignment: Alignment = .center
-    private var action: () -> Void
+    var action: () -> Void
 
     public init(_ title: String, action: @escaping () -> Void) {
         self.title = title

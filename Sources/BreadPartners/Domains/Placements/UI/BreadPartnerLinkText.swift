@@ -14,7 +14,7 @@ import UIKit
 
 /// A custom UITextView for displaying tappable link-styled text in Bread Partner UI.
 public class BreadPartnerLinkText: UITextView {
-    private var tapHandler: ((String) -> Void)?
+    var tapHandler: ((String) -> Void)?
     private var allowTapWithoutLink: Bool = false
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
