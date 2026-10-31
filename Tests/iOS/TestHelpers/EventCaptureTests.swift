@@ -69,4 +69,33 @@ import Testing
 
         #expect(capture.eventCount == 2)
     }
+
+    @Test
+    func waitForEventCountReturnsImmediatelyWhenAlreadyReached() async {
+        let capture = EventCapture()
+        capture.record(.textClicked)
+
+        #expect(await capture.waitForEventCount(1, timeout: 0.1))
+    }
+
+    @Test
+    func waitForEventCountObservesAnEventRecordedLater() async {
+        let capture = EventCapture()
+        let recordingTask = Task {
+            try? await Task.sleep(nanoseconds: 20_000_000)
+            capture.record(.textClicked)
+        }
+
+        #expect(await capture.waitForEventCount(1, timeout: 0.5))
+        await recordingTask.value
+        #expect(capture.eventCount == 1)
+    }
+
+    @Test
+    func waitForEventCountReturnsFalseWhenTimeoutExpires() async {
+        let capture = EventCapture()
+
+        #expect(await !capture.waitForEventCount(1, timeout: 0.02))
+        #expect(capture.eventCount == 0)
+    }
 }

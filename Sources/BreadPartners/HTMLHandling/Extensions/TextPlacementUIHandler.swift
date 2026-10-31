@@ -50,7 +50,7 @@ extension HTMLContentRenderer {
         {
 
             // Convert HTML to attributed string
-            if let attributedString = htmlString.htmlToAttributedString() {
+            if let attributedString = htmlToAttributedString(htmlString) {
                 // Create a mutable copy to remove any link attributes and underlines
                 let mutableAttributedString = NSMutableAttributedString(attributedString: attributedString)
                 let range = NSRange(location: 0, length: mutableAttributedString.length)

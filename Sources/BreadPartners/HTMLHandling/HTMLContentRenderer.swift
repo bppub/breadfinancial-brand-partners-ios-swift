@@ -30,6 +30,7 @@ internal class HTMLContentRenderer {
     let callback: (BreadPartnerEvents) -> Void
     let onLoadFollowUpPopupModel: @MainActor @Sendable (String?) async throws -> PopupPlacementModel?
     private let textPlacementParser: (String) throws -> TextPlacementModel
+    let htmlToAttributedString: (String) -> NSAttributedString?
 
     init(
         integrationKey: String,
@@ -41,6 +42,7 @@ internal class HTMLContentRenderer {
         analyticsReporter: any AnalyticsReporting,
         callback: @escaping ((BreadPartnerEvents) -> Void),
         onLoadFollowUpPopupModel: @escaping @MainActor @Sendable (String?) async throws -> PopupPlacementModel?,
+        htmlToAttributedString: @escaping (String) -> NSAttributedString? = { $0.htmlToAttributedString() },
         textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
             try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
         }
@@ -54,6 +56,7 @@ internal class HTMLContentRenderer {
         self.analyticsReporter = analyticsReporter
         self.callback = callback
         self.onLoadFollowUpPopupModel = onLoadFollowUpPopupModel
+        self.htmlToAttributedString = htmlToAttributedString
         self.textPlacementParser = textPlacementParser
     }
 

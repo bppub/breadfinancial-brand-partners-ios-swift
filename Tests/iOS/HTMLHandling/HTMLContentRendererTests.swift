@@ -17,7 +17,7 @@ import UIKit
 
 @testable import BreadPartners
 
-@Suite
+@Suite(.serialized)
 @MainActor
 struct HTMLContentRendererTests {
     private let textHTML = """
@@ -28,6 +28,11 @@ struct HTMLContentRendererTests {
     private let popupHTML = """
         <div data-overlay-metadata data-overlay-type="EMBEDDED_OVERLAY"></div>
         <iframe src="about:blank"></iframe>
+        """
+    private let noActionHTML = """
+        <div class="ep-text-placement" data-action-type="NO_ACTION" data-action-content-id="popup">
+            <div class="epjs-body">Pay <strong>today</strong> <span class="epjs-body-action"><a href="/apply"><em>Apply</em></a></span></div>
+        </div>
         """
 
     @Test
@@ -93,10 +98,17 @@ struct HTMLContentRendererTests {
 
         #expect(events.eventCount == 1)
         switch (splitTextAndAction, forSwiftUI, try #require(events.first)) {
-        case (false, false, .renderTextViewWithLink): break
-        case (false, true, .renderSwiftUITextViewWithLink): break
-        case (true, false, .renderSeparateTextAndButton): break
-        case (true, true, .renderSwiftUISeparateTextAndButton): break
+        case (false, false, .renderTextViewWithLink(let textView)):
+            #expect(textView.attributedText.string == "Offer Apply")
+        case (false, true, .renderSwiftUITextViewWithLink(let textView)):
+            #expect(textView.text == "Offer Apply")
+        case (true, false, .renderSeparateTextAndButton(let textView, let button)):
+            #expect(textView.text.contains("Offer"))
+            #expect(button.title(for: .normal) == "Apply")
+            #expect(button.accessibilityIdentifier == "Apply")
+        case (true, true, .renderSwiftUISeparateTextAndButton(let textView, let button)):
+            #expect(textView.text.contains("Offer"))
+            #expect(button.title == "Apply")
         default: Issue.record("Expected the existing render callback for the selected mode")
         }
         let calls = await reporter.calls(atLeast: 1)
@@ -199,28 +211,124 @@ struct HTMLContentRendererTests {
         #expect(error.localizedDescription == Constants.missingPopupPlacementError)
     }
 
-    @Test
-    func noActionTapPreservesTextClickedWithoutClickAnalytics() async throws {
+    @Test(arguments: [false, true])
+    func noActionSplitControlForwardsTapWithoutClickAnalytics(forSwiftUI: Bool) async throws {
         let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = makeRenderer(
             reporter: reporter, events: events,
-            splitTextAndAction: true
+            splitTextAndAction: true, forSwiftUI: forSwiftUI
         )
-        let html = textHTML.replacingOccurrences(of: "SHOW_OVERLAY", with: "NO_ACTION")
 
-        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: html))
-        _ = await reporter.calls(atLeast: 1)
-        await renderer.handleLinkInteraction(link: "Apply")
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: noActionHTML))
+        let initialCalls = await waitForAnalyticsCalls(reporter, count: 1)
+        #expect(initialCalls.map(\.event) == [.viewPlacement])
 
-        try #require(events.eventCount == 2)
-        guard case .renderSeparateTextAndButton = events.events[0], case .textClicked = events.events[1] else {
-            Issue.record("Expected the render callback followed by textClicked")
+        if forSwiftUI {
+            guard case let .renderSwiftUISeparateTextAndButton(_, button) = try #require(events.first) else {
+                Issue.record("Expected the SwiftUI split text and button callback")
+                return
+            }
+            button.action()
+        } else {
+            guard case let .renderSeparateTextAndButton(_, button) = try #require(events.first) else {
+                Issue.record("Expected the UIKit split text and button callback")
+                return
+            }
+            renderer.handleButtonTap(button)
+        }
+
+        #expect(await events.waitForEventCount(2))
+        let recordedEvents = events.events
+        guard recordedEvents.count > 1, case .textClicked = recordedEvents[1] else {
+            Issue.record("Expected the split control tap to forward textClicked")
             return
         }
         let calls = await reporter.calls
         #expect(calls.count == 1)
         #expect(calls.first?.event == .viewPlacement)
+    }
+
+    @Test(arguments: [false, true])
+    func noActionFormattedTextRemovesLinkStylingAndForwardsTap(forSwiftUI: Bool) async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(reporter: reporter, events: events, forSwiftUI: forSwiftUI)
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: noActionHTML))
+        let initialCalls = await waitForAnalyticsCalls(reporter, count: 1)
+        #expect(initialCalls.map(\.event) == [.viewPlacement])
+
+        let attributedText: NSAttributedString
+        if forSwiftUI {
+            let view: BreadPartnerLinkTextSwitUI
+            guard case let .renderSwiftUITextViewWithLink(renderedView) = try #require(events.first) else {
+                Issue.record("Expected a SwiftUI linked-text callback")
+                return
+            }
+            view = renderedView
+            attributedText = try #require(view.attributedText)
+            view.onTap?()
+        } else {
+            let view: BreadPartnerLinkText
+            guard case let .renderTextViewWithLink(renderedView) = try #require(events.first) else {
+                Issue.record("Expected a UIKit linked-text callback")
+                return
+            }
+            view = renderedView
+            attributedText = try #require(view.attributedText)
+            view.tapHandler?("")
+        }
+
+        #expect(attributedText.string.contains("Pay"))
+        #expect(attributedText.string.contains("today"))
+        #expect(attributedText.string.contains("Apply"))
+        let boldRange = (attributedText.string as NSString).range(of: "today")
+        let font = try #require(attributedText.attribute(.font, at: boldRange.location, effectiveRange: nil) as? UIFont)
+        #expect(font.fontDescriptor.symbolicTraits.contains(.traitBold))
+        assertNoLinkAttributes(in: attributedText)
+
+        #expect(await events.waitForEventCount(2))
+        let recordedEvents = events.events
+        guard recordedEvents.count > 1, case .textClicked = recordedEvents[1] else {
+            Issue.record("Expected the formatted text tap to forward textClicked")
+            return
+        }
+        let calls = await reporter.calls
+        #expect(calls.map(\.event) == [.viewPlacement])
+    }
+
+    @Test(arguments: [false, true])
+    func noActionConversionFailureUsesPlainTextFallback(forSwiftUI: Bool) async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let renderer = makeRenderer(
+            reporter: reporter,
+            events: events,
+            forSwiftUI: forSwiftUI,
+            htmlToAttributedString: { _ in nil }
+        )
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: noActionHTML))
+        let calls = await waitForAnalyticsCalls(reporter, count: 1)
+        #expect(calls.map(\.event) == [.viewPlacement])
+
+        if forSwiftUI {
+            guard case let .renderSwiftUITextViewWithLink(view) = try #require(events.first) else {
+                Issue.record("Expected a SwiftUI text fallback callback")
+                return
+            }
+            #expect(view.text.contains("Pay"))
+            #expect(view.attributedText == nil)
+        } else {
+            guard case let .renderTextViewWithLink(view) = try #require(events.first) else {
+                Issue.record("Expected a UIKit text fallback callback")
+                return
+            }
+            #expect(view.attributedText.string.contains("Pay"))
+            #expect(view.attributedText.attribute(.font, at: 0, effectiveRange: nil) == nil)
+        }
+        #expect(events.eventCount == 1)
     }
 
     @Test
@@ -248,6 +356,7 @@ struct HTMLContentRendererTests {
         events: EventCapture,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
+        htmlToAttributedString: @escaping (String) -> NSAttributedString? = { $0.htmlToAttributedString() },
         textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
             try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
         }
@@ -260,8 +369,36 @@ struct HTMLContentRendererTests {
             analyticsReporter: reporter,
             callback: events.record,
             onLoadFollowUpPopupModel: { _ in nil },
+            htmlToAttributedString: htmlToAttributedString,
             textPlacementParser: textPlacementParser
         )
+    }
+
+    private func assertNoLinkAttributes(in attributedText: NSAttributedString) {
+        let range = NSRange(location: 0, length: attributedText.length)
+        var containsLink = false
+        var containsUnderline = false
+        attributedText.enumerateAttribute(.link, in: range) { value, _, _ in
+            containsLink = containsLink || value != nil
+        }
+        attributedText.enumerateAttribute(.underlineStyle, in: range) { value, _, _ in
+            containsUnderline = containsUnderline || value != nil
+        }
+        #expect(!containsLink)
+        #expect(!containsUnderline)
+    }
+
+    private func waitForAnalyticsCalls(_ reporter: AnalyticsReporterSpy, count: Int) async -> [AnalyticsReporterSpy
+        .Call]
+    {
+        for _ in 0..<100 {
+            let calls = await reporter.calls
+            if calls.count >= count {
+                return calls
+            }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+        return await reporter.calls
     }
 
     private func makeResponse(textHTML: String, popupHTML: String? = nil) -> PlacementsResponse {
