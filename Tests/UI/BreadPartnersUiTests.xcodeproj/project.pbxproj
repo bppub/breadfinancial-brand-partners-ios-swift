@@ -16,6 +16,7 @@
 		700000000000000000000035 /* BreadPartnersUITestLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000036 /* BreadPartnersUITestLauncher.swift */; };
 		C356964F3093EDA300E805CE /* BreadPartners in Frameworks */ = {isa = PBXBuildFile; productRef = 700000000000000000000023 /* BreadPartners */; };
 		700000000000000000000037 /* DocumentContentReadyObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000038 /* DocumentContentReadyObserverTests.swift */; };
+		700000000000000000000040 /* WKNavigationDelegateSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000041 /* WKNavigationDelegateSpy.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		700000000000000000000031 /* QuickLookPDFPresenterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookPDFPresenterUITests.swift; sourceTree = "<group>"; };
 		700000000000000000000036 /* BreadPartnersUITestLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPartnersUITestLauncher.swift; sourceTree = "<group>"; };
 		700000000000000000000038 /* DocumentContentReadyObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentContentReadyObserverTests.swift; sourceTree = "<group>"; };
+		700000000000000000000041 /* WKNavigationDelegateSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKNavigationDelegateSpy.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 				70000000000000000000000B /* HTMLHandling */,
 				700000000000000000000032 /* Domains */,
 				700000000000000000000027 /* TestHelpers */,
+				700000000000000000000042 /* SharedTestHelpers */,
 				70000000000000000000000C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +115,14 @@
 				700000000000000000000036 /* BreadPartnersUITestLauncher.swift */,
 			);
 			path = TestHelpers;
+			sourceTree = "<group>";
+		};
+		700000000000000000000042 /* SharedTestHelpers */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000041 /* WKNavigationDelegateSpy.swift */,
+			);
+			path = ../iOS/TestHelpers;
 			sourceTree = "<group>";
 		};
 		700000000000000000000032 /* Domains */ = {
@@ -260,6 +271,7 @@
 				700000000000000000000028 /* QuickLookPDFPresenterUITests.swift in Sources */,
 				700000000000000000000035 /* BreadPartnersUITestLauncher.swift in Sources */,
 				700000000000000000000037 /* DocumentContentReadyObserverTests.swift in Sources */,
+				700000000000000000000040 /* WKNavigationDelegateSpy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
