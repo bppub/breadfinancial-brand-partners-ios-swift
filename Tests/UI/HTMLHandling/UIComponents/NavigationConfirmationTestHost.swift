@@ -13,11 +13,12 @@
 import SwiftUI
 @testable import BreadPartners
 
-enum NavigationConfirmationTestHost {
-    static let registration = BreadPartnersUITestHostChild(
-        identifier: "navigation-confirmation",
-        makeView: { AnyView(NavigationConfirmationTestHostView()) }
-    )
+@objc(NavigationConfirmationTestHost)
+final class NavigationConfirmationTestHost: NSObject, UITestHostProviding {
+    @MainActor
+    static func makeView() -> AnyView {
+        AnyView(NavigationConfirmationTestHostView())
+    }
 }
 
 private struct NavigationConfirmationTestHostView: View {

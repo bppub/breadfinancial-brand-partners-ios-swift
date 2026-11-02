@@ -15,7 +15,8 @@ import XCTest
 final class NavigationConfirmationPresenterUITests: XCTestCase {
     @MainActor
     func testStayButtonInvokesStayCallback() {
-        let app = launchNavigationConfirmationHost()
+        let app = XCUIApplication()
+        app.launch(host: "NavigationConfirmationTestHost")
 
         app.buttons["show-confirmation"].tap()
 
@@ -28,7 +29,8 @@ final class NavigationConfirmationPresenterUITests: XCTestCase {
 
     @MainActor
     func testLeaveButtonInvokesLeaveCallback() {
-        let app = launchNavigationConfirmationHost()
+        let app = XCUIApplication()
+        app.launch(host: "NavigationConfirmationTestHost")
 
         app.buttons["show-confirmation"].tap()
 
@@ -37,13 +39,5 @@ final class NavigationConfirmationPresenterUITests: XCTestCase {
         alert.buttons["Leave"].tap()
 
         XCTAssertTrue(app.staticTexts["Leave selected"].waitForExistence(timeout: 5))
-    }
-
-    @MainActor
-    private func launchNavigationConfirmationHost() -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchEnvironment["BREAD_PARTNERS_UI_TEST_CHILD"] = "navigation-confirmation"
-        app.launch()
-        return app
     }
 }
