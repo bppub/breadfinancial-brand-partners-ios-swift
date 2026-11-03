@@ -77,16 +77,16 @@ jobs:
 
             const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
             const toNumber = value => Number(value || 0);
-            const readReport = bundle => JSON.parse(execFileSync(
+            const readArchive = bundle => JSON.parse(execFileSync(
               "xcrun",
-              ["xccov", "view", "--report", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
-              { encoding: "utf8" }
+              ["xccov", "view", "--archive", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
+              { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }
             ));
             const workspace = process.env.GITHUB_WORKSPACE;
             const reports = [
               {
                 name: "macOS",
-                report: readReport("MacTestResults.xcresult"),
+                archive: readArchive("MacTestResults.xcresult"),
                 sourceRoots: [
                   { path: path.join(workspace, "Tests", "TestSupport", "TestHelpers") },
                   { path: path.join(workspace, "Sources", "BreadPartnersCore") }
@@ -94,7 +94,7 @@ jobs:
               },
               {
                 name: "iOS Simulator",
-                report: readReport("SimulatorTestResults.xcresult"),
+                archive: readArchive("SimulatorTestResults.xcresult"),
                 sourceRoots: [
                   { path: path.join(workspace, "Sources", "BreadPartners") },
                   { path: path.join(workspace, "Tests", "UI") },
@@ -104,29 +104,36 @@ jobs:
             ];
             const filesByPath = new Map();
 
-            for (const { report, sourceRoots } of reports) {
-              for (const target of report.targets || []) {
-                for (const file of target.files || []) {
-                  const filePath = String(file.path || "");
-                  const source = sourceRoots.find(({ path: sourcePath }) =>
-                    filePath.startsWith(`${sourcePath}${path.sep}`)
-                  );
-                  if (!source) continue;
-                  const relativePath = path.relative(source.path, filePath);
+            for (const { archive, sourceRoots } of reports) {
+              for (const [filePath, lines] of Object.entries(archive)) {
+                const source = sourceRoots.find(({ path: sourcePath }) =>
+                  filePath.startsWith(`${sourcePath}${path.sep}`)
+                );
+                if (!source) continue;
 
-                  if (filesByPath.has(filePath)) {
-                    throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
-                  }
-                  filesByPath.set(filePath, {
-                    name: relativePath,
-                    coveredLines: toNumber(file.coveredLines),
-                    executableLines: toNumber(file.executableLines)
-                  });
+                let file = filesByPath.get(filePath);
+                if (!file) {
+                  file = {
+                    name: path.relative(source.path, filePath),
+                    lines: new Map()
+                  };
+                  filesByPath.set(filePath, file);
+                }
+
+                for (const line of lines || []) {
+                  if (!line.isExecutable) continue;
+                  const wasCovered = file.lines.get(line.line) || false;
+                  file.lines.set(line.line, wasCovered || toNumber(line.executionCount) > 0);
                 }
               }
             }
 
             const files = Array.from(filesByPath.values())
+              .map(file => ({
+                name: file.name,
+                coveredLines: Array.from(file.lines.values()).filter(Boolean).length,
+                executableLines: file.lines.size,
+              }))
               .filter(file => file.executableLines > 0)
               .map(file => ({
                 ...file,
@@ -135,11 +142,8 @@ jobs:
               .sort((left, right) => left.lineCoverage - right.lineCoverage);
 
             if (files.length === 0) {
-              const targetNames = reports
-                .flatMap(({ report }) => report.targets || [])
-                .map(target => target.name)
-                .join(", ");
-              throw new Error(`No package source files found. Coverage targets: ${targetNames}`);
+              const reportNames = reports.map(({ name }) => name).join(", ");
+              throw new Error(`No source files found in coverage archives: ${reportNames}`);
             }
 
             const percent = value => `${(value * 100).toFixed(2)}%`;
