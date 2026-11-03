@@ -13,6 +13,12 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:.swiftpm/BreadPartnersMacTests.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -21,6 +27,16 @@
                BlueprintIdentifier = "BreadPartnersCoreTests"
                BuildableName = "BreadPartnersCoreTests"
                BlueprintName = "BreadPartnersCoreTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BreadPartnersTestSupportTests"
+               BuildableName = "BreadPartnersTestSupportTests"
+               BlueprintName = "BreadPartnersTestSupportTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

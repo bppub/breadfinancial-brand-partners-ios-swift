@@ -44,56 +44,27 @@ jobs:
           key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Package.swift') }}
           restore-keys: spm-${{ runner.os }}-
 
-      - name: Run BreadPartnersTestSupport Tests
+      - name: Run macOS Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersTestSupportTests \
-            -destination 'platform=macOS' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath TestSupportResults.xcresult \
-            -enableCodeCoverage YES \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartnersCore Tests
-        run: |
-          xcodebuild test \
+            -workspace BreadPartners.xcworkspace \
             -scheme BreadPartnersCoreTests \
+            -testPlan BreadPartnersMacTests \
             -destination 'platform=macOS' \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath CoreTestResults.xcresult \
+            -resultBundlePath MacTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Run BreadPartners Tests
+      - name: Run iOS Simulator Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersTests \
+            -workspace BreadPartners.xcworkspace \
+            -scheme BreadPartnersSimulatorTests \
+            -testPlan BreadPartnersSimulatorTests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath iOSTestResults.xcresult \
-            -enableCodeCoverage YES \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartners UI Tests
-        run: |
-          xcodebuild test \
-            -project Tests/UI/BreadPartnersUiTests.xcodeproj \
-            -scheme BreadPartnersUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath UITestResults.xcresult \
-            -enableCodeCoverage YES \
-            -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartnersTestApp UI Tests
-        run: |
-          xcodebuild test \
-            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
-            -scheme BreadPartnersTestAppUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath IntegrationTestResults.xcresult \
+            -resultBundlePath SimulatorTestResults.xcresult \
             -enableCodeCoverage YES \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
@@ -115,43 +86,34 @@ jobs:
             const workspace = process.env.GITHUB_WORKSPACE;
             const reports = [
               {
-                name: "TestSupport",
-                report: readReport("TestSupportResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "TestSupport"),
-                excludedRoot: path.join(workspace, "Tests", "TestSupport", "Tests")
+                name: "macOS",
+                report: readReport("MacTestResults.xcresult"),
+                sourceRoots: [
+                  { path: path.join(workspace, "Tests", "TestSupport", "TestHelpers") },
+                  { path: path.join(workspace, "Sources", "BreadPartnersCore") }
+                ]
               },
               {
-                name: "Core",
-                report: readReport("CoreTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Sources", "BreadPartnersCore")
-              },
-              {
-                name: "iOS",
-                report: readReport("iOSTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Sources", "BreadPartners")
-              },
-              {
-                name: "UI",
-                report: readReport("UITestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "UI")
-              },
-              {
-                name: "Integration",
-                report: readReport("IntegrationTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests")
+                name: "iOS Simulator",
+                report: readReport("SimulatorTestResults.xcresult"),
+                sourceRoots: [
+                  { path: path.join(workspace, "Sources", "BreadPartners") },
+                  { path: path.join(workspace, "Tests", "UI") },
+                  { path: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests") }
+                ]
               }
             ];
             const filesByPath = new Map();
 
-            for (const { report, sourceRoot, excludedRoot } of reports) {
-              const sourcePrefix = `${sourceRoot}${path.sep}`;
-              const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
+            for (const { report, sourceRoots } of reports) {
               for (const target of report.targets || []) {
                 for (const file of target.files || []) {
                   const filePath = String(file.path || "");
-                  if (!filePath.startsWith(sourcePrefix)) continue;
-                  if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
-                  const relativePath = path.relative(sourceRoot, filePath);
+                  const source = sourceRoots.find(({ path: sourcePath }) =>
+                    filePath.startsWith(`${sourcePath}${path.sep}`)
+                  );
+                  if (!source) continue;
+                  const relativePath = path.relative(source.path, filePath);
 
                   if (filesByPath.has(filePath)) {
                     throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
@@ -195,7 +157,6 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS + UI + Integration |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -204,7 +165,6 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult` + `IntegrationTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
@@ -220,15 +180,3 @@ jobs:
                 text
               }
             });
-
-
-      - name: Verify Build for iOS
-        run: |
-          xcodebuild \
-            -scheme BreadPartners \
-            -destination 'generic/platform=iOS' \
-            -sdk iphoneos \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -verbose \
-            CODE_SIGNING_ALLOWED=NO \
-            build

@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "5E964BAA-A0AB-4FBC-A568-031E30A8BA5C",
+      "name" : "iOS Simulator Tests",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersTests",
+        "name" : "BreadPartnersTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Tests/UI/BreadPartnersUiTests.xcodeproj",
+        "identifier" : "700000000000000000000015",
+        "name" : "BreadPartnersUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj",
+        "identifier" : "4E73EF823087F060000F2E23",
+        "name" : "BreadPartnersTestAppUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

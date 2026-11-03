@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "E0DAE86A-850B-4051-88B0-E7A22A1D8E20",
+      "name" : "macOS Tests",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersCoreTests",
+        "name" : "BreadPartnersCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "BreadPartnersTestSupportTests",
+        "name" : "BreadPartnersTestSupportTests"
+      }
+    }
+  ],
+  "version" : 1
+}
