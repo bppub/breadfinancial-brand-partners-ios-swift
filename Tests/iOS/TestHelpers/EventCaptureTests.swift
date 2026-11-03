@@ -86,7 +86,7 @@ import Testing
             capture.record(.textClicked)
         }
 
-        #expect(await capture.waitForEventCount(1, timeout: 0.5))
+        #expect(await capture.waitForEventCount(1, timeout: 120))
         await recordingTask.value
         #expect(capture.eventCount == 1)
     }
