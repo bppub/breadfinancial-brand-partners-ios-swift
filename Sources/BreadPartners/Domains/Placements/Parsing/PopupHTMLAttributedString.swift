@@ -12,21 +12,36 @@
 
 import UIKit
 
+enum PopupHTMLAttributedStringConverter {
+    static func convert(
+        html: String,
+        data: Data?,
+        parse: (Data) throws -> NSAttributedString
+    ) -> NSAttributedString {
+        guard let data else { return NSAttributedString(string: html) }
+
+        do {
+            return try parse(data)
+        } catch {
+            print("Error converting HTML: \(error)")
+            return NSAttributedString(string: html)
+        }
+    }
+}
+
 extension String {
     /// Converts an HTML string to an NSAttributedString while preserving formatting.
     func toAttributedString() -> NSAttributedString {
-        guard let data = self.data(using: .utf8) else { return NSAttributedString(string: self) }
-
         let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
             .documentType: NSAttributedString.DocumentType.html,
             .characterEncoding: String.Encoding.utf8.rawValue,
         ]
 
-        do {
-            return try NSAttributedString(data: data, options: options, documentAttributes: nil)
-        } catch {
-            print("Error converting HTML: \(error)")
-            return NSAttributedString(string: self)
+        return PopupHTMLAttributedStringConverter.convert(
+            html: self,
+            data: data(using: .utf8)
+        ) { data in
+            try NSAttributedString(data: data, options: options, documentAttributes: nil)
         }
     }
 }
