@@ -65,4 +65,25 @@ final class EventCapture: @unchecked Sendable {
         recordedEvents.append(event)
         lock.unlock()
     }
+
+    /// Waits until the requested number of events is captured or the timeout expires.
+    ///
+    /// Returns immediately when the count has already been reached. The default timeout is one
+    /// second, which keeps tests bounded when an expected callback is missing.
+    func waitForEventCount(_ count: Int, timeout: TimeInterval = 1) async -> Bool {
+        let deadline = ProcessInfo.processInfo.systemUptime + max(timeout, 0)
+        while eventCount < count {
+            let remaining = deadline - ProcessInfo.processInfo.systemUptime
+            guard remaining > 0 else {
+                return false
+            }
+            let sleepDuration = min(remaining, 0.01)
+            do {
+                try await Task.sleep(nanoseconds: UInt64(sleepDuration * 1_000_000_000))
+            } catch {
+                return eventCount >= count
+            }
+        }
+        return true
+    }
 }
