@@ -44,58 +44,28 @@ jobs:
           key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Package.swift') }}
           restore-keys: spm-${{ runner.os }}-
 
-      - name: Run BreadPartnersTestSupport Tests
+      - name: Run macOS Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersTestSupportTests \
-            -destination 'platform=macOS' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath TestSupportResults.xcresult \
-            -enableCodeCoverage YES \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartnersCore Tests
-        run: |
-          xcodebuild test \
+            -workspace BreadPartners.xcworkspace \
             -scheme BreadPartnersCoreTests \
+            -testPlan BreadPartnersMacTests \
             -destination 'platform=macOS' \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath CoreTestResults.xcresult \
+            -resultBundlePath MacTestResults.xcresult \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Run BreadPartners Tests
+      - name: Run iOS Simulator Tests
         run: |
           xcodebuild test \
-            -scheme BreadPartnersTests \
+            -workspace BreadPartners.xcworkspace \
+            -scheme BreadPartnersSimulatorTests \
+            -testPlan BreadPartnersSimulatorTests \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath iOSTestResults.xcresult \
+            -resultBundlePath SimulatorTestResults.xcresult \
             -enableCodeCoverage YES \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartners UI Tests
-        run: |
-          xcodebuild test \
-            -project Tests/UI/BreadPartnersUiTests.xcodeproj \
-            -scheme BreadPartnersUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath UITestResults.xcresult \
-            -enableCodeCoverage YES \
-            -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run BreadPartnersTestApp UI Tests
-        run: |
-          xcodebuild test \
-            -project BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj \
-            -scheme BreadPartnersTestAppUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -resultBundlePath IntegrationTestResults.xcresult \
-            -enableCodeCoverage YES \
-            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Publish combined coverage check run
@@ -107,65 +77,63 @@ jobs:
 
             const escapeCell = value => String(value ?? "").replace(/\|/g, "\\|");
             const toNumber = value => Number(value || 0);
-            const readReport = bundle => JSON.parse(execFileSync(
+            const readArchive = bundle => JSON.parse(execFileSync(
               "xcrun",
-              ["xccov", "view", "--report", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
-              { encoding: "utf8" }
+              ["xccov", "view", "--archive", "--json", path.join(process.env.GITHUB_WORKSPACE, bundle)],
+              { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }
             ));
             const workspace = process.env.GITHUB_WORKSPACE;
             const reports = [
               {
-                name: "TestSupport",
-                report: readReport("TestSupportResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "TestSupport"),
-                excludedRoot: path.join(workspace, "Tests", "TestSupport", "Tests")
+                name: "macOS",
+                archive: readArchive("MacTestResults.xcresult"),
+                sourceRoots: [
+                  { path: path.join(workspace, "Tests", "TestSupport", "TestHelpers") },
+                  { path: path.join(workspace, "Sources", "BreadPartnersCore") }
+                ]
               },
               {
-                name: "Core",
-                report: readReport("CoreTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Sources", "BreadPartnersCore")
-              },
-              {
-                name: "iOS",
-                report: readReport("iOSTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Sources", "BreadPartners")
-              },
-              {
-                name: "UI",
-                report: readReport("UITestResults.xcresult"),
-                sourceRoot: path.join(workspace, "Tests", "UI")
-              },
-              {
-                name: "Integration",
-                report: readReport("IntegrationTestResults.xcresult"),
-                sourceRoot: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests")
+                name: "iOS Simulator",
+                archive: readArchive("SimulatorTestResults.xcresult"),
+                sourceRoots: [
+                  { path: path.join(workspace, "Sources", "BreadPartners") },
+                  { path: path.join(workspace, "Tests", "UI") },
+                  { path: path.join(workspace, "BreadPartnersTestApp", "BreadPartnersTestAppUITests") }
+                ]
               }
             ];
             const filesByPath = new Map();
 
-            for (const { report, sourceRoot, excludedRoot } of reports) {
-              const sourcePrefix = `${sourceRoot}${path.sep}`;
-              const excludedPrefix = excludedRoot ? `${excludedRoot}${path.sep}` : null;
-              for (const target of report.targets || []) {
-                for (const file of target.files || []) {
-                  const filePath = String(file.path || "");
-                  if (!filePath.startsWith(sourcePrefix)) continue;
-                  if (excludedPrefix && filePath.startsWith(excludedPrefix)) continue;
-                  const relativePath = path.relative(sourceRoot, filePath);
+            for (const { archive, sourceRoots } of reports) {
+              for (const [filePath, lines] of Object.entries(archive)) {
+                const source = sourceRoots.find(({ path: sourcePath }) =>
+                  filePath.startsWith(`${sourcePath}${path.sep}`)
+                );
+                if (!source) continue;
 
-                  if (filesByPath.has(filePath)) {
-                    throw new Error(`Source file was reported by more than one owning test run: ${filePath}`);
-                  }
-                  filesByPath.set(filePath, {
-                    name: relativePath,
-                    coveredLines: toNumber(file.coveredLines),
-                    executableLines: toNumber(file.executableLines)
-                  });
+                let file = filesByPath.get(filePath);
+                if (!file) {
+                  file = {
+                    name: path.relative(source.path, filePath),
+                    lines: new Map()
+                  };
+                  filesByPath.set(filePath, file);
+                }
+
+                for (const line of lines || []) {
+                  if (!line.isExecutable) continue;
+                  const wasCovered = file.lines.get(line.line) || false;
+                  file.lines.set(line.line, wasCovered || toNumber(line.executionCount) > 0);
                 }
               }
             }
 
             const files = Array.from(filesByPath.values())
+              .map(file => ({
+                name: file.name,
+                coveredLines: Array.from(file.lines.values()).filter(Boolean).length,
+                executableLines: file.lines.size,
+              }))
               .filter(file => file.executableLines > 0)
               .map(file => ({
                 ...file,
@@ -174,11 +142,8 @@ jobs:
               .sort((left, right) => left.lineCoverage - right.lineCoverage);
 
             if (files.length === 0) {
-              const targetNames = reports
-                .flatMap(({ report }) => report.targets || [])
-                .map(target => target.name)
-                .join(", ");
-              throw new Error(`No package source files found. Coverage targets: ${targetNames}`);
+              const reportNames = reports.map(({ name }) => name).join(", ");
+              throw new Error(`No source files found in coverage archives: ${reportNames}`);
             }
 
             const percent = value => `${(value * 100).toFixed(2)}%`;
@@ -195,7 +160,6 @@ jobs:
               `| Covered Lines | ${coveredLines} |`,
               `| Executable Lines | ${executableLines} |`,
               `| Files in Report | ${files.length} |`,
-              "| Test Runs Combined | TestSupport + Core + iOS + UI + Integration |",
               `| Workflow Run | ${context.runId} |`,
               `| Commit | ${context.sha.slice(0, 7)} |`,
               "",
@@ -204,7 +168,6 @@ jobs:
               "| --- | ---: | ---: |",
               ...rows,
               "",
-              "Source: `TestSupportResults.xcresult` + `CoreTestResults.xcresult` + `iOSTestResults.xcresult` + `UITestResults.xcresult` + `IntegrationTestResults.xcresult`"
             ].join("\n");
 
             await github.rest.checks.create({
@@ -220,15 +183,3 @@ jobs:
                 text
               }
             });
-
-
-      - name: Verify Build for iOS
-        run: |
-          xcodebuild \
-            -scheme BreadPartners \
-            -destination 'generic/platform=iOS' \
-            -sdk iphoneos \
-            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
-            -verbose \
-            CODE_SIGNING_ALLOWED=NO \
-            build

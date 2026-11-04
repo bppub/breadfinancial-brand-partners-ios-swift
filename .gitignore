@@ -6,6 +6,10 @@
 !BreadPartners.xcworkspace/
 BreadPartners.xcworkspace/*
 !BreadPartners.xcworkspace/contents.xcworkspacedata
+!BreadPartners.xcworkspace/xcshareddata/
+!BreadPartners.xcworkspace/xcshareddata/xcschemes/
+!BreadPartners.xcworkspace/xcshareddata/xcschemes/BreadPartnersSimulatorTests.xcscheme
+BreadPartners.xcworkspace/xcshareddata/swiftpm/Package.resolved
 *.xcuserstate
 xcuserdata/
 DerivedData/
