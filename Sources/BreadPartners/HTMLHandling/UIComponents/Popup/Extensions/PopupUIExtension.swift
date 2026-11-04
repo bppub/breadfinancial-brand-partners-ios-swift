@@ -226,7 +226,8 @@ extension PopupController {
                     y: self.popupView.bounds.maxY * 0.45,
                     width: 50,
                     height: 50),
-                placementsConfiguration: self.placementsConfiguration!
+                color: self.placementsConfiguration?.popUpStyling?.loaderColor
+                    ?? BreadPartnerDefaults.popupStyle.loaderColor
             )
             self.popupView.addSubview(self.loader)
         }
