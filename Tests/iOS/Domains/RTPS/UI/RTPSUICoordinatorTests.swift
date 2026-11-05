@@ -102,23 +102,26 @@ struct RTPSUICoordinatorTests {
         let coordinator = makeCoordinator(popupFactory: popupFactory)
         let events = EventCapture()
         let logger = Logger()
-        let merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
-        let placementsConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps
-        let popupPlacementModel = RTPSTestFixtures.PopupPlacementModelFixture.embedded
+        let popupInput = PopupInput.embedded(
+            style: PopUpStyling(),
+            logoURL: "https://logo.test",
+            webViewURL: "https://embedded.test",
+            showsCloseButton: false
+        )
 
         coordinator.presentPlacement(
-            popupPlacementModel,
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            integrationKey: "integration-key",
+            popupInput,
             logger: logger,
             callback: events.record
         )
 
-        #expect(popupFactory.integrationKey == "integration-key")
-        #expect(popupFactory.merchantConfiguration?.storeNumber == merchantConfiguration.storeNumber)
-        #expect(popupFactory.placementsConfiguration?.rtpsData != nil)
-        #expect(popupFactory.popupPlacementModel?.webViewUrl == popupPlacementModel.webViewUrl)
+        guard case let .embedded(content) = popupFactory.input?.content else {
+            Issue.record("Expected the popup factory to receive embedded content")
+            return
+        }
+        #expect(content.logoURL == "https://logo.test")
+        #expect(content.webViewURL == "https://embedded.test")
+        #expect(content.showsCloseButton == false)
         #expect(popupFactory.logger === logger)
 
         let publishedEvents = events.events
@@ -187,28 +190,16 @@ private final class ChallengeControllerFactorySpy: ChallengeControllerFactory, @
 @MainActor
 private final class PopupFactorySpy: PopupFactory, @unchecked Sendable {
     let controller = UIViewController()
-    private(set) var integrationKey: String?
-    private(set) var merchantConfiguration: MerchantConfiguration?
-    private(set) var placementsConfiguration: PlacementConfiguration?
-    private(set) var popupPlacementModel: PopupPlacementModel?
-    private(set) var overlayType: PlacementOverlayType?
+    private(set) var input: PopupInput?
     private(set) var logger: Logger?
     private(set) var callback: ((BreadPartnerEvents) -> Void)?
 
     func makePopupController(
-        integrationKey: String,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        popupPlacementModel: PopupPlacementModel,
-        overlayType: PlacementOverlayType,
+        input: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController {
-        self.integrationKey = integrationKey
-        self.merchantConfiguration = merchantConfiguration
-        self.placementsConfiguration = placementsConfiguration
-        self.popupPlacementModel = popupPlacementModel
-        self.overlayType = overlayType
+        self.input = input
         self.logger = logger
         self.callback = callback
         return controller

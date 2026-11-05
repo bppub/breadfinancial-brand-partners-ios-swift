@@ -34,30 +34,29 @@ struct LiveRTPSUIFactoriesTests {
 
     @Test
     func popupFactoryConfiguresEmbeddedPopupController() throws {
-        let merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
-        let placementsConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps
-        let popupPlacementModel = RTPSTestFixtures.PopupPlacementModelFixture.embedded
+        let model = RTPSTestFixtures.PopupPlacementModelFixture.embedded
+        let popupInput = PopupInput.embedded(
+            style: PopUpStyling(),
+            logoURL: model.brandLogoUrl,
+            webViewURL: model.webViewUrl,
+            showsCloseButton: model.location != "RTPS-Approval"
+        )
         let logger = Logger()
         let events = EventCapture()
 
         let viewController = LivePopupFactory().makePopupController(
-            integrationKey: "integration-key",
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            popupPlacementModel: popupPlacementModel,
-            overlayType: .embeddedOverlay,
+            input: popupInput,
             logger: logger,
             callback: events.record
         )
 
         let controller = try #require(viewController as? PopupController)
-        #expect(controller.integrationKey == "integration-key")
-        #expect(controller.merchantConfiguration?.storeNumber == merchantConfiguration.storeNumber)
-        #expect(controller.placementsConfiguration?.rtpsData != nil)
-        #expect(controller.popupModel.overlayType == popupPlacementModel.overlayType)
-        #expect(controller.popupModel.location == popupPlacementModel.location)
-        #expect(controller.popupModel.webViewUrl == popupPlacementModel.webViewUrl)
-        #expect(controller.overlayType == .embeddedOverlay)
+        guard case let .embedded(content) = controller.input.content else {
+            Issue.record("Expected an embedded popup input")
+            return
+        }
+        #expect(content.logoURL == RTPSTestFixtures.PopupPlacementModelFixture.embedded.brandLogoUrl)
+        #expect(content.webViewURL == RTPSTestFixtures.PopupPlacementModelFixture.embedded.webViewUrl)
         #expect(controller.logger === logger)
 
         controller.callback(.textClicked)

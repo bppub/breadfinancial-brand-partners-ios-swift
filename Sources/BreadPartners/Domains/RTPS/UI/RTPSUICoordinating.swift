@@ -28,10 +28,7 @@ protocol RTPSUICoordinating: Sendable {
     )
 
     func presentPlacement(
-        _ popupPlacementModel: PopupPlacementModel,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        integrationKey: String,
+        _ popupInput: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     )
