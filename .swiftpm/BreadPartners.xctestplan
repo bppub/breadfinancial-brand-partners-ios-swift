@@ -39,6 +39,13 @@
         "identifier" : "700000000000000000000015",
         "name" : "BreadPartnersUITests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BreadPartnersTestApp\/BreadPartnersTestApp.xcodeproj",
+        "identifier" : "4E73EF823087F060000F2E23",
+        "name" : "BreadPartnersTestAppUITests"
+      }
     }
   ],
   "version" : 1
