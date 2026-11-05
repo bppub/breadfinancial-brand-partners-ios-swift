@@ -16,6 +16,16 @@ struct PopupInput: @unchecked Sendable {
     enum Content: @unchecked Sendable {
         case embedded(Embedded)
         case product(Product)
+
+        var isEmbedded: Bool {
+            if case .embedded = self { return true }
+            return false
+        }
+    }
+
+    struct ChromeConfiguration: Sendable {
+        let logoURL: String
+        let showsCloseButton: Bool
     }
 
     struct Embedded: @unchecked Sendable {
@@ -40,6 +50,15 @@ struct PopupInput: @unchecked Sendable {
 
     let style: PopUpStyling
     let content: Content
+
+    var chromeConfiguration: ChromeConfiguration {
+        switch content {
+        case .embedded(let content):
+            ChromeConfiguration(logoURL: content.logoURL, showsCloseButton: content.showsCloseButton)
+        case .product(let content):
+            ChromeConfiguration(logoURL: content.logoURL, showsCloseButton: content.showsCloseButton)
+        }
+    }
 
     static func embedded(
         style: PopUpStyling,

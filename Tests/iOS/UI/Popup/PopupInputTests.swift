@@ -27,6 +27,9 @@ struct PopupInputTests {
         )
 
         #expect(input.style.loaderColor == style.loaderColor)
+        #expect(input.content.isEmbedded)
+        #expect(input.chromeConfiguration.logoURL == "https://example.test/logo.png")
+        #expect(input.chromeConfiguration.showsCloseButton)
         guard case let .embedded(content) = input.content else {
             Issue.record("Expected embedded popup content")
             return
@@ -72,6 +75,9 @@ struct PopupInputTests {
             actionTitle: "Continue"
         )
 
+        #expect(!input.content.isEmbedded)
+        #expect(input.chromeConfiguration.logoURL == "https://example.test/logo.png")
+        #expect(input.chromeConfiguration.showsCloseButton)
         #expect(input.style.loaderColor == style.loaderColor)
         guard case let .product(product) = input.content else {
             Issue.record("Expected product popup content")
