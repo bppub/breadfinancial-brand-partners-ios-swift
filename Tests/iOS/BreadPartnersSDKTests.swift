@@ -305,8 +305,11 @@ struct BreadPartnersSDKTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        #expect(popup.popupModel.overlayType == PlacementOverlayType.embeddedOverlay.rawValue)
-        #expect(popup.placementsConfiguration?.popUpStyling != nil)
+        guard case .embedded = popup.input.content else {
+            Issue.record("Expected an embedded popup input")
+            return
+        }
+        #expect(popup.input.style.loaderColor == BreadPartnerDefaults.popupStyle.loaderColor)
     }
 
     @Test

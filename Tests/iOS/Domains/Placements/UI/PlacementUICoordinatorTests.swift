@@ -139,7 +139,9 @@ struct PlacementUICoordinatorTests {
         await makeCoordinator().presentPlacement(
             response,
             input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
-            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
+            onFetchFollowUpPlacement: { _ in
+                throw NSError(domain: "UnusedFollowUp", code: 1)
+            }
         )
 
         let publishedEvents = events.events
@@ -153,8 +155,13 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        #expect(popup.integrationKey == "integration-key")
-        #expect(popup.overlayType == (overlayType == "EMBEDDED_OVERLAY" ? .embeddedOverlay : .singleProductOverlay))
+        await popup.setupTask?.value
+        switch (overlayType, popup.input.content) {
+        case ("EMBEDDED_OVERLAY", .embedded), ("UNKNOWN", .product):
+            break
+        default:
+            Issue.record("Expected popup input to match the parsed overlay type")
+        }
         #expect(view.modalPresentationStyle == .overCurrentContext)
         #expect(view.modalTransitionStyle == .crossDissolve)
         #expect(await reporter.calls.isEmpty)
@@ -243,13 +250,13 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let requestedIDs = await fetcher.requestedIDs
         #expect(!requestedIDs.isEmpty)
         #expect(requestedIDs.allSatisfy { $0 == "cta-fetch-id" })
-        #expect(popup.webViewPlacementModel?.overlayTitle.string == "Fetched model")
-        #expect(popup.webViewPlacementModel?.webViewUrl == "https://application.test")
+        #expect(popup.webViewContent?.webViewURL == "https://application.test")
     }
 
     @Test
@@ -293,11 +300,12 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let error = try #require(sdkError(from: events))
         #expect(error.localizedDescription == Constants.apiError(message: parsingError.localizedDescription))
-        #expect(popup.webViewPlacementModel == nil)
+        #expect(popup.webViewContent == nil)
     }
 
     @Test
@@ -323,11 +331,12 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let error = try #require(sdkError(from: events))
         #expect(error.localizedDescription == Constants.popupPlacementParsingError)
-        #expect(popup.webViewPlacementModel == nil)
+        #expect(popup.webViewContent == nil)
     }
 
     @Test
@@ -363,10 +372,11 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         #expect(!events.containsSDKError)
-        #expect(popup.webViewPlacementModel?.overlayTitle.string.isEmpty == true)
+        #expect(popup.webViewContent?.webViewURL.isEmpty == true)
     }
 
     private func makeCoordinator(
