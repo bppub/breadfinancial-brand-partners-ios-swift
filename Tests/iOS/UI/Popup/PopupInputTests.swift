@@ -18,6 +18,27 @@ import UIKit
 @MainActor
 struct PopupInputTests {
     @Test
+    func factoriesUseDefaultStyleWhenNoneIsProvided() {
+        let embeddedInput = PopupInput.embedded(
+            logoURL: "",
+            webViewURL: "https://example.test/offer"
+        )
+        let productInput = PopupInput.product(
+            logoURL: "",
+            title: NSAttributedString(string: "Offer"),
+            subtitle: NSAttributedString(string: ""),
+            header: NSAttributedString(string: ""),
+            sections: [],
+            disclosure: NSAttributedString(string: ""),
+            disclosureHTML: "",
+            actionTitle: "Continue"
+        )
+
+        #expect(embeddedInput.style.loaderColor == PopUpStyling().loaderColor)
+        #expect(productInput.style.loaderColor == PopUpStyling().loaderColor)
+    }
+
+    @Test
     func embeddedFactoryPreservesValuesAndDefaultsCloseButtonToVisible() throws {
         let style = PopUpStyling()
         let input = PopupInput.embedded(
