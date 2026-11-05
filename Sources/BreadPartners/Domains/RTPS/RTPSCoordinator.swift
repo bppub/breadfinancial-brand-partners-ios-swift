@@ -144,25 +144,26 @@ final class RTPSCoordinator: RealTimePrescreenCoordinating, @unchecked Sendable 
                     url: endpointProvider.url(for: .generatePlacements)
                 )
             )
-            let response: PlacementsResponse
-            switch outcome {
-            case let .success(placementsResponse):
-                response = placementsResponse
 
+            switch outcome {
             case let .challenge(_, _, error), let .failure(error):
                 throw error
+
+            case let .success(placementsResponse):
+                let popupPlacementModel = try await popupModelMapper.map(placementsResponse)
+
+                await uiCoordinator.presentPlacement(
+                    .embedded(
+                        style: input.placementsConfiguration.popUpStyling,
+                        logoURL: popupPlacementModel.brandLogoUrl,
+                        webViewURL: popupPlacementModel.webViewUrl,
+                        showsCloseButton: popupPlacementModel.location != "RTPS-Approval"
+                    ),
+                    logger: input.logger,
+                    callback: input.callback
+                )
             }
 
-            let popupPlacementModel = try await popupModelMapper.map(response)
-
-            await uiCoordinator.presentPlacement(
-                popupPlacementModel,
-                merchantConfiguration: input.merchantConfiguration,
-                placementsConfiguration: input.placementsConfiguration,
-                integrationKey: input.integrationKey,
-                logger: input.logger,
-                callback: input.callback
-            )
         } catch is RTPSPopupModelMapperError {
             input.callback(
                 .sdkError(

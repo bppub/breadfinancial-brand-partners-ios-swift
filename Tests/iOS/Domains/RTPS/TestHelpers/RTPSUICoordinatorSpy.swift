@@ -20,7 +20,7 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
     private(set) var lastFailure: RTPSServiceFailure?
     private(set) var challengeHTMLContent: String?
     private(set) var challengeOriginalURL: String?
-    private(set) var popupPlacementModel: PopupPlacementModel?
+    private(set) var popupInput: PopupInput?
     private var challengeCompletion: ((String) -> Void)?
     private let failureSignals: AsyncStream<Void>
     private let failureContinuation: AsyncStream<Void>.Continuation
@@ -60,14 +60,11 @@ final class RTPSUICoordinatorSpy: RTPSUICoordinating, @unchecked Sendable {
     }
 
     func presentPlacement(
-        _ popupPlacementModel: PopupPlacementModel,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        integrationKey: String,
+        _ popupInput: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {
         placementCallCount += 1
-        self.popupPlacementModel = popupPlacementModel
+        self.popupInput = popupInput
     }
 }

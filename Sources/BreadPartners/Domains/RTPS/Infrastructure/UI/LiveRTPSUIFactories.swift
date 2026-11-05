@@ -35,20 +35,12 @@ struct LiveChallengeControllerFactory: ChallengeControllerFactory {
 @MainActor
 struct LivePopupFactory: PopupFactory {
     func makePopupController(
-        integrationKey: String,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        popupPlacementModel: PopupPlacementModel,
-        overlayType: PlacementOverlayType,
+        input: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController {
         PopupController(
-            integrationKey: integrationKey,
-            merchantConfiguration: merchantConfiguration,
-            placementConfiguration: placementsConfiguration,
-            popupModel: popupPlacementModel,
-            overlayType: overlayType,
+            input: input,
             logger: logger,
             callback: callback
         )

@@ -27,11 +27,7 @@ protocol ChallengeControllerFactory: Sendable {
 @MainActor
 protocol PopupFactory: Sendable {
     func makePopupController(
-        integrationKey: String,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        popupPlacementModel: PopupPlacementModel,
-        overlayType: PlacementOverlayType,
+        input: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) -> UIViewController
