@@ -51,6 +51,11 @@ struct PopupInput: @unchecked Sendable {
     let style: PopUpStyling
     let content: Content
 
+    private init(style: PopUpStyling?, content: Content) {
+        self.style = style ?? PopUpStyling()
+        self.content = content
+    }
+
     var chromeConfiguration: ChromeConfiguration {
         switch content {
         case .embedded(let content):
@@ -61,7 +66,7 @@ struct PopupInput: @unchecked Sendable {
     }
 
     static func embedded(
-        style: PopUpStyling,
+        style: PopUpStyling? = nil,
         logoURL: String,
         webViewURL: String,
         showsCloseButton: Bool = true
@@ -79,7 +84,7 @@ struct PopupInput: @unchecked Sendable {
     }
 
     static func product(
-        style: PopUpStyling,
+        style: PopUpStyling? = nil,
         logoURL: String,
         title: NSAttributedString,
         subtitle: NSAttributedString,
