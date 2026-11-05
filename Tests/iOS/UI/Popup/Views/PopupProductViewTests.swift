@@ -120,9 +120,9 @@ struct PopupProductViewTests {
         from input: PopupInput,
         onAction: @escaping () -> Void
     ) throws -> PopupProductView {
-        let product = try #require(product(in: input))
+        let productContent = try #require(product(in: input))
         let presentation = PopupProductPresentationMapper().map(
-            product: product,
+            product: productContent,
             style: input.style
         )
         return PopupProductView(presentation: presentation, onAction: onAction)
