@@ -20,6 +20,7 @@ struct PopupChromeViewTests {
     @Test
     func installsPopupFrameAndConfiguresCloseButton() {
         let parentView = UIView()
+        parentView.frame = CGRect(x: 0, y: 0, width: 400, height: 800)
         let chromeView = PopupChromeView(
             style: PopUpStyling(crossColor: .systemRed),
             configuration: PopupInput.ChromeConfiguration(logoURL: "", showsCloseButton: false),
@@ -27,13 +28,17 @@ struct PopupChromeViewTests {
         )
 
         chromeView.install(in: parentView)
+        parentView.layoutIfNeeded()
 
         #expect(chromeView.superview === parentView)
         #expect(chromeView.backgroundColor == .white)
         #expect(chromeView.layer.cornerRadius == 12)
         #expect(chromeView.closeButton.isHidden)
         #expect(chromeView.closeButton.tintColor == .systemRed)
-        #expect(parentView.constraints.count == 4)
+        #expect(chromeView.frame.width == 360)
+        #expect(chromeView.frame.midX == parentView.bounds.midX)
+        #expect(chromeView.frame.midY == parentView.bounds.midY)
+        #expect(chromeView.frame.height > 0)
     }
 
     @Test

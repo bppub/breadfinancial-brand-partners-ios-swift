@@ -16,6 +16,7 @@ import WebKit
 @MainActor
 internal final class PopupWebViewCoordinator: @MainActor AppRestartListener {
     private let webViewManager: BreadFinancialWebViewInterstitial
+    private let pageLoader: @MainActor (WKWebView) async throws -> URL
     private let onPageLoadCompleted: () -> Void
     private weak var embeddedView: PopupEmbeddedView?
     private var webView: WKWebView?
@@ -23,10 +24,16 @@ internal final class PopupWebViewCoordinator: @MainActor AppRestartListener {
     init(
         logger: Logger,
         onEvent: @escaping (BreadPartnerEvents) -> Void,
-        onPageLoadCompleted: @escaping () -> Void
+        onPageLoadCompleted: @escaping () -> Void,
+        pageLoader: (@MainActor (WKWebView) async throws -> URL)? = nil
     ) {
+        let webViewManager = BreadFinancialWebViewInterstitial(logger: logger, callback: onEvent)
         self.onPageLoadCompleted = onPageLoadCompleted
-        webViewManager = BreadFinancialWebViewInterstitial(logger: logger, callback: onEvent)
+        self.webViewManager = webViewManager
+        self.pageLoader =
+            pageLoader ?? { webView in
+                try await webViewManager.loadPage(for: webView)
+            }
         webViewManager.appRestartListener = self
     }
 
@@ -41,7 +48,7 @@ internal final class PopupWebViewCoordinator: @MainActor AppRestartListener {
     }
 
     func loadPage(for webView: WKWebView) async throws -> URL {
-        try await webViewManager.loadPage(for: webView)
+        try await pageLoader(webView)
     }
 
     func onAppRestartClicked(url: String) {

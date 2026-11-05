@@ -60,11 +60,41 @@ struct PopupWebViewCoordinatorTests {
         #expect(webView.superview === embeddedView)
     }
 
-    private func makeCoordinator() -> PopupWebViewCoordinator {
+    @Test
+    func loadPageReturnsURLFromInjectedLoader() async throws {
+        let expectedURL = try #require(URL(string: "https://example.com"))
+        let webView = WKWebView()
+        var receivedWebView: WKWebView?
+        let coordinator = makeCoordinator(pageLoader: { webView in
+            receivedWebView = webView
+            return expectedURL
+        })
+
+        let loadedURL = try await coordinator.loadPage(for: webView)
+
+        #expect(loadedURL == expectedURL)
+        #expect(receivedWebView === webView)
+    }
+
+    @Test
+    func loadPagePropagatesInjectedLoaderError() async {
+        let coordinator = makeCoordinator(pageLoader: { _ in
+            throw URLError(.badURL)
+        })
+
+        await #expect(throws: URLError.self) {
+            try await coordinator.loadPage(for: WKWebView())
+        }
+    }
+
+    private func makeCoordinator(
+        pageLoader: (@MainActor (WKWebView) async throws -> URL)? = nil
+    ) -> PopupWebViewCoordinator {
         PopupWebViewCoordinator(
             logger: Logger(),
             onEvent: { _ in },
-            onPageLoadCompleted: {}
+            onPageLoadCompleted: {},
+            pageLoader: pageLoader
         )
     }
 }
