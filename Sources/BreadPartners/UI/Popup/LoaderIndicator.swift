@@ -17,14 +17,15 @@ import UIKit
 /// Handles the animation or behavior for a ball spin fade loader, typically used for showing loading states.
 internal class LoaderIndicator: UIView {
 
-    private let placementsConfiguration: PlacementConfiguration
+    private let color: UIColor
     private var ballLayers: [CALayer] = []
     private let ballCount = 8  // Number of balls
     private let radius: CGFloat = 30.0  // Radius of the circular path for balls
     private let ballSize: CGFloat = 20.0  // Size of each ball
+    private let animationBeginTimes: [CFTimeInterval] = [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84]
 
-    init(frame: CGRect, placementsConfiguration: PlacementConfiguration) {
-        self.placementsConfiguration = placementsConfiguration
+    init(frame: CGRect, color: UIColor) {
+        self.color = color
         super.init(frame: frame)
         setupLoader()
     }
@@ -35,23 +36,23 @@ internal class LoaderIndicator: UIView {
 
     private func setupLoader() {
         let angleStep = 2 * CGFloat.pi / CGFloat(ballCount)
-        let beginTimes: [CFTimeInterval] = [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84]
 
         for i in 0..<ballCount {
-            let ballLayer = createBallLayer(atIndex: i, angleStep: angleStep, beginTime: beginTimes[i])
+            let ballLayer = createBallLayer(atIndex: i, angleStep: angleStep)
             layer.addSublayer(ballLayer)
             ballLayers.append(ballLayer)
+            addBallAnimation(to: ballLayer, beginTime: animationBeginTimes[i])
         }
 
         startAnimation()
     }
 
-    private func createBallLayer(atIndex index: Int, angleStep: CGFloat, beginTime: CFTimeInterval) -> CALayer {
+    private func createBallLayer(atIndex index: Int, angleStep: CGFloat) -> CALayer {
         let angle = angleStep * CGFloat(index)
         let ballLayer = CALayer()
         ballLayer.bounds = CGRect(x: 0, y: 0, width: ballSize, height: ballSize)
         ballLayer.cornerRadius = ballSize / 2
-        ballLayer.backgroundColor = placementsConfiguration.popUpStyling?.loaderColor.cgColor
+        ballLayer.backgroundColor = color.cgColor
         ballLayer.opacity = 0.0
 
         // Calculate ball position
@@ -59,7 +60,10 @@ internal class LoaderIndicator: UIView {
         let y = bounds.midY + radius * sin(angle)
         ballLayer.position = CGPoint(x: x, y: y)
 
-        // Create the fade-in/out and scale animation
+        return ballLayer
+    }
+
+    private func addBallAnimation(to ballLayer: CALayer, beginTime: CFTimeInterval) {
         let scaleAnimation = CAKeyframeAnimation(keyPath: "transform.scale")
         scaleAnimation.keyTimes = [0, 0.5, 1]
         scaleAnimation.values = [1, 0.5, 0]
@@ -80,8 +84,6 @@ internal class LoaderIndicator: UIView {
 
         // Add animation to ball layer
         ballLayer.add(animationGroup, forKey: "ballAnimation")
-
-        return ballLayer
     }
 
     private func startAnimation() {
@@ -94,8 +96,11 @@ internal class LoaderIndicator: UIView {
     }
 
     func startAnimating() {
-        for ballLayer in ballLayers {
+        for (index, ballLayer) in ballLayers.enumerated() {
             ballLayer.isHidden = false
+            if ballLayer.animation(forKey: "ballAnimation") == nil {
+                addBallAnimation(to: ballLayer, beginTime: animationBeginTimes[index])
+            }
         }
         startAnimation()
     }
@@ -103,7 +108,8 @@ internal class LoaderIndicator: UIView {
     func stopAnimating() {
         for ballLayer in ballLayers {
             ballLayer.isHidden = true
-            ballLayer.removeAllAnimations()
+            ballLayer.removeAnimation(forKey: "ballAnimation")
         }
+        layer.removeAnimation(forKey: "rotation")
     }
 }
