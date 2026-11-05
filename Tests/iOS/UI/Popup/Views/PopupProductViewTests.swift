@@ -1,0 +1,100 @@
+//------------------------------------------------------------------------------
+//  File:          PopupProductViewTests.swift
+//  Author(s):     Bread Financial
+//  Date:          31 October 2026
+//
+//  Descriptions:  This file is part of the BreadPartners SDK for iOS,
+//  providing UI components and functionalities to integrate Bread Financial
+//  services into partner applications.
+//
+//  © 2026 Bread Financial
+//------------------------------------------------------------------------------
+
+import Testing
+import UIKit
+@testable import BreadPartners
+
+@Suite
+@MainActor
+struct PopupProductViewTests {
+    @Test
+    func rendersProductContentAndForwardsAction() throws {
+        let input = makeInput(
+            header: "Highlights",
+            sections: [
+                PopupBodySection(tag: "h3", text: "Cash back"),
+                PopupBodySection(tag: "p", text: "Details"),
+                PopupBodySection(tag: "connector", text: "or"),
+                PopupBodySection(tag: "footer", text: "Terms apply"),
+                PopupBodySection(tag: "unsupported", text: "Ignored"),
+            ]
+        )
+        let product = try #require(product(in: input))
+        let view = PopupProductView(product: product, style: input.style)
+        var actionCount = 0
+        view.onAction = { actionCount += 1 }
+
+        view.actionButton.sendActions(for: .touchUpInside)
+
+        #expect(view.titleLabel.attributedText?.string == "Your offer")
+        #expect(view.subtitleLabel.attributedText?.string == "Offer details")
+        #expect(view.disclosureTextView.text == "Terms apply")
+        #expect(view.sectionStackView.arrangedSubviews.count == 4)
+        #expect(!view.detailsView.isHidden)
+        #expect(view.actionButton.title(for: .normal) == "Continue")
+        #expect(actionCount == 1)
+    }
+
+    @Test
+    func hidesDetailsCardWhenThereAreNoSections() throws {
+        let input = makeInput(header: "", sections: [])
+        let product = try #require(product(in: input))
+        let view = PopupProductView(product: product, style: input.style)
+
+        #expect(view.detailsView.isHidden)
+        #expect(view.sectionStackView.arrangedSubviews.isEmpty)
+    }
+
+    @Test
+    func disclosureAnchorReturnsToTop() throws {
+        let input = makeInput(header: "", sections: [])
+        let product = try #require(product(in: input))
+        let view = PopupProductView(product: product, style: input.style)
+        view.scrollView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        view.scrollView.contentSize = CGSize(width: 100, height: 200)
+        view.scrollView.setContentOffset(CGPoint(x: 0, y: 80), animated: false)
+        let anchor = try #require(URL(string: "#epjs-css-overlay-header"))
+
+        let shouldOpen = view.textView(
+            view.disclosureTextView,
+            shouldInteractWith: anchor,
+            in: NSRange(location: 0, length: 1),
+            interaction: .invokeDefaultAction
+        )
+
+        #expect(!shouldOpen)
+        #expect(view.scrollView.contentOffset == .zero)
+    }
+
+    private func makeInput(
+        header: String,
+        sections: [PopupBodySection]
+    ) -> PopupInput {
+        .product(
+            style: PopUpStyling(),
+            logoURL: "",
+            title: NSAttributedString(string: "Your offer"),
+            subtitle: NSAttributedString(string: "Offer details"),
+            header: NSAttributedString(string: header),
+            sections: sections,
+            disclosure: NSAttributedString(string: "Terms apply"),
+            disclosureHTML: "",
+            actionTitle: "Continue"
+        )
+    }
+
+    private func product(in input: PopupInput) -> PopupInput.Product? {
+        guard case let .product(product) = input.content else { return nil }
+        return product
+    }
+}
