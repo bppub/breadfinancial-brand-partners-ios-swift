@@ -92,8 +92,8 @@ struct PopupChromeViewTests {
         #expect(URL(string: invalidURL) == nil)
         chromeView.loadLogo(from: invalidURL)
 
-        let logoImageView = try #require(logoImageView(in: chromeView))
-        #expect(logoImageView.image == nil)
+        let logoView = try #require(logoImageView(in: chromeView))
+        #expect(logoView.image == nil)
     }
 
     @Test
@@ -120,13 +120,13 @@ struct PopupChromeViewTests {
             ),
             onClose: {}
         )
-        let logoImageView = try #require(logoImageView(in: chromeView))
+        let logoImage = try #require(logoImageView(in: chromeView))
 
-        for _ in 0..<100 where logoImageView.image == nil {
+        for _ in 0..<100 where logoImage.image == nil {
             try await Task.sleep(nanoseconds: 10_000_000)
         }
 
-        #expect(logoImageView.image?.size == sourceImage.size)
+        #expect(logoImage.image?.size == sourceImage.size)
     }
 
     private func logoImageView(in chromeView: PopupChromeView) -> UIImageView? {
