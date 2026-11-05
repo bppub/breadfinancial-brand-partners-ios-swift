@@ -18,7 +18,7 @@ import UIKit
 @MainActor
 struct PopupProductViewTests {
     @Test
-    func rendersProductContentAndForwardsAction() throws {
+    func rendersProductContentAndConfiguresAction() throws {
         let input = makeInput(
             header: "Highlights",
             sections: [
@@ -29,37 +29,44 @@ struct PopupProductViewTests {
                 PopupBodySection(tag: "unsupported", text: "Ignored"),
             ]
         )
-        let product = try #require(product(in: input))
-        let view = PopupProductView(product: product, style: input.style)
         var actionCount = 0
-        view.onAction = { actionCount += 1 }
-
-        view.actionButton.sendActions(for: .touchUpInside)
+        let view = try makeView(from: input) {
+            actionCount += 1
+        }
+        let actions =
+            view.actionButton.actions(
+                forTarget: view,
+                forControlEvent: .touchUpInside
+            ) ?? []
 
         #expect(view.titleLabel.attributedText?.string == "Your offer")
         #expect(view.subtitleLabel.attributedText?.string == "Offer details")
         #expect(view.disclosureTextView.text == "Terms apply")
         #expect(view.sectionStackView.arrangedSubviews.count == 4)
         #expect(!view.detailsView.isHidden)
+        #expect(!view.headerView.isHidden)
         #expect(view.actionButton.title(for: .normal) == "Continue")
+        #expect(actions == ["actionButtonTapped:"])
+
+        view.perform(NSSelectorFromString("actionButtonTapped:"), with: view.actionButton)
+
         #expect(actionCount == 1)
     }
 
     @Test
     func hidesDetailsCardWhenThereAreNoSections() throws {
         let input = makeInput(header: "", sections: [])
-        let product = try #require(product(in: input))
-        let view = PopupProductView(product: product, style: input.style)
+        let view = try makeView(from: input, onAction: {})
 
         #expect(view.detailsView.isHidden)
+        #expect(view.headerView.isHidden)
         #expect(view.sectionStackView.arrangedSubviews.isEmpty)
     }
 
     @Test
     func disclosureAnchorReturnsToTop() throws {
         let input = makeInput(header: "", sections: [])
-        let product = try #require(product(in: input))
-        let view = PopupProductView(product: product, style: input.style)
+        let view = try makeView(from: input, onAction: {})
         view.scrollView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         view.scrollView.contentSize = CGSize(width: 100, height: 200)
         view.scrollView.setContentOffset(CGPoint(x: 0, y: 80), animated: false)
@@ -74,6 +81,22 @@ struct PopupProductViewTests {
 
         #expect(!shouldOpen)
         #expect(view.scrollView.contentOffset == .zero)
+    }
+
+    @Test
+    func nonAnchorDisclosureLinksAreAllowed() throws {
+        let input = makeInput(header: "", sections: [])
+        let view = try makeView(from: input, onAction: {})
+        let url = try #require(URL(string: "https://example.test/terms"))
+
+        let shouldOpen = view.textView(
+            view.disclosureTextView,
+            shouldInteractWith: url,
+            in: NSRange(location: 0, length: 1),
+            interaction: .invokeDefaultAction
+        )
+
+        #expect(shouldOpen)
     }
 
     private func makeInput(
@@ -91,6 +114,18 @@ struct PopupProductViewTests {
             disclosureHTML: "",
             actionTitle: "Continue"
         )
+    }
+
+    private func makeView(
+        from input: PopupInput,
+        onAction: @escaping () -> Void
+    ) throws -> PopupProductView {
+        let product = try #require(product(in: input))
+        let presentation = PopupProductPresentationMapper().map(
+            product: product,
+            style: input.style
+        )
+        return PopupProductView(presentation: presentation, onAction: onAction)
     }
 
     private func product(in input: PopupInput) -> PopupInput.Product? {

@@ -10,7 +10,6 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import SwiftSoup
 import UIKit
 
 @MainActor
@@ -25,51 +24,46 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
     let actionButton: UIButton
     let bottomRowView = UIView()
 
-    var onAction: (() -> Void)?
-
     private let contentView = UIView()
-    private let headerView = UIView()
+    let headerView = UIView()
     private let dividerBottom = UIView()
     private let style: PopUpStyling
+    private let onAction: () -> Void
 
-    init(product: PopupInput.Product, style: PopUpStyling) {
-        self.style = style
-        titleLabel = Self.makeLabel(
-            withText: product.title,
-            style: style.titlePopupTextStyle
-        )
-        subtitleLabel = Self.makeLabel(
-            withText: product.subtitle,
-            style: style.subTitlePopupTextStyle
-        )
+    init(presentation: PopupProductPresentationModel, onAction: @escaping () -> Void) {
+        self.style = presentation.style
+        self.onAction = onAction
+
+        titleLabel = Self.makeLabel(withText: presentation.title)
+        subtitleLabel = Self.makeLabel(withText: presentation.subtitle)
         disclosureTextView = Self.makeDisclosureTextView(
-            text: product.disclosure,
-            rawHTML: product.disclosureHTML,
+            text: presentation.disclosure,
             style: style.disclosurePopupTextStyle
         )
         detailsView = Self.makeContainerView(
             backgroundColor: style.backgroundColor,
             borderColor: style.borderColor
         )
-        headerLabel = Self.makeLabel(
-            withText: product.header,
-            style: style.headerPopupTextStyle
-        )
+        headerLabel = Self.makeLabel(withText: presentation.header)
         sectionStackView = UIStackView()
         actionButton = Self.makeActionButton(
-            title: product.actionTitle,
+            title: presentation.actionTitle,
             style: style.actionButtonStyle
         )
         super.init(frame: .zero)
 
         disclosureTextView.delegate = self
-        actionButton.addTarget(self, action: #selector(actionButtonTapped), for: .touchUpInside)
-        configure(product: product)
+        actionButton.addTarget(self, action: #selector(actionButtonTapped(_:)), for: .touchUpInside)
+        configure(presentation: presentation)
         installConstraints()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func actionButtonTapped(_ sender: UIButton) {
+        onAction()
     }
 
     func textView(
@@ -83,11 +77,7 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
         return false
     }
 
-    @objc private func actionButtonTapped() {
-        onAction?()
-    }
-
-    private func configure(product: PopupInput.Product) {
+    private func configure(presentation: PopupProductPresentationModel) {
         translatesAutoresizingMaskIntoConstraints = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -97,18 +87,15 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
         sectionStackView.translatesAutoresizingMaskIntoConstraints = false
 
         headerView.backgroundColor = style.headerBgColor
-        headerView.isHidden = headerLabel.text?.isEmpty ?? true
-        detailsView.isHidden = product.sections.isEmpty
+        headerView.isHidden = presentation.header.length == 0
+        detailsView.isHidden = !presentation.showsDetailsCard
         sectionStackView.axis = .vertical
         sectionStackView.spacing = 10
         sectionStackView.alignment = .fill
         dividerBottom.backgroundColor = style.dividerColor
 
-        for section in product.sections {
-            guard let label = makeSectionLabel(tag: section.tag, text: section.text) else {
-                continue
-            }
-            sectionStackView.addArrangedSubview(label)
+        for section in presentation.sections {
+            sectionStackView.addArrangedSubview(Self.makeLabel(withText: section.text))
         }
 
         addSubview(scrollView)
@@ -213,23 +200,6 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
             ])
         }
 
-        disclosureTextView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -verticalPadding)
-            .isActive = true
-    }
-
-    private func makeSectionLabel(tag: String, text: String) -> UILabel? {
-        let textStyle: PopupTextStyle
-        switch tag.lowercased() {
-        case "h3":
-            textStyle = style.headingThreePopupTextStyle
-        case "p", "footer":
-            textStyle = style.paragraphPopupTextStyle
-        case "connector":
-            textStyle = style.connectorPopupTextStyle
-        default:
-            return nil
-        }
-        return Self.makeLabel(withText: text.toAttributedString(), style: textStyle)
     }
 
     private static func makeContainerView(
@@ -247,40 +217,19 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
     }
 
     private static func makeLabel(
-        withText text: NSAttributedString,
-        style: PopupTextStyle,
-        alignment: NSTextAlignment = .center
+        withText text: NSAttributedString
     ) -> UILabel {
         let label = UILabel()
-        label.textAlignment = alignment
+        label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0
-
-        guard let font = style.font, text.length > 0 else {
-            label.attributedText = text
-            label.applyTextStyle(style: style)
-            return label
-        }
-
-        let mutable = NSMutableAttributedString(attributedString: text)
-        let range = NSRange(location: 0, length: mutable.length)
-        applyFont(font, to: mutable, in: range)
-        mutable.addAttribute(.foregroundColor, value: style.textColor, range: range)
-        mutable.enumerateAttribute(.paragraphStyle, in: range, options: []) { value, range, _ in
-            let paragraph =
-                ((value as? NSParagraphStyle)?.mutableCopy() as? NSMutableParagraphStyle)
-                ?? NSMutableParagraphStyle()
-            paragraph.alignment = alignment
-            mutable.addAttribute(.paragraphStyle, value: paragraph, range: range)
-        }
-        label.attributedText = mutable
+        label.attributedText = text
         return label
     }
 
     private static func makeDisclosureTextView(
         text: NSAttributedString,
-        rawHTML: String,
         style: PopupTextStyle
     ) -> UITextView {
         let textView = UITextView()
@@ -291,67 +240,12 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
         textView.textContainerInset = .zero
         textView.textContainer.lineFragmentPadding = 0
 
-        let mutable = NSMutableAttributedString(attributedString: text)
-        let range = NSRange(location: 0, length: mutable.length)
-        if !mutable.string.isEmpty {
-            mutable.addAttribute(.foregroundColor, value: style.textColor, range: range)
-        }
-        if let font = style.font, !mutable.string.isEmpty {
-            applyFont(font, to: mutable, in: range)
-        }
-
-        if let document = try? SwiftSoup.parse(rawHTML) {
-            let anchors = (try? document.select("a[href]").array()) ?? []
-            let source = mutable.string as NSString
-            for anchor in anchors {
-                guard
-                    let href = try? anchor.attr("href"),
-                    let url = URL(string: href),
-                    let linkText = try? anchor.text(),
-                    !href.isEmpty,
-                    !linkText.isEmpty
-                else { continue }
-
-                let found = source.range(of: linkText)
-                guard found.location != NSNotFound else { continue }
-                mutable.addAttribute(.link, value: url, range: found)
-            }
-        }
-
-        textView.attributedText = mutable
+        textView.attributedText = text
         textView.linkTextAttributes = [
             .foregroundColor: style.textColor,
             .underlineStyle: NSUnderlineStyle.single.rawValue,
         ]
         return textView
-    }
-
-    private static func applyFont(
-        _ targetFont: UIFont,
-        to mutable: NSMutableAttributedString,
-        in range: NSRange
-    ) {
-        mutable.enumerateAttribute(.font, in: range, options: []) { value, range, _ in
-            let newFont: UIFont
-            if let existingFont = value as? UIFont {
-                let traits = targetFont.fontDescriptor.symbolicTraits
-                    .union(existingFont.fontDescriptor.symbolicTraits)
-                if let descriptor = targetFont.fontDescriptor
-                    .withFamily(targetFont.familyName)
-                    .withSymbolicTraits(traits)
-                {
-                    newFont = UIFont(
-                        descriptor: descriptor.withSize(targetFont.pointSize),
-                        size: targetFont.pointSize
-                    )
-                } else {
-                    newFont = targetFont
-                }
-            } else {
-                newFont = targetFont
-            }
-            mutable.addAttribute(.font, value: newFont, range: range)
-        }
     }
 
     private static func makeActionButton(
