@@ -21,19 +21,107 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "700000000000000000000014"
+               BuildableName = "BreadPartnersUITestHost.app"
+               BlueprintName = "BreadPartnersUITestHost"
+               ReferencedContainer = "container:Tests/UI/BreadPartnersUiTests.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "700000000000000000000015"
+               BuildableName = "BreadPartnersUITests.xctest"
+               BlueprintName = "BreadPartnersUITests"
+               ReferencedContainer = "container:Tests/UI/BreadPartnersUiTests.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1000000000000000000000A3"
+               BuildableName = "BreadPartnersTestApp.app"
+               BlueprintName = "BreadPartnersTestApp"
+               ReferencedContainer = "container:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E73EF823087F060000F2E23"
+               BuildableName = "BreadPartnersTestAppUITests.xctest"
+               BlueprintName = "BreadPartnersTestAppUITests"
+               ReferencedContainer = "container:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
-      <TestPlans>
-         <TestPlanReference
-            reference = "container:.swiftpm/BreadPartners.xctestplan"
-            default = "YES">
-         </TestPlanReference>
-      </TestPlans>
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES">
+      <CodeCoverageTargets>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BreadPartners"
+            BuildableName = "BreadPartners"
+            BlueprintName = "BreadPartners"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BreadPartnersCore"
+            BuildableName = "BreadPartnersCore"
+            BlueprintName = "BreadPartnersCore"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BreadPartnersTestSupport"
+            BuildableName = "BreadPartnersTestSupport"
+            BlueprintName = "BreadPartnersTestSupport"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "700000000000000000000014"
+            BuildableName = "BreadPartnersUITestHost.app"
+            BlueprintName = "BreadPartnersUITestHost"
+            ReferencedContainer = "container:Tests/UI/BreadPartnersUiTests.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "1000000000000000000000A3"
+            BuildableName = "BreadPartnersTestApp.app"
+            BlueprintName = "BreadPartnersTestApp"
+            ReferencedContainer = "container:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj">
+         </BuildableReference>
+      </CodeCoverageTargets>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -63,6 +151,26 @@
                BuildableName = "BreadPartnersTestSupportTests"
                BlueprintName = "BreadPartnersTestSupportTests"
                ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "700000000000000000000015"
+               BuildableName = "BreadPartnersUITests.xctest"
+               BlueprintName = "BreadPartnersUITests"
+               ReferencedContainer = "container:Tests/UI/BreadPartnersUiTests.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E73EF823087F060000F2E23"
+               BuildableName = "BreadPartnersTestAppUITests.xctest"
+               BlueprintName = "BreadPartnersTestAppUITests"
+               ReferencedContainer = "container:BreadPartnersTestApp/BreadPartnersTestApp.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
