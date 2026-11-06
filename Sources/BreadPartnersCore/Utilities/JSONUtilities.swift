@@ -12,26 +12,6 @@
 
 import Foundation
 
-package func decodeJSON<T: Decodable>(from response: Any, to type: T.Type) throws -> T {
-    let data: Data
-
-    if let responseData = response as? Data {
-        data = responseData
-    } else if let responseDictionary = response as? [String: Any] {
-        data = try JSONSerialization.data(withJSONObject: responseDictionary)
-    } else if let responseArray = response as? [[String: Any]] {
-        data = try JSONSerialization.data(withJSONObject: responseArray)
-    } else {
-        throw NSError(
-            domain: "JSONDecodingError",
-            code: 1,
-            userInfo: [NSLocalizedDescriptionKey: "Unsupported JSON structure"]
-        )
-    }
-
-    return try JSONDecoder().decode(T.self, from: data)
-}
-
 /// Converts an object to a deterministic JSON string.
 public func stringifyJSON(_ object: Any) -> String {
     let unwrapped = unwrapForJSON(object)
