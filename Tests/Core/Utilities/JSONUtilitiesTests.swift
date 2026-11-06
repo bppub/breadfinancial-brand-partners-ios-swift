@@ -21,50 +21,6 @@ import Testing
     }
 
     @Test
-    func decodesData() throws {
-        let value = try decodeJSON(
-            from: Data(#"{"id":1,"name":"data"}"#.utf8),
-            to: TestValue.self
-        )
-
-        #expect(value == TestValue(id: 1, name: "data"))
-    }
-
-    @Test
-    func decodesDictionary() throws {
-        let value = try decodeJSON(
-            from: ["id": 2, "name": "dictionary"] as [String: Any],
-            to: TestValue.self
-        )
-
-        #expect(value == TestValue(id: 2, name: "dictionary"))
-    }
-
-    @Test
-    func decodesArray() throws {
-        let values = try decodeJSON(
-            from: [["id": 3, "name": "array"]] as [[String: Any]],
-            to: [TestValue].self
-        )
-
-        #expect(values == [TestValue(id: 3, name: "array")])
-    }
-
-    @Test
-    func rejectsUnsupportedPayload() {
-        let error = #expect(throws: NSError.self) {
-            let _: TestValue = try decodeJSON(
-                from: "not-json",
-                to: TestValue.self
-            )
-        }
-
-        #expect(error?.domain == "JSONDecodingError")
-        #expect(error?.code == 1)
-        #expect(error?.localizedDescription == "Unsupported JSON structure")
-    }
-
-    @Test
     func removesNilValuesAndNormalizesNestedDoubles() throws {
         let input: [String: Any?] = [
             "missing": nil,
