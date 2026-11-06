@@ -163,17 +163,17 @@ internal class HTMLContentRenderer {
         popupPlacementModel: PopupPlacementModel,
         overlayType: PlacementOverlayType
     ) async {
-        let popupViewController = PopupController(
-            integrationKey: integrationKey,
-            merchantConfiguration: merchantConfiguration!,
-            placementConfiguration: placementsConfiguration!,
-            popupModel: popupPlacementModel,
-            overlayType: overlayType,
-            logger: logger,
-            callback: callback,
-            onLoadFollowUpPopupModel: onLoadFollowUpPopupModel
-        )
-        configurePopupPresentation(popupViewController)
+        configurePopupPresentation(
+            PopupController(
+                input: PlacementPopupInputMapper().map(
+                    popupPlacementModel,
+                    overlayType: overlayType,
+                    style: placementsConfiguration?.popUpStyling,
+                    loadFollowUp: onLoadFollowUpPopupModel
+                ),
+                logger: logger,
+                callback: callback
+            ))
     }
 
     private func configurePopupPresentation(

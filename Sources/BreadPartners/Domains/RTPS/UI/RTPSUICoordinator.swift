@@ -85,19 +85,12 @@ final class RTPSUICoordinator: RTPSUICoordinating {
     }
 
     func presentPlacement(
-        _ popupPlacementModel: PopupPlacementModel,
-        merchantConfiguration: MerchantConfiguration,
-        placementsConfiguration: PlacementConfiguration,
-        integrationKey: String,
+        _ popupInput: PopupInput,
         logger: Logger,
         callback: @escaping (BreadPartnerEvents) -> Void
     ) {
         let controller = popupFactory.makePopupController(
-            integrationKey: integrationKey,
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            popupPlacementModel: popupPlacementModel,
-            overlayType: .embeddedOverlay,
+            input: popupInput,
             logger: logger,
             callback: callback
         )

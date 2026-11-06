@@ -88,23 +88,17 @@ struct RTPSUICoordinatorSpyTests {
     func placementRecordsEachInvocationWithoutPublishingEvents() {
         let coordinator = RTPSUICoordinatorSpy()
         let events = EventCapture()
-        let popupPlacementModel = RTPSTestFixtures.PopupPlacementModelFixture.embedded
-        let merchantConfiguration = RTPSTestFixtures.MerchantConfigurationFixture.complete
-        let placementsConfiguration = RTPSTestFixtures.PlacementConfigurationFixture.rtps
+        let popupInput = PopupInput.embedded(
+            style: PopUpStyling(), logoURL: "", webViewURL: "https://embedded.test"
+        )
 
         coordinator.presentPlacement(
-            popupPlacementModel,
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            integrationKey: "integration-key",
+            popupInput,
             logger: Logger(),
             callback: events.record
         )
         coordinator.presentPlacement(
-            popupPlacementModel,
-            merchantConfiguration: merchantConfiguration,
-            placementsConfiguration: placementsConfiguration,
-            integrationKey: "integration-key",
+            popupInput,
             logger: Logger(),
             callback: events.record
         )
