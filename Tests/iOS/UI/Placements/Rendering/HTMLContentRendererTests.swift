@@ -40,11 +40,10 @@ struct HTMLContentRendererTests {
         let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let renderer = HTMLContentRenderer(
-            integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
-            placementsConfiguration: PlacementConfiguration(), logger: Logger(),
+            logger: Logger(),
             analyticsReporter: reporter,
             callback: events.record,
-            onLoadFollowUpPopupModel: { _ in nil }
+            onShowOverlay: { _, _ in }
         )
 
         await renderer.handleTextPlacement(responseModel: PlacementsResponse(placements: nil, placementContent: nil))
@@ -118,101 +117,6 @@ struct HTMLContentRendererTests {
         #expect(events.eventCount == 1)
     }
 
-    @Test
-    func validPopupReportsOneClickAndPreservesOrderedCallbacks() async throws {
-        let reporter = AnalyticsReporterSpy()
-        let events = EventCapture()
-        let renderer = makeRenderer(
-            reporter: reporter, events: events)
-        let response = makeResponse(textHTML: textHTML, popupHTML: popupHTML)
-        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
-
-        await renderer.handlePopupPlacement(responseModel: response, textPlacementModel: model)
-
-        try #require(events.eventCount == 2)
-        guard case .textClicked = events.events[0],
-            case let .renderPopupView(view) = events.events[1]
-        else {
-            Issue.record("Expected textClicked followed by renderPopupView")
-            return
-        }
-        let popup = try #require(view as? PopupController)
-        guard case .embedded = popup.input.content else {
-            Issue.record("Expected an embedded popup input")
-            return
-        }
-        #expect(popup.modalPresentationStyle == .overCurrentContext)
-        #expect(popup.modalTransitionStyle == .crossDissolve)
-        let calls = await reporter.calls(atLeast: 1)
-        #expect(calls.count == 1)
-        #expect(calls.first?.event == .clickPlacement)
-        #expect(calls.first?.placementResponse.placementContent?.map(\.id) == ["text", "popup"])
-        popup.callback(.popupClosed)
-        guard case .popupClosed = try #require(events.events.last) else {
-            Issue.record("Expected the popup callback to be forwarded unchanged")
-            return
-        }
-    }
-
-    @Test(arguments: [nil, "", "<div data-overlay-metadata data-overlay-type='UNKNOWN'></div>"] as [String?])
-    func popupParsingOrOverlayFailureDoesNotReportAndPreservesError(popupHTML: String?) async throws {
-        let reporter = AnalyticsReporterSpy()
-        let events = EventCapture()
-        let renderer = makeRenderer(reporter: reporter, events: events)
-        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
-
-        await renderer.handlePopupPlacement(
-            responseModel: makeResponse(textHTML: textHTML, popupHTML: popupHTML), textPlacementModel: model
-        )
-
-        #expect(await reporter.calls.isEmpty)
-        #expect(events.eventCount == 1)
-        guard case let .sdkError(error) = try #require(events.first) else {
-            Issue.record("Expected the existing popup parsing or overlay error")
-            return
-        }
-        #expect((error as NSError).code == 500)
-        #expect(
-            error.localizedDescription
-                == (popupHTML == nil ? Constants.popupPlacementParsingError : Constants.missingPopupPlacementError))
-    }
-
-    @Test
-    func popupWithoutContentDataUsesEmptyHTMLAndPreservesMissingOverlayError() async throws {
-        let reporter = AnalyticsReporterSpy()
-        let events = EventCapture()
-        let renderer = makeRenderer(reporter: reporter, events: events)
-        let response = PlacementsResponse(
-            placements: nil,
-            placementContent: [
-                PlacementContentModel(
-                    id: "text",
-                    contentType: "text",
-                    contentData: ContentDataModel(htmlContent: textHTML),
-                    metadata: nil
-                ),
-                PlacementContentModel(
-                    id: "popup",
-                    contentType: "overlay",
-                    contentData: nil,
-                    metadata: nil
-                ),
-            ]
-        )
-        let model = try TextPlacementHTMLParser().extract(htmlContent: textHTML)
-
-        await renderer.handlePopupPlacement(responseModel: response, textPlacementModel: model)
-
-        #expect(await reporter.calls.isEmpty)
-        #expect(events.eventCount == 1)
-        guard case let .sdkError(error) = try #require(events.first) else {
-            Issue.record("Expected the missing popup overlay error")
-            return
-        }
-        #expect((error as NSError).code == 500)
-        #expect(error.localizedDescription == Constants.missingPopupPlacementError)
-    }
-
     @Test(arguments: [false, true])
     func noActionSplitControlForwardsTapWithoutClickAnalytics(forSwiftUI: Bool) async throws {
         let reporter = AnalyticsReporterSpy()
@@ -237,7 +141,7 @@ struct HTMLContentRendererTests {
                 Issue.record("Expected the UIKit split text and button callback")
                 return
             }
-            renderer.handleButtonTap(button)
+            button.sendActions(for: .touchUpInside)
         }
 
         #expect(await events.waitForEventCount(2))
@@ -353,24 +257,108 @@ struct HTMLContentRendererTests {
         }
     }
 
+    @Test
+    func showOverlayActionDelegatesResponseAndTextModel() async throws {
+        let events = EventCapture()
+        var delegatedResponse: PlacementsResponse?
+        var delegatedContentID: String?
+        let response = makeResponse(textHTML: textHTML)
+
+        let didShowOverlay = await waitForCallback(timeout: 1) { signal in
+            let renderer = makeRenderer(
+                reporter: AnalyticsReporterSpy(),
+                events: events,
+                actionTypeResolver: { _ in .showOverlay },
+                onShowOverlay: { response, model in
+                    delegatedResponse = response
+                    delegatedContentID = model.actionContentId
+                    signal.yield()
+                }
+            )
+
+            Task {
+                await renderer.handleTextPlacement(responseModel: response)
+                guard case let .renderTextViewWithLink(textView) = events.first else {
+                    return
+                }
+                textView.tapHandler?("Apply")
+            }
+        }
+
+        #expect(didShowOverlay)
+        #expect(delegatedResponse?.placementContent?.first?.id == "text")
+        #expect(delegatedContentID == "popup")
+    }
+
+    @Test
+    func unresolvedActionTypeReportsMissingTextPlacementErrorOnTap() async throws {
+        let events = EventCapture()
+        let renderer = makeRenderer(
+            reporter: AnalyticsReporterSpy(),
+            events: events,
+            actionTypeResolver: { _ in nil }
+        )
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: textHTML))
+        guard case let .renderTextViewWithLink(textView) = events.first else {
+            Issue.record("Expected linked text to render before interaction")
+            return
+        }
+        textView.tapHandler?("Apply")
+
+        #expect(await events.waitForEventCount(2))
+        guard case let .sdkError(error) = events.events.last else {
+            Issue.record("Expected an SDK error when the action type cannot be resolved")
+            return
+        }
+        #expect(error.localizedDescription == Constants.noTextPlacementError)
+    }
+
+    @Test
+    func unsupportedActionTypeReportsUnhandledTextPlacementErrorOnTap() async throws {
+        let events = EventCapture()
+        let renderer = makeRenderer(
+            reporter: AnalyticsReporterSpy(),
+            events: events,
+            actionTypeResolver: { _ in .redirect }
+        )
+
+        await renderer.handleTextPlacement(responseModel: makeResponse(textHTML: textHTML))
+        guard case let .renderTextViewWithLink(textView) = events.first else {
+            Issue.record("Expected linked text to render before interaction")
+            return
+        }
+        textView.tapHandler?("Apply")
+
+        #expect(await events.waitForEventCount(2))
+        guard case let .sdkError(error) = events.events.last else {
+            Issue.record("Expected an SDK error for an unsupported action type")
+            return
+        }
+        #expect(error.localizedDescription == Constants.missingTextPlacementError)
+    }
+
     private func makeRenderer(
         reporter: any AnalyticsReporting,
         events: EventCapture,
         splitTextAndAction: Bool = false,
         forSwiftUI: Bool = false,
+        actionTypeResolver: @escaping @MainActor (String) async -> PlacementActionType? = { actionType in
+            await HTMLContentParser().handleActionType(from: actionType)
+        },
+        onShowOverlay: @escaping @MainActor (PlacementsResponse, TextPlacementModel) async -> Void = { _, _ in },
         htmlToAttributedString: @escaping (String) -> NSAttributedString? = { $0.htmlToAttributedString() },
         textPlacementParser: @escaping (String) throws -> TextPlacementModel = { htmlContent in
             try TextPlacementHTMLParser().extract(htmlContent: htmlContent)
         }
     ) -> HTMLContentRenderer {
         return HTMLContentRenderer(
-            integrationKey: "brand", merchantConfiguration: MerchantConfiguration(),
-            placementsConfiguration: PlacementConfiguration().withDefaultPopupStylingIfMissing(),
             splitTextAndAction: splitTextAndAction, forSwiftUI: forSwiftUI,
             logger: Logger(),
             analyticsReporter: reporter,
             callback: events.record,
-            onLoadFollowUpPopupModel: { _ in nil },
+            onShowOverlay: onShowOverlay,
+            actionTypeResolver: actionTypeResolver,
             htmlToAttributedString: htmlToAttributedString,
             textPlacementParser: textPlacementParser
         )
