@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          BreadPartnerEvent.swift
+//  File:          BreadPartnerEvents.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
