@@ -67,12 +67,35 @@ internal final class PopupController: UIViewController {
         case .product(let content):
             setupProductOverlay(content: content)
 
-            guard let loadActionContent = content.loadActionContent
-            else { return }
+            guard let loadActionContent = content.loadActionContent else {
+                if webViewContent == nil {
+                    callback(
+                        .sdkError(
+                            error: NSError(
+                                domain: "",
+                                code: 500,
+                                userInfo: [NSLocalizedDescriptionKey: Constants.somethingWentWrong]
+                            )
+                        )
+                    )
+                }
+                return
+            }
 
             do {
                 webViewContent = try await loadActionContent(content.actionPlacementID)
             } catch {
+                callback(
+                    .sdkError(
+                        error: NSError(
+                            domain: "",
+                            code: 500,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: Constants.apiError(message: error.localizedDescription)
+                            ]
+                        )
+                    )
+                )
                 return
             }
         }
@@ -100,10 +123,10 @@ internal final class PopupController: UIViewController {
             return
         }
 
-        productView?.isHidden = true
-        guard let url = webViewURL(for: webViewContent) else { return }
         setupLoadingView().startAnimating()
-        _ = prepareEmbeddedOverlay(content: webViewContent, url: url)
+        let embeddedView = prepareEmbeddedContainer(content: webViewContent)
+        guard let url = URL(string: webViewContent.webViewURL) else { return }
+        _ = webViewCoordinator.installWebView(with: url, in: embeddedView)
     }
 
     func handleWebViewEvent(event: BreadPartnerEvents) {
@@ -184,7 +207,11 @@ internal final class PopupController: UIViewController {
     }
 
     private func prepareEmbeddedOverlay(content: PopupInput.Embedded, url: URL) -> WKWebView {
-        productView?.isHidden = true
+        let embeddedView = prepareEmbeddedContainer(content: content)
+        return webViewCoordinator.installWebView(with: url, in: embeddedView)
+    }
+
+    private func prepareEmbeddedContainer(content: PopupInput.Embedded) -> PopupEmbeddedView {
         let embeddedView = self.embeddedView ?? PopupEmbeddedView()
         self.embeddedView = embeddedView
         if embeddedView.superview == nil {
@@ -197,10 +224,8 @@ internal final class PopupController: UIViewController {
             ])
         }
 
-        let webView = webViewCoordinator.installWebView(with: url, in: embeddedView)
-
         popupView.loadLogo(from: content.logoURL)
-        return webView
+        return embeddedView
     }
 
     private func setupLoadingView() -> PopupLoadingView {

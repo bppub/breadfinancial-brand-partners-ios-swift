@@ -109,7 +109,23 @@ struct PopupControllerTests {
     }
 
     @Test
-    func failedFetchLeavesMissingModelForActionFallback() async {
+    func reportsMissingFollowUpLoaderWhenActionContentIsUnavailable() async {
+        let events = EventCapture()
+        let controller = makeController(loadActionContent: nil, callback: events.record)
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(error) = events.first else {
+            Issue.record("Expected an SDK error when follow-up content cannot be loaded")
+            return
+        }
+        #expect(error.localizedDescription == Constants.somethingWentWrong)
+    }
+
+    @Test
+    func failedFetchReportsErrorAndLeavesMissingModelForActionFallback() async {
         let error = NSError(
             domain: "Transport",
             code: 503,
@@ -123,16 +139,49 @@ struct PopupControllerTests {
 
         controller.loadViewIfNeeded()
         await controller.setupTask?.value
+
+        #expect(events.eventCount == 1)
+        guard case let .sdkError(fetchError) = events.first else {
+            Issue.record("Expected the follow-up fetch error to be reported")
+            return
+        }
+        #expect(fetchError.localizedDescription == Constants.apiError(message: error.localizedDescription))
+
         controller.actionButtonTapped()
 
-        #expect(events.eventCount == 2)
-        guard case .actionButtonTapped = events.events[0],
-            case let .sdkError(actionError) = events.events[1]
+        #expect(events.eventCount == 3)
+        guard case .actionButtonTapped = events.events[1],
+            case let .sdkError(actionError) = events.events[2]
         else {
             Issue.record("Expected action event followed by missing-model fallback")
             return
         }
         #expect(actionError.localizedDescription == Constants.somethingWentWrong)
+    }
+
+    @Test
+    func invalidActionURLSetsUpLegacyOverlayWithoutCallback() async {
+        let events = EventCapture()
+        let controller = makeController(
+            loadActionContent: { _ in
+                PopupInput.Embedded(logoURL: "", webViewURL: "http://[::1", showsCloseButton: true)
+            },
+            callback: events.record
+        )
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+        controller.actionButtonTapped()
+
+        #expect(events.eventCount == 1)
+        guard case .actionButtonTapped = events.first else {
+            Issue.record("Expected only the action-button event for an invalid action URL")
+            return
+        }
+        #expect(controller.productView?.isHidden == false)
+        #expect(controller.loadingView?.isHidden == false)
+        #expect(controller.embeddedView?.superview === controller.popupView)
+        #expect(controller.embeddedView?.webView == nil)
     }
 
     @Test
