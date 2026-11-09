@@ -123,9 +123,28 @@ internal final class PopupController: UIViewController {
             return
         }
 
-        setupLoadingView().startAnimating()
+        let loadingView = setupLoadingView()
+        loadingView.startAnimating()
         let embeddedView = prepareEmbeddedContainer(content: webViewContent)
-        guard let url = URL(string: webViewContent.webViewURL) else { return }
+        guard let url = URL(string: webViewContent.webViewURL) else {
+            loadingView.stopAnimating()
+
+            callback(
+                .sdkError(
+                    error: NSError(
+                        domain: "",
+                        code: 500,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: Constants.unableToLoadWebURL(
+                                message: webViewContent.webViewURL
+                            )
+                        ]
+                    )
+                )
+            )
+            return
+        }
+
         _ = webViewCoordinator.installWebView(with: url, in: embeddedView)
     }
 

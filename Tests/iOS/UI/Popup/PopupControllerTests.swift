@@ -160,7 +160,7 @@ struct PopupControllerTests {
     }
 
     @Test
-    func invalidActionURLSetsUpLegacyOverlayWithoutCallback() async {
+    func invalidActionURLReportsErrorAndStopsLoader() async {
         let events = EventCapture()
         let controller = makeController(
             loadActionContent: { _ in
@@ -173,13 +173,16 @@ struct PopupControllerTests {
         await controller.setupTask?.value
         controller.actionButtonTapped()
 
-        #expect(events.eventCount == 1)
-        guard case .actionButtonTapped = events.first else {
-            Issue.record("Expected only the action-button event for an invalid action URL")
+        #expect(events.eventCount == 2)
+        guard case .actionButtonTapped = events.events[0],
+            case let .sdkError(error) = events.events[1]
+        else {
+            Issue.record("Expected the action event followed by an invalid-URL SDK error")
             return
         }
+        #expect(error.localizedDescription == Constants.unableToLoadWebURL(message: "http://[::1"))
         #expect(controller.productView?.isHidden == false)
-        #expect(controller.loadingView?.isHidden == false)
+        #expect(controller.loadingView?.isHidden == true)
         #expect(controller.embeddedView?.superview === controller.popupView)
         #expect(controller.embeddedView?.webView == nil)
     }
