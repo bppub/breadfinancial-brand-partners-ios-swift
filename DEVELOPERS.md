@@ -14,7 +14,7 @@ xcodebuild test -workspace .swiftpm/xcode/package.xcworkspace -scheme BreadPartn
 Run the iOS SDK tests, including integration tests, on an iOS Simulator with:
 
 ```sh
-xcodebuild test -workspace .swiftpm/xcode/package.xcworkspace -scheme BreadPartnersTests -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest'
+xcodebuild test -workspace .swiftpm/xcode/package.xcworkspace -scheme BreadPartnersTests -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1'
 ```
 
 The UI tests can be run from the root workspace with the `BreadPartnersUITests` scheme. The Core suite uses macOS while the iOS and UI suites use an iOS Simulator.

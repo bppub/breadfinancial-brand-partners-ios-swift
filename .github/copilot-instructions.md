@@ -51,7 +51,7 @@ xcodebuild test \
 
 xcodebuild test \
   -scheme BreadPartnersTests \
-  -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' \
   -resultBundlePath iOSTestResults.xcresult \
   -enableCodeCoverage YES \
   CODE_SIGNING_ALLOWED=NO
@@ -72,7 +72,7 @@ Use the `BreadPartners` scheme if the entire repository needs to be validated at
 ```sh
 xcodebuild test \
   -scheme BreadPartners \
-  -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' \
   -enableCodeCoverage YES \
   CODE_SIGNING_ALLOWED=NO
 ```
