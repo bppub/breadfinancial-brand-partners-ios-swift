@@ -76,9 +76,11 @@ struct RTPSCoordinatorTests {
         #expect(serviceInput.cookies == nil)
         #expect(serviceInput.request.brandId == "integration-key")
         #expect(serviceInput.request.placements?.first?.context?.LOCATION == "RTPS-Approval")
-        #expect(uiCoordinator.popupPlacementModel?.overlayType == "EMBEDDED_OVERLAY")
-        #expect(uiCoordinator.popupPlacementModel?.location == "checkout")
-        #expect(uiCoordinator.popupPlacementModel?.webViewUrl == "https://embedded.test")
+        guard case let .embedded(content) = uiCoordinator.popupInput?.content else {
+            Issue.record("Expected an embedded popup input")
+            return
+        }
+        #expect(content.webViewURL == "https://embedded.test")
     }
 
     @Test
@@ -307,7 +309,7 @@ struct RTPSCoordinatorTests {
         #expect(error.domain.isEmpty)
         #expect(error.code == 500)
         #expect(error.localizedDescription == Constants.apiError(message: "network failure"))
-        #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(uiCoordinator.popupInput == nil)
         #expect(uiCoordinator.challengeCallCount == 0)
         #expect(uiCoordinator.failureCallCount == 0)
         #expect(placementService.callCount == 1)
@@ -334,7 +336,7 @@ struct RTPSCoordinatorTests {
         #expect(error.domain.isEmpty)
         #expect(error.code == 500)
         #expect(error.localizedDescription == Constants.popupPlacementParsingError)
-        #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(uiCoordinator.popupInput == nil)
         #expect(placementService.callCount == 1)
     }
 
@@ -368,7 +370,7 @@ struct RTPSCoordinatorTests {
         let error = try #require(sdkError(from: events))
         #expect(error.code == 500)
         #expect(error.localizedDescription == Constants.apiError(message: challengeError.localizedDescription))
-        #expect(uiCoordinator.popupPlacementModel == nil)
+        #expect(uiCoordinator.popupInput == nil)
         #expect(uiCoordinator.challengeCallCount == 0)
         #expect(uiCoordinator.failureCallCount == 0)
         #expect(placementService.callCount == 1)

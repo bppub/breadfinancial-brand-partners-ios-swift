@@ -137,8 +137,10 @@ struct HTMLContentRendererTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        #expect(popup.overlayType == .embeddedOverlay)
-        #expect(popup.integrationKey == "brand")
+        guard case .embedded = popup.input.content else {
+            Issue.record("Expected an embedded popup input")
+            return
+        }
         #expect(popup.modalPresentationStyle == .overCurrentContext)
         #expect(popup.modalTransitionStyle == .crossDissolve)
         let calls = await reporter.calls(atLeast: 1)

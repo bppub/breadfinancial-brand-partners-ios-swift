@@ -125,13 +125,13 @@ struct PlacementUICoordinatorTests {
         }
     }
 
-    @Test(arguments: ["EMBEDDED_OVERLAY", "UNKNOWN"])
-    func popupSelectsOverlayContentAndPublishesOrderedEvents(overlayType: String) async throws {
+    @Test
+    func embeddedPopupPublishesOrderedEvents() async throws {
         let reporter = AnalyticsReporterSpy()
         let events = EventCapture()
         let response = makeResponse(
             popupHTML: """
-                <div data-overlay-metadata data-overlay-type="\(overlayType)"></div>
+                <div data-overlay-metadata data-overlay-type="EMBEDDED_OVERLAY"></div>
                 <iframe src="about:blank"></iframe>
                 """
         )
@@ -139,7 +139,9 @@ struct PlacementUICoordinatorTests {
         await makeCoordinator().presentPlacement(
             response,
             input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
-            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
+            onFetchFollowUpPlacement: { _ in
+                throw NSError(domain: "UnusedFollowUp", code: 1)
+            }
         )
 
         let publishedEvents = events.events
@@ -153,14 +155,70 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        #expect(popup.integrationKey == "integration-key")
-        #expect(popup.overlayType == (overlayType == "EMBEDDED_OVERLAY" ? .embeddedOverlay : .singleProductOverlay))
+        await popup.setupTask?.value
+        guard case .embedded = popup.input.content else {
+            Issue.record("Expected an embedded popup input")
+            return
+        }
         #expect(view.modalPresentationStyle == .overCurrentContext)
         #expect(view.modalTransitionStyle == .crossDissolve)
         #expect(await reporter.calls.isEmpty)
 
         popup.callback(.popupClosed)
         #expect(events.eventCount == 3)
+        guard case .popupClosed = events.events.last else {
+            Issue.record("Expected the popup callback to be forwarded")
+            return
+        }
+    }
+
+    @Test
+    func productPopupReportsFollowUpFailureAndPublishesOrderedEvents() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let response = makeResponse(
+            popupHTML: """
+                <div data-overlay-metadata data-overlay-type="UNKNOWN"></div>
+                <iframe src="about:blank"></iframe>
+                """
+        )
+
+        await makeCoordinator().presentPlacement(
+            response,
+            input: makeInput(events: events, reporter: reporter, openPlacementExperience: true),
+            onFetchFollowUpPlacement: { _ in
+                throw NSError(domain: "UnusedFollowUp", code: 1)
+            }
+        )
+
+        #expect(events.eventCount == 2)
+        guard case .textClicked = events.events[0] else {
+            Issue.record("Expected textClicked to be published first")
+            return
+        }
+        guard case let .renderPopupView(view) = events.events[1] else {
+            Issue.record("Expected popup controller to be published second")
+            return
+        }
+        let popup = try #require(view as? PopupController)
+        await popup.setupTask?.value
+        guard case .product = popup.input.content else {
+            Issue.record("Expected a product popup input")
+            return
+        }
+        #expect(view.modalPresentationStyle == .overCurrentContext)
+        #expect(view.modalTransitionStyle == .crossDissolve)
+        #expect(await reporter.calls.isEmpty)
+
+        #expect(events.eventCount == 3)
+        guard case let .sdkError(error) = events.events[2] else {
+            Issue.record("Expected the failed follow-up fetch error before popupClosed")
+            return
+        }
+        #expect((error as NSError).code == 500)
+
+        popup.callback(.popupClosed)
+        #expect(events.eventCount == 4)
         guard case .popupClosed = events.events.last else {
             Issue.record("Expected the popup callback to be forwarded")
             return
@@ -243,13 +301,13 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let requestedIDs = await fetcher.requestedIDs
         #expect(!requestedIDs.isEmpty)
         #expect(requestedIDs.allSatisfy { $0 == "cta-fetch-id" })
-        #expect(popup.webViewPlacementModel?.overlayTitle.string == "Fetched model")
-        #expect(popup.webViewPlacementModel?.webViewUrl == "https://application.test")
+        #expect(popup.webViewContent?.webViewURL == "https://application.test")
     }
 
     @Test
@@ -293,11 +351,12 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let error = try #require(sdkError(from: events))
         #expect(error.localizedDescription == Constants.apiError(message: parsingError.localizedDescription))
-        #expect(popup.webViewPlacementModel == nil)
+        #expect(popup.webViewContent == nil)
     }
 
     @Test
@@ -323,11 +382,12 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         let error = try #require(sdkError(from: events))
         #expect(error.localizedDescription == Constants.popupPlacementParsingError)
-        #expect(popup.webViewPlacementModel == nil)
+        #expect(popup.webViewContent == nil)
     }
 
     @Test
@@ -363,10 +423,11 @@ struct PlacementUICoordinatorTests {
             return
         }
         let popup = try #require(view as? PopupController)
-        await popup.loadFollowUpPopupModel()
+        popup.loadViewIfNeeded()
+        await popup.setupTask?.value
 
         #expect(!events.containsSDKError)
-        #expect(popup.webViewPlacementModel?.overlayTitle.string.isEmpty == true)
+        #expect(popup.webViewContent?.webViewURL.isEmpty == true)
     }
 
     private func makeCoordinator(
