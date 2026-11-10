@@ -80,7 +80,6 @@
 		700000000000000000000039 /* WebKit */ = {
 			isa = PBXGroup;
 			children = (
-				700000000000000000000038 /* DocumentContentReadyObserverTests.swift */,
 				700000000000000000000050 /* WKWebViewPDFGeneratorTests.swift */,
 			);
 			path = WebKit;
@@ -102,6 +101,7 @@
 				700000000000000000000032 /* Domains */,
 				700000000000000000000027 /* TestHelpers */,
 				700000000000000000000042 /* SharedTestHelpers */,
+				700000000000000000000051 /* WebView */,
 				70000000000000000000000C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,6 +113,14 @@
 				700000000000000000000025 /* NavigationConfirmationTestHost.swift */,
 			);
 			path = UIComponents;
+			sourceTree = "<group>";
+		};
+		700000000000000000000051 /* WebView */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000038 /* DocumentContentReadyObserverTests.swift */,
+			);
+			path = WebView;
 			sourceTree = "<group>";
 		};
 		700000000000000000000027 /* TestHelpers */ = {
