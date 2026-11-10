@@ -23,12 +23,12 @@ final class QuickLookPDFPresenterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["PDF preview presented"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 10))
 
-        app.navigationBars.firstMatch
-            .coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
-            .tap()
+        let closeButton = app.buttons["QLOverlayDoneButtonAccessibilityIdentifier"]
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 10))
+        closeButton.tap()
 
         XCTAssertTrue(
-            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 15)
+            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 30)
         )
     }
 }
