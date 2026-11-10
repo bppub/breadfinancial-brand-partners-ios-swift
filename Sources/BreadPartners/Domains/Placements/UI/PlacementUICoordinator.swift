@@ -38,19 +38,28 @@ final class PlacementUICoordinator: PlacementUICoordinating {
         input: PlacementCoordinatorInput,
         onFetchFollowUpPlacement: @escaping @MainActor @Sendable (String?) async throws -> PlacementsResponse
     ) async {
-        let renderer = HTMLContentRenderer(
-            integrationKey: input.integrationKey,
-            merchantConfiguration: input.merchantConfiguration,
-            placementsConfiguration: input.placementsConfiguration,
-            splitTextAndAction: input.splitTextAndAction,
-            forSwiftUI: input.forSwiftUI,
+        let popupPresenter = PlacementPopupPresenter(
             logger: input.logger,
             analyticsReporter: input.analyticsReporter,
+            placementsConfiguration: input.placementsConfiguration,
             callback: input.callback,
             onLoadFollowUpPopupModel: makeFollowUpPopupModelLoader(
                 onFetchFollowUpPlacement: onFetchFollowUpPlacement,
                 callback: input.callback
             )
+        )
+        let renderer = HTMLContentRenderer(
+            splitTextAndAction: input.splitTextAndAction,
+            forSwiftUI: input.forSwiftUI,
+            logger: input.logger,
+            analyticsReporter: input.analyticsReporter,
+            callback: input.callback,
+            onShowOverlay: { responseModel, textPlacementModel in
+                await popupPresenter.presentActionPopup(
+                    responseModel: responseModel,
+                    textPlacementModel: textPlacementModel
+                )
+            }
         )
 
         if input.openPlacementExperience {
@@ -71,7 +80,7 @@ final class PlacementUICoordinator: PlacementUICoordinating {
                 )
             }
 
-            await renderer.createPopupOverlay(
+            popupPresenter.presentPopup(
                 popupPlacementModel: popupPlacementModel,
                 overlayType: PlacementOverlayType(rawValue: popupPlacementModel.overlayType)
                     ?? .singleProductOverlay
