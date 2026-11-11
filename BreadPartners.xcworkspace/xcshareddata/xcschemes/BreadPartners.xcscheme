@@ -85,7 +85,9 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       codeCoverageEnabled = "YES">
       <Testables>
-         <TestableReference skipped = "NO">
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BreadPartnersCoreTests"
@@ -94,7 +96,9 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
-         <TestableReference skipped = "NO">
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BreadPartnersTests"
@@ -103,7 +107,9 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
-         <TestableReference skipped = "NO">
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BreadPartnersTestSupportTests"
