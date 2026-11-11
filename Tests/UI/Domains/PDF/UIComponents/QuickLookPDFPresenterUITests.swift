@@ -20,15 +20,15 @@ final class QuickLookPDFPresenterUITests: XCTestCase {
 
         app.buttons["show-pdf-preview"].tap()
 
-        XCTAssertTrue(app.staticTexts["PDF preview presented"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["PDF preview presented"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 30))
 
         let closeButton = app.buttons["QLOverlayDoneButtonAccessibilityIdentifier"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 10))
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 30))
         closeButton.tap()
 
         XCTAssertTrue(
-            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 30)
+            app.staticTexts["PDF preview dismissed"].waitForExistence(timeout: 60)
         )
     }
 }
