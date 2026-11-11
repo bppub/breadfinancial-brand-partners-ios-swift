@@ -19,7 +19,7 @@ jobs:
       SOURCE_PACKAGES_DIR: .spm
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install swift-format and SwiftLint
         run: brew install swift-format swiftlint
@@ -38,7 +38,7 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version
 
       - name: Cache Swift packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.SOURCE_PACKAGES_DIR }}
           key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved', 'Package.swift') }}
