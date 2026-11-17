@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          BreadPartnerLinkTextSwitUI.swift
+//  File:          BreadPartnerLinkTextSwiftUI.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 
 /// A SwiftUI view for displaying tappable link-styled text in Bread Partner UI.
-public struct BreadPartnerLinkTextSwitUI: View {
+public struct BreadPartnerLinkTextSwiftUI: View {
     var text: String
     private var links: [String]
     var onTap: (() -> Void)?
@@ -60,18 +60,21 @@ public struct BreadPartnerLinkTextSwitUI: View {
             let attributedString = NSMutableAttributedString(string: text)
             let fullRange = NSRange(location: 0, length: attributedString.length)
             attributedString.addAttribute(
-                .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: fullRange)
+                .font, value: breadPartnerLinkTextFontToUIFont(fontName: linkFontName, size: linkFontSize),
+                range: fullRange)
 
             let nsText = NSString(string: text)
 
             for word in links {
                 let wordRange = nsText.range(of: word)
                 if wordRange.location != NSNotFound {
-                    attributedString.addAttribute(.foregroundColor, value: colorToUIColor(linkColor), range: wordRange)
+                    attributedString.addAttribute(
+                        .foregroundColor, value: breadPartnerLinkTextColorToUIColor(linkColor), range: wordRange)
                     attributedString.addAttribute(
                         .underlineStyle, value: NSUnderlineStyle.single.rawValue, range: wordRange)
                     attributedString.addAttribute(
-                        .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: wordRange)
+                        .font, value: breadPartnerLinkTextFontToUIFont(fontName: linkFontName, size: linkFontSize),
+                        range: wordRange)
                 }
             }
 
@@ -124,14 +127,14 @@ public struct BreadPartnerLinkTextSwitUI: View {
         }
     }
 
-    public func linkColor(_ color: Color) -> BreadPartnerLinkTextSwitUI {
+    public func linkColor(_ color: Color) -> BreadPartnerLinkTextSwiftUI {
         var copy = self
         copy.linkColor = color
         return copy
     }
 
     public func linkFont(_ fontName: String, fontSize: CGFloat)
-        -> BreadPartnerLinkTextSwitUI
+        -> BreadPartnerLinkTextSwiftUI
     {
         var copy = self
         copy.linkFontName = fontName
@@ -141,7 +144,7 @@ public struct BreadPartnerLinkTextSwitUI: View {
 }
 
 // Helper function to convert Font Name and Size to UIFont
-private func fontToUIFont(fontName: String, size: CGFloat) -> UIFont {
+func breadPartnerLinkTextFontToUIFont(fontName: String, size: CGFloat) -> UIFont {
     if let customFont = UIFont(name: fontName, size: size) {
         return customFont
     } else {
@@ -151,7 +154,7 @@ private func fontToUIFont(fontName: String, size: CGFloat) -> UIFont {
 }
 
 // Helper function to convert SwiftUI Color to UIColor for iOS 12+
-private func colorToUIColor(_ color: Color) -> UIColor {
+func breadPartnerLinkTextColorToUIColor(_ color: Color) -> UIColor {
     // Handle common colors
     switch color {
     case .black: return UIColor.black

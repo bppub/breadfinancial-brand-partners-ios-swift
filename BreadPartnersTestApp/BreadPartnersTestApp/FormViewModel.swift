@@ -5,9 +5,8 @@ import UIKit
 
 // MARK: - View Models
 class FormViewModel: ObservableObject {
-    @Published var textWithLinkResponse: BreadPartnerLinkTextSwitUI?
-    @Published var textWithButton:
-        (BreadPartnerTextView, BreadPartnerButtonView)?
+    @Published var textWithLinkResponse: BreadPartnerLinkTextSwiftUI?
+    @Published var textWithButton: (BreadPartnerTextView, BreadPartnerButtonView)?
 
     @Published var overlayResponse: UIViewController?
     @Published var isLoading = false
@@ -15,7 +14,9 @@ class FormViewModel: ObservableObject {
 
     @Published var logs: String = "No Logs"
 
-    func generatePlacements(formData: PlacementFormData, onUnifiedOffersReceived: ((String, String, String, String) -> Void)? = nil) {
+    func generatePlacements(
+        formData: PlacementFormData, onUnifiedOffersReceived: ((String, String, String, String) -> Void)? = nil
+    ) {
         isLoading = true
         textWithLinkResponse = nil
         textWithButton = nil
@@ -89,7 +90,8 @@ class FormViewModel: ObservableObject {
                     name: formData.fontName, size: Double(formData.popupStyleThemes.mediumTextSize)
                 ),
                 textColor: .white,
-                backgroundColor: formData.popupStyleThemes.buttonBackgroundColor ?? formData.popupStyleThemes.primaryColor,
+                backgroundColor: formData.popupStyleThemes.buttonBackgroundColor
+                    ?? formData.popupStyleThemes.primaryColor,
                 cornerRadius: formData.popupStyleThemes.cornerRadius,
                 padding: UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
             )
@@ -138,23 +140,26 @@ class FormViewModel: ObservableObject {
                                 currency: "USD", value: Int64(formData.totalTax) ?? 0
                             ),
                             discountCode: formData.discountCode.isEmpty ? nil : formData.discountCode,
-                            pickupInformation: formData.pickupAddress1.isEmpty ? nil : PickupInformation(
-                                name: Name(
-                                    givenName: formData.pickupGivenName.isEmpty ? nil : formData.pickupGivenName,
-                                    familyName: formData.pickupFamilyName.isEmpty ? nil : formData.pickupFamilyName,
-                                    additionalName: formData.pickupAdditionalName.isEmpty ? nil : formData.pickupAdditionalName
+                            pickupInformation: formData.pickupAddress1.isEmpty
+                                ? nil
+                                : PickupInformation(
+                                    name: Name(
+                                        givenName: formData.pickupGivenName.isEmpty ? nil : formData.pickupGivenName,
+                                        familyName: formData.pickupFamilyName.isEmpty ? nil : formData.pickupFamilyName,
+                                        additionalName: formData.pickupAdditionalName.isEmpty
+                                            ? nil : formData.pickupAdditionalName
+                                    ),
+                                    phone: formData.pickupPhone.isEmpty ? nil : formData.pickupPhone,
+                                    address: Address(
+                                        address1: formData.pickupAddress1,
+                                        address2: formData.pickupAddress2.isEmpty ? nil : formData.pickupAddress2,
+                                        locality: formData.pickupLocality.isEmpty ? nil : formData.pickupLocality,
+                                        postalCode: formData.pickupPostalCode.isEmpty ? nil : formData.pickupPostalCode,
+                                        region: formData.pickupRegion.isEmpty ? nil : formData.pickupRegion,
+                                        country: formData.pickupCountry.isEmpty ? nil : formData.pickupCountry
+                                    ),
+                                    email: formData.pickupEmail.isEmpty ? nil : formData.pickupEmail
                                 ),
-                                phone: formData.pickupPhone.isEmpty ? nil : formData.pickupPhone,
-                                address: Address(
-                                    address1: formData.pickupAddress1,
-                                    address2: formData.pickupAddress2.isEmpty ? nil : formData.pickupAddress2,
-                                    locality: formData.pickupLocality.isEmpty ? nil : formData.pickupLocality,
-                                    postalCode: formData.pickupPostalCode.isEmpty ? nil : formData.pickupPostalCode,
-                                    region: formData.pickupRegion.isEmpty ? nil : formData.pickupRegion,
-                                    country: formData.pickupCountry.isEmpty ? nil : formData.pickupCountry
-                                ),
-                                email: formData.pickupEmail.isEmpty ? nil : formData.pickupEmail
-                            ),
                             fulfillmentType: formData.fulfillmentType,
                             items: formData.items,
                             bnplEligible: formData.bnplEligible
@@ -192,7 +197,8 @@ class FormViewModel: ObservableObject {
                             let prequalificationId = (payload["prequalificationId"] as? Int64).map { String($0) } ?? ""
                             let financingBuyerId = payload["financingBuyerId"] as? String ?? ""
                             let inSessionToken = payload["inSessionToken"] as? String ?? ""
-                            onUnifiedOffersReceived?(prequalCreditLimit, prequalificationId, financingBuyerId, inSessionToken)
+                            onUnifiedOffersReceived?(
+                                prequalCreditLimit, prequalificationId, financingBuyerId, inSessionToken)
                         }
                     case .textClicked:
                         self.logs += "\n" + "Text Clicked"
@@ -280,7 +286,9 @@ class FormViewModel: ObservableObject {
         }
     }
 
-    func openExperienceForPlacement(formData: PlacementFormData, onUnifiedOffersReceived: ((String, String, String, String) -> Void)? = nil) {
+    func openExperienceForPlacement(
+        formData: PlacementFormData, onUnifiedOffersReceived: ((String, String, String, String) -> Void)? = nil
+    ) {
         isLoading = true
         textWithLinkResponse = nil
         textWithButton = nil
@@ -331,23 +339,26 @@ class FormViewModel: ObservableObject {
                                 currency: "USD", value: Int64(formData.totalTax) ?? 0
                             ),
                             discountCode: formData.discountCode.isEmpty ? nil : formData.discountCode,
-                            pickupInformation: formData.pickupAddress1.isEmpty ? nil : PickupInformation(
-                                name: Name(
-                                    givenName: formData.pickupGivenName.isEmpty ? nil : formData.pickupGivenName,
-                                    familyName: formData.pickupFamilyName.isEmpty ? nil : formData.pickupFamilyName,
-                                    additionalName: formData.pickupAdditionalName.isEmpty ? nil : formData.pickupAdditionalName
+                            pickupInformation: formData.pickupAddress1.isEmpty
+                                ? nil
+                                : PickupInformation(
+                                    name: Name(
+                                        givenName: formData.pickupGivenName.isEmpty ? nil : formData.pickupGivenName,
+                                        familyName: formData.pickupFamilyName.isEmpty ? nil : formData.pickupFamilyName,
+                                        additionalName: formData.pickupAdditionalName.isEmpty
+                                            ? nil : formData.pickupAdditionalName
+                                    ),
+                                    phone: formData.pickupPhone.isEmpty ? nil : formData.pickupPhone,
+                                    address: Address(
+                                        address1: formData.pickupAddress1,
+                                        address2: formData.pickupAddress2.isEmpty ? nil : formData.pickupAddress2,
+                                        locality: formData.pickupLocality.isEmpty ? nil : formData.pickupLocality,
+                                        postalCode: formData.pickupPostalCode.isEmpty ? nil : formData.pickupPostalCode,
+                                        region: formData.pickupRegion.isEmpty ? nil : formData.pickupRegion,
+                                        country: formData.pickupCountry.isEmpty ? nil : formData.pickupCountry
+                                    ),
+                                    email: formData.pickupEmail.isEmpty ? nil : formData.pickupEmail
                                 ),
-                                phone: formData.pickupPhone.isEmpty ? nil : formData.pickupPhone,
-                                address: Address(
-                                    address1: formData.pickupAddress1,
-                                    address2: formData.pickupAddress2.isEmpty ? nil : formData.pickupAddress2,
-                                    locality: formData.pickupLocality.isEmpty ? nil : formData.pickupLocality,
-                                    postalCode: formData.pickupPostalCode.isEmpty ? nil : formData.pickupPostalCode,
-                                    region: formData.pickupRegion.isEmpty ? nil : formData.pickupRegion,
-                                    country: formData.pickupCountry.isEmpty ? nil : formData.pickupCountry
-                                ),
-                                email: formData.pickupEmail.isEmpty ? nil : formData.pickupEmail
-                            ),
                             fulfillmentType: formData.fulfillmentType,
                             items: formData.items,
                             bnplEligible: formData.bnplEligible
@@ -377,7 +388,8 @@ class FormViewModel: ObservableObject {
                             let prequalificationId = (payload["prequalificationId"] as? Int64).map { String($0) } ?? ""
                             let financingBuyerId = payload["financingBuyerId"] as? String ?? ""
                             let inSessionToken = payload["inSessionToken"] as? String ?? ""
-                            onUnifiedOffersReceived?(prequalCreditLimit, prequalificationId, financingBuyerId, inSessionToken)
+                            onUnifiedOffersReceived?(
+                                prequalCreditLimit, prequalificationId, financingBuyerId, inSessionToken)
                         }
                     default:
                         self.logs += "\n" + "BreadPartnerSDK:: \(event)"
@@ -387,23 +399,21 @@ class FormViewModel: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Create BreadPartnersBuyer from form data
     private func createBuyer(from formData: PlacementFormData) -> BreadPartnersBuyer? {
         // Only create buyer if at least one field is filled
-        let hasData = !formData.buyerGivenName.isEmpty ||
-                     !formData.buyerFamilyName.isEmpty ||
-                     !formData.buyerEmail.isEmpty ||
-                     !formData.buyerPhone.isEmpty ||
-                     !formData.billingAddress1.isEmpty ||
-                     !formData.shippingAddress1.isEmpty
-        
+        let hasData =
+            !formData.buyerGivenName.isEmpty || !formData.buyerFamilyName.isEmpty || !formData.buyerEmail.isEmpty
+            || !formData.buyerPhone.isEmpty || !formData.billingAddress1.isEmpty || !formData.shippingAddress1.isEmpty
+
         guard hasData else { return nil }
-        
+
         // Create billing address if address1 is provided
-        let billingAddress: BreadPartnersAddress? = !formData.billingAddress1.isEmpty
+        let billingAddress: BreadPartnersAddress? =
+            !formData.billingAddress1.isEmpty
             ? BreadPartnersAddress(
                 address1: formData.billingAddress1,
                 address2: formData.billingAddress2.isEmpty ? nil : formData.billingAddress2,
@@ -413,9 +423,10 @@ class FormViewModel: ObservableObject {
                 postalCode: formData.billingPostalCode.isEmpty ? nil : formData.billingPostalCode
             )
             : nil
-        
+
         // Create shipping address if address1 is provided
-        let shippingAddress: BreadPartnersAddress? = !formData.shippingAddress1.isEmpty
+        let shippingAddress: BreadPartnersAddress? =
+            !formData.shippingAddress1.isEmpty
             ? BreadPartnersAddress(
                 address1: formData.shippingAddress1,
                 address2: formData.shippingAddress2.isEmpty ? nil : formData.shippingAddress2,
@@ -425,7 +436,7 @@ class FormViewModel: ObservableObject {
                 postalCode: formData.shippingPostalCode.isEmpty ? nil : formData.shippingPostalCode
             )
             : nil
-        
+
         return BreadPartnersBuyer(
             givenName: formData.buyerGivenName.isEmpty ? nil : formData.buyerGivenName,
             familyName: formData.buyerFamilyName.isEmpty ? nil : formData.buyerFamilyName,
