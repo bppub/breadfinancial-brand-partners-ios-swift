@@ -51,6 +51,50 @@ struct PopupControllerTests {
     }
 
     @Test
+    func closeButtonHandlerPublishesPopupClosed() async {
+        let events = EventCapture()
+        let controller = makeController(loadActionContent: nil, callback: events.record)
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+        controller.popupView.closeButtonTapped()
+
+        guard case .popupClosed = events.events.last else {
+            Issue.record("Expected the close button to publish popupClosed")
+            return
+        }
+        #expect(events.eventCount == 2)
+    }
+
+    @Test
+    func productActionButtonHandlerStartsEmbeddedContent() async {
+        let events = EventCapture()
+        let controller = makeController(
+            loadActionContent: { _ in
+                PopupInput.Embedded(
+                    logoURL: "",
+                    webViewURL: "https://application.test",
+                    showsCloseButton: true
+                )
+            },
+            callback: events.record
+        )
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+        if let productView = controller.productView {
+            productView.actionButtonTapped(productView.actionButton)
+        }
+
+        guard case .actionButtonTapped = events.events.first else {
+            Issue.record("Expected the action button to publish actionButtonTapped")
+            return
+        }
+        #expect(controller.embeddedView?.webView != nil)
+        #expect(controller.loadingView != nil)
+    }
+
+    @Test
     func loadsPopupModelUsingCTAID() async {
         let fetcher = PopupModelFetcherSpy(
             content: PopupInput.Embedded(logoURL: "", webViewURL: "https://follow-up.test", showsCloseButton: true)
@@ -91,6 +135,93 @@ struct PopupControllerTests {
             return
         }
         #expect((error as NSError).code == 500)
+    }
+
+    @Test
+    func reportsEmbeddedLoadFailureAndStopsLoading() async throws {
+        let events = EventCapture()
+        let controller = PopupController(
+            input: .embedded(
+                style: PopUpStyling(),
+                logoURL: "",
+                webViewURL: "https://embedded.test",
+                showsCloseButton: true
+            ),
+            logger: Logger(),
+            callback: events.record,
+            webViewPageLoader: { _ in throw URLError(.cannotConnectToHost) }
+        )
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+
+        #expect(controller.loadingView?.isHidden == true)
+        #expect(controller.embeddedView?.webView != nil)
+        guard case let .sdkError(error) = events.first else {
+            Issue.record("Expected an SDK error for embedded load failure")
+            return
+        }
+        #expect(
+            error.localizedDescription
+                == Constants.apiError(message: URLError(.cannotConnectToHost).localizedDescription)
+        )
+    }
+
+    @Test
+    func reportsEmbeddedLoadSuccessAndStopsLoading() async throws {
+        let events = EventCapture()
+        let loadedURL = URL(string: "https://embedded.test/loaded")!
+        let controller = PopupController(
+            input: .embedded(
+                style: PopUpStyling(),
+                logoURL: "",
+                webViewURL: "https://embedded.test",
+                showsCloseButton: true
+            ),
+            logger: Logger(),
+            callback: events.record,
+            webViewPageLoader: { _ in loadedURL }
+        )
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+
+        #expect(events.eventCount == 0)
+        #expect(controller.loadingView?.isHidden == true)
+        #expect(controller.embeddedView?.webView != nil)
+    }
+
+    @Test
+    func validActionURLInstallsWebViewAndReusesLoadingView() async {
+        let events = EventCapture()
+        let controller = makeController(
+            loadActionContent: { _ in
+                PopupInput.Embedded(
+                    logoURL: "",
+                    webViewURL: "https://application.test",
+                    showsCloseButton: true
+                )
+            },
+            callback: events.record
+        )
+
+        controller.loadViewIfNeeded()
+        await controller.setupTask?.value
+
+        controller.actionButtonTapped()
+        let firstLoadingView = controller.loadingView
+        let firstEmbeddedView = controller.embeddedView
+
+        controller.actionButtonTapped()
+
+        #expect(events.eventCount >= 2)
+        #expect(controller.loadingView === firstLoadingView)
+        #expect(controller.embeddedView === firstEmbeddedView)
+        #expect(controller.embeddedView?.webView != nil)
+        guard case .actionButtonTapped = events.events.first else {
+            Issue.record("Expected action-button callback")
+            return
+        }
     }
 
     @Test

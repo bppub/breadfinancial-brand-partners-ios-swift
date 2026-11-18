@@ -103,7 +103,7 @@ internal final class PopupChromeView: UIView {
         brandLogo.loadImage(from: url) { _ in }
     }
 
-    @objc private func closeButtonTapped() {
+    @objc func closeButtonTapped() {
         onClose()
     }
 }

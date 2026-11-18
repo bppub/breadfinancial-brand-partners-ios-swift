@@ -27,21 +27,25 @@ internal final class PopupController: UIViewController {
     private(set) var loadingView: PopupLoadingView?
     private(set) var setupTask: Task<Void, Never>?
     var webViewContent: PopupInput.Embedded?
+    private let webViewPageLoader: (@MainActor (WKWebView) async throws -> URL)?
 
     private lazy var webViewCoordinator = PopupWebViewCoordinator(
         logger: logger,
         onEvent: { [weak self] event in self?.handleWebViewEvent(event: event) },
-        onPageLoadCompleted: { [weak self] in self?.loadingView?.stopAnimating() }
+        onPageLoadCompleted: { [weak self] in self?.loadingView?.stopAnimating() },
+        pageLoader: webViewPageLoader
     )
 
     init(
         input: PopupInput,
         logger: Logger,
-        callback: @escaping (BreadPartnerEvents) -> Void
+        callback: @escaping (BreadPartnerEvents) -> Void,
+        webViewPageLoader: (@MainActor (WKWebView) async throws -> URL)? = nil
     ) {
         self.input = input
         self.logger = logger
         self.callback = callback
+        self.webViewPageLoader = webViewPageLoader
         super.init(nibName: nil, bundle: nil)
     }
 
