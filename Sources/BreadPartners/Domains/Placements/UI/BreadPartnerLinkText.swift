@@ -90,9 +90,17 @@ public class BreadPartnerLinkText: UITextView {
         if characterIndex < text.length {
             let attributes = text.attributes(
                 at: characterIndex, effectiveRange: nil)
-            if let link = attributes[.link] as? String {
-                Task {
-                    await handleLinkTap(link)
+
+            if let linkValue = attributes[.link] {
+                let link =
+                    linkValue is URL
+                    ? (linkValue as? URL)?.absoluteString
+                    : linkValue as? String
+
+                if let link {
+                    Task {
+                        await handleLinkTap(link)
+                    }
                 }
             } else if allowTapWithoutLink {
                 // For NO_ACTION text without link attributes, trigger tap handler with empty string

@@ -52,6 +52,13 @@ final class PlacementTextComponentsUITests: XCTestCase {
 
         app.descendants(matching: .any)["UIKit link text"].tap()
         XCTAssertEqual(app.staticTexts["link-result"].label, "UIKit link tapped")
+
+        let noActionTextView = app.descendants(matching: .textView)
+            .matching(identifier: "UIKit no-action text")
+            .firstMatch
+        XCTAssertTrue(noActionTextView.waitForExistence(timeout: 5))
+        noActionTextView.tap()
+        XCTAssertEqual(app.staticTexts["link-result"].label, "UIKit no-action tapped")
     }
 
     @MainActor
