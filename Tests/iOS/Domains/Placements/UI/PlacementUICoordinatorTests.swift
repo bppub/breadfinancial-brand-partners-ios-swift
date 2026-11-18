@@ -69,6 +69,45 @@ struct PlacementUICoordinatorTests {
     }
 
     @Test
+    func showOverlayActionPresentsPopupThroughUICoordinator() async throws {
+        let reporter = AnalyticsReporterSpy()
+        let events = EventCapture()
+        let response = makeResponse(
+            popupHTML: """
+                <div data-overlay-metadata data-overlay-type="EMBEDDED_OVERLAY"></div>
+                <iframe src="about:blank"></iframe>
+                """
+        )
+
+        await makeCoordinator().presentPlacement(
+            response,
+            input: makeInput(events: events, reporter: reporter),
+            onFetchFollowUpPlacement: unusedFollowUpPlacementFetcher
+        )
+
+        guard case let .renderTextViewWithLink(textView) = try #require(events.first) else {
+            Issue.record("Expected a tappable text view render callback")
+            return
+        }
+        textView.tapHandler?("Apply")
+
+        let deadline = Date().addingTimeInterval(2)
+        while events.eventCount < 3, Date() < deadline {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+
+        #expect(events.eventCount == 3)
+        guard case .renderTextViewWithLink = events.events[0],
+            case .textClicked = events.events[1],
+            case let .renderPopupView(view) = events.events[2]
+        else {
+            Issue.record("Expected initial text rendering, textClicked, then popup rendering")
+            return
+        }
+        #expect(view is PopupController)
+    }
+
+    @Test
     func challengeUsesFactoryAndForwardsCompletion() {
         let challengeFactory = PlacementChallengeFactorySpy(controller: UIViewController())
         let coordinator = makeCoordinator(challengeFactory: challengeFactory)
