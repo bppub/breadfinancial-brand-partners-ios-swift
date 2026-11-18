@@ -22,6 +22,7 @@ public struct BreadPartnerLinkTextSwiftUI: View {
     private var linkFontName: String
     private var linkFontSize: CGFloat
     var attributedText: NSAttributedString?
+    private var accessibilityId: String?
 
     public init(
         _ text: String, links: [String] = [], onTap: (() -> Void)? = nil,
@@ -34,6 +35,7 @@ public struct BreadPartnerLinkTextSwiftUI: View {
         self.linkFontName = fontName
         self.linkFontSize = fontSize
         self.attributedText = nil
+        self.accessibilityId = nil
     }
 
     /// Initializer for attributed string (with HTML formatting preserved)
@@ -47,9 +49,10 @@ public struct BreadPartnerLinkTextSwiftUI: View {
         self.linkFontName = "System"
         self.linkFontSize = 17
         self.attributedText = attributedString
+        self.accessibilityId = nil
     }
 
-    public var body: some View {
+    var resolvedAttributedText: NSAttributedString {
         // Use provided attributedText if available (for HTML formatted content)
         let finalAttributedString: NSAttributedString
 
@@ -81,16 +84,29 @@ public struct BreadPartnerLinkTextSwiftUI: View {
             finalAttributedString = attributedString
         }
 
+        return finalAttributedString
+    }
+
+    var resolvedAccessibilityIdentifier: String {
+        accessibilityId ?? text
+    }
+
+    public var body: some View {
         if #available(iOS 15.0, *) {
             return AnyView(
-                Text(AttributedString(finalAttributedString))
+                Text(AttributedString(resolvedAttributedText))
                     .onTapGesture { onTap?() }
                     .padding()
+                    .accessibilityIdentifier(resolvedAccessibilityIdentifier)
             )
         } else {
             return AnyView(
-                UILabelRepresentable(attributedText: finalAttributedString, onTap: onTap)
-                    .padding()
+                UILabelRepresentable(
+                    attributedText: resolvedAttributedText,
+                    onTap: onTap,
+                    accessibilityId: resolvedAccessibilityIdentifier
+                )
+                .padding()
             )
         }
     }
@@ -98,11 +114,13 @@ public struct BreadPartnerLinkTextSwiftUI: View {
     struct UILabelRepresentable: UIViewRepresentable {
         var attributedText: NSAttributedString
         var onTap: (() -> Void)?
+        var accessibilityId: String = ""
 
         func makeUIView(context: Context) -> UILabel {
             let label = UILabel()
             label.numberOfLines = 0
             label.isUserInteractionEnabled = true
+            label.accessibilityIdentifier = accessibilityId
             let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
             label.addGestureRecognizer(tap)
             return label
@@ -110,6 +128,8 @@ public struct BreadPartnerLinkTextSwiftUI: View {
 
         func updateUIView(_ uiView: UILabel, context: Context) {
             uiView.attributedText = attributedText
+            uiView.accessibilityIdentifier = accessibilityId
+            context.coordinator.onTap = onTap
         }
 
         func makeCoordinator() -> Coordinator {
@@ -139,6 +159,12 @@ public struct BreadPartnerLinkTextSwiftUI: View {
         var copy = self
         copy.linkFontName = fontName
         copy.linkFontSize = fontSize
+        return copy
+    }
+
+    public func accessibilityIdentifier(_ id: String) -> BreadPartnerLinkTextSwiftUI {
+        var copy = self
+        copy.accessibilityId = id
         return copy
     }
 }
