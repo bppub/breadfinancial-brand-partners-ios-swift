@@ -397,8 +397,8 @@ The following is a list of callback events from the Register Placement and RTPS 
 
 ```swift
 /// Renders a text view containing a clickable hyperlink.
-/// - Parameter textView: BreadPartnerLinkTextSwitUI to display the linked text for SwiftUI based UI.
-case renderSwiftUITextViewWithLink(textView: BreadPartnerLinkTextSwitUI)
+/// - Parameter textView: BreadPartnerLinkTextSwiftUI to display the linked text for SwiftUI based UI.
+case renderSwiftUITextViewWithLink(textView: BreadPartnerLinkTextSwiftUI)
 
 /// Renders text and a button separately on the screen for SwiftUI based UI.
 /// - Parameters:

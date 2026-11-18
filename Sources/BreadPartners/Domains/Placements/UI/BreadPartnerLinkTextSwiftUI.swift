@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  File:          BreadPartnerLinkTextSwitUI.swift
+//  File:          BreadPartnerLinkTextSwiftUI.swift
 //  Author(s):     Bread Financial
 //  Date:          31 October 2026
 //
@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 
 /// A SwiftUI view for displaying tappable link-styled text in Bread Partner UI.
-public struct BreadPartnerLinkTextSwitUI: View {
+public struct BreadPartnerLinkTextSwiftUI: View {
     var text: String
     private var links: [String]
     var onTap: (() -> Void)?
@@ -22,6 +22,7 @@ public struct BreadPartnerLinkTextSwitUI: View {
     private var linkFontName: String
     private var linkFontSize: CGFloat
     var attributedText: NSAttributedString?
+    private var accessibilityId: String?
 
     public init(
         _ text: String, links: [String] = [], onTap: (() -> Void)? = nil,
@@ -34,6 +35,7 @@ public struct BreadPartnerLinkTextSwitUI: View {
         self.linkFontName = fontName
         self.linkFontSize = fontSize
         self.attributedText = nil
+        self.accessibilityId = nil
     }
 
     /// Initializer for attributed string (with HTML formatting preserved)
@@ -47,9 +49,10 @@ public struct BreadPartnerLinkTextSwitUI: View {
         self.linkFontName = "System"
         self.linkFontSize = 17
         self.attributedText = attributedString
+        self.accessibilityId = nil
     }
 
-    public var body: some View {
+    var resolvedAttributedText: NSAttributedString {
         // Use provided attributedText if available (for HTML formatted content)
         let finalAttributedString: NSAttributedString
 
@@ -60,34 +63,50 @@ public struct BreadPartnerLinkTextSwitUI: View {
             let attributedString = NSMutableAttributedString(string: text)
             let fullRange = NSRange(location: 0, length: attributedString.length)
             attributedString.addAttribute(
-                .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: fullRange)
+                .font, value: breadPartnerLinkTextFontToUIFont(fontName: linkFontName, size: linkFontSize),
+                range: fullRange)
 
             let nsText = NSString(string: text)
 
             for word in links {
                 let wordRange = nsText.range(of: word)
                 if wordRange.location != NSNotFound {
-                    attributedString.addAttribute(.foregroundColor, value: colorToUIColor(linkColor), range: wordRange)
+                    attributedString.addAttribute(
+                        .foregroundColor, value: breadPartnerLinkTextColorToUIColor(linkColor), range: wordRange)
                     attributedString.addAttribute(
                         .underlineStyle, value: NSUnderlineStyle.single.rawValue, range: wordRange)
                     attributedString.addAttribute(
-                        .font, value: fontToUIFont(fontName: linkFontName, size: linkFontSize), range: wordRange)
+                        .font, value: breadPartnerLinkTextFontToUIFont(fontName: linkFontName, size: linkFontSize),
+                        range: wordRange)
                 }
             }
 
             finalAttributedString = attributedString
         }
 
+        return finalAttributedString
+    }
+
+    var resolvedAccessibilityIdentifier: String {
+        accessibilityId ?? text
+    }
+
+    public var body: some View {
         if #available(iOS 15.0, *) {
             return AnyView(
-                Text(AttributedString(finalAttributedString))
+                Text(AttributedString(resolvedAttributedText))
                     .onTapGesture { onTap?() }
                     .padding()
+                    .accessibilityIdentifier(resolvedAccessibilityIdentifier)
             )
         } else {
             return AnyView(
-                UILabelRepresentable(attributedText: finalAttributedString, onTap: onTap)
-                    .padding()
+                UILabelRepresentable(
+                    attributedText: resolvedAttributedText,
+                    onTap: onTap,
+                    accessibilityId: resolvedAccessibilityIdentifier
+                )
+                .padding()
             )
         }
     }
@@ -95,11 +114,13 @@ public struct BreadPartnerLinkTextSwitUI: View {
     struct UILabelRepresentable: UIViewRepresentable {
         var attributedText: NSAttributedString
         var onTap: (() -> Void)?
+        var accessibilityId: String = ""
 
         func makeUIView(context: Context) -> UILabel {
             let label = UILabel()
             label.numberOfLines = 0
             label.isUserInteractionEnabled = true
+            label.accessibilityIdentifier = accessibilityId
             let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
             label.addGestureRecognizer(tap)
             return label
@@ -107,6 +128,8 @@ public struct BreadPartnerLinkTextSwitUI: View {
 
         func updateUIView(_ uiView: UILabel, context: Context) {
             uiView.attributedText = attributedText
+            uiView.accessibilityIdentifier = accessibilityId
+            context.coordinator.onTap = onTap
         }
 
         func makeCoordinator() -> Coordinator {
@@ -124,24 +147,30 @@ public struct BreadPartnerLinkTextSwitUI: View {
         }
     }
 
-    public func linkColor(_ color: Color) -> BreadPartnerLinkTextSwitUI {
+    public func linkColor(_ color: Color) -> BreadPartnerLinkTextSwiftUI {
         var copy = self
         copy.linkColor = color
         return copy
     }
 
     public func linkFont(_ fontName: String, fontSize: CGFloat)
-        -> BreadPartnerLinkTextSwitUI
+        -> BreadPartnerLinkTextSwiftUI
     {
         var copy = self
         copy.linkFontName = fontName
         copy.linkFontSize = fontSize
         return copy
     }
+
+    public func accessibilityIdentifier(_ id: String) -> BreadPartnerLinkTextSwiftUI {
+        var copy = self
+        copy.accessibilityId = id
+        return copy
+    }
 }
 
 // Helper function to convert Font Name and Size to UIFont
-private func fontToUIFont(fontName: String, size: CGFloat) -> UIFont {
+func breadPartnerLinkTextFontToUIFont(fontName: String, size: CGFloat) -> UIFont {
     if let customFont = UIFont(name: fontName, size: size) {
         return customFont
     } else {
@@ -151,7 +180,7 @@ private func fontToUIFont(fontName: String, size: CGFloat) -> UIFont {
 }
 
 // Helper function to convert SwiftUI Color to UIColor for iOS 12+
-private func colorToUIColor(_ color: Color) -> UIColor {
+func breadPartnerLinkTextColorToUIColor(_ color: Color) -> UIColor {
     // Handle common colors
     switch color {
     case .black: return UIColor.black
