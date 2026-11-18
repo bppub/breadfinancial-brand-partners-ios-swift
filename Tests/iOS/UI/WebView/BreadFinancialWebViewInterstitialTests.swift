@@ -20,6 +20,87 @@ import WebKit
 @MainActor
 struct BreadFinancialWebViewInterstitialTests {
     @Test
+    func createWebViewRegistersDelegatesAndLoadsRequestedURL() throws {
+        let events = EventCapture()
+        let interstitial = makeInterstitial(events: events)
+        let url = URL(string: "https://example.test/page")!
+
+        let webView = interstitial.createWebView(with: url)
+
+        #expect(webView.navigationDelegate === interstitial)
+        #expect(webView.uiDelegate === interstitial)
+        #expect(webView.configuration.userContentController.userScripts.isEmpty)
+        #expect(webView.configuration.websiteDataStore === WKWebsiteDataStore.default())
+    }
+
+    @Test
+    func loadPageReturnsLoadedURL() async throws {
+        let interstitial = makeInterstitial(events: EventCapture())
+        let webView = WKWebView()
+        let expectedURL = URL(string: "https://example.test/finished")!
+        let task = Task { try await interstitial.loadPage(for: webView) }
+
+        let deadline = Date().addingTimeInterval(1)
+        while interstitial.onPageLoadCompleted == nil, Date() < deadline {
+            await Task.yield()
+        }
+        guard interstitial.onPageLoadCompleted != nil else {
+            Issue.record("Expected loadPage to install a completion handler")
+            return
+        }
+        interstitial.onPageLoadCompleted?(.success(expectedURL))
+
+        #expect(try await task.value == expectedURL)
+    }
+
+    @Test
+    func loadPagePropagatesNavigationFailure() async throws {
+        let interstitial = makeInterstitial(events: EventCapture())
+        let webView = WKWebView()
+        let task = Task { try await interstitial.loadPage(for: webView) }
+
+        let deadline = Date().addingTimeInterval(1)
+        while interstitial.onPageLoadCompleted == nil, Date() < deadline {
+            await Task.yield()
+        }
+        guard interstitial.onPageLoadCompleted != nil else {
+            Issue.record("Expected loadPage to install a failure handler")
+            return
+        }
+        interstitial.onPageLoadCompleted?(.failure(URLError(.timedOut)))
+
+        await #expect(throws: URLError.self) {
+            _ = try await task.value
+        }
+        #expect(interstitial.onPageLoadCompleted != nil)
+    }
+
+    @Test
+    func didFailAndDidFinishForwardOnceAndClearPageHandler() throws {
+        let interstitial = makeInterstitial(events: EventCapture())
+        let webView = WKWebView()
+        let expectedURL = URL(string: "https://example.test/completed")!
+        webView.load(URLRequest(url: expectedURL))
+
+        var results: [Result<URL, Error>] = []
+        interstitial.onPageLoadCompleted = { results.append($0) }
+        interstitial.webView(webView, didFail: nil, withError: URLError(.networkConnectionLost))
+
+        #expect(interstitial.onPageLoadCompleted == nil)
+        #expect(results.count == 1)
+        guard case .failure(let failure) = results[0] else {
+            Issue.record("Expected navigation failure")
+            return
+        }
+        #expect((failure as? URLError)?.code == .networkConnectionLost)
+
+        interstitial.onPageLoadCompleted = { results.append($0) }
+        interstitial.webView(webView, didFinish: nil)
+        #expect(interstitial.onPageLoadCompleted == nil)
+        #expect(results.count == 2)
+    }
+
+    @Test
     func disclosureCaptureSessionRetainsWebViewAndRejectsDuplicates() throws {
         let interstitial = makeInterstitial(events: EventCapture())
         weak var retainedWebView: WKWebView?
