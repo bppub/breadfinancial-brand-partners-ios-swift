@@ -119,6 +119,31 @@ struct PopupProductPresentationMapperTests {
     }
 
     @Test
+    func disclosureHTMLWithoutMatchingAnchorsRemainsStyledAndUnlinked() throws {
+        let style = PopUpStyling(
+            disclosurePopupTextStyle: PopupTextStyle(textColor: .systemBrown)
+        )
+        let input = makeInput(
+            style: style,
+            disclosure: NSAttributedString(string: "Review the terms"),
+            disclosureHTML: "<p>Review the terms</p>"
+        )
+
+        let presentation = PopupProductPresentationMapper().map(
+            product: try #require(product(in: input)),
+            style: style
+        )
+        let location = (presentation.disclosure.string as NSString).range(of: "terms").location
+
+        #expect(location != NSNotFound)
+        #expect(presentation.disclosure.attribute(.link, at: location, effectiveRange: nil) == nil)
+        #expect(
+            presentation.disclosure.attribute(.foregroundColor, at: location, effectiveRange: nil)
+                as? UIColor == .systemBrown
+        )
+    }
+
+    @Test
     func skipsInvalidEmptyAndUnmatchedDisclosureAnchors() throws {
         let input = makeInput(
             disclosure: NSAttributedString(string: "Empty Invalid Bare Available"),
