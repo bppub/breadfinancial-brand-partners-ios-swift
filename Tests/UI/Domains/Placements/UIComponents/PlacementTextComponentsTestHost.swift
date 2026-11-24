@@ -55,13 +55,13 @@ private struct PlacementTextComponentsTestHostView: View {
                 Text(buttonResult)
                     .accessibilityIdentifier("button-result")
 
-                BreadPartnerLinkTextSwitUI(
+                BreadPartnerLinkTextSwiftUI(
                     "Plain linked text variant",
                     links: ["linked"],
                     onTap: { linkResult = "Plain link tapped" }
                 )
 
-                BreadPartnerLinkTextSwitUI(
+                BreadPartnerLinkTextSwiftUI(
                     attributedString: NSAttributedString(
                         string: "Attributed text variant",
                         attributes: [.font: UIFont.boldSystemFont(ofSize: 17)]

@@ -20,6 +20,8 @@
 		700000000000000000000047 /* PlacementTextComponentsTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000045 /* PlacementTextComponentsTestHost.swift */; };
 		700000000000000000000048 /* PlacementTextComponentsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000046 /* PlacementTextComponentsUITests.swift */; };
 		700000000000000000000049 /* WKWebViewPDFGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000050 /* WKWebViewPDFGeneratorTests.swift */; };
+		700000000000000000000052 /* WKWebViewNavigationTestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000053 /* WKWebViewNavigationTestHost.swift */; };
+		700000000000000000000054 /* WKWebViewTestAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700000000000000000000055 /* WKWebViewTestAssertions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,8 @@
 		700000000000000000000045 /* PlacementTextComponentsTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementTextComponentsTestHost.swift; sourceTree = "<group>"; };
 		700000000000000000000046 /* PlacementTextComponentsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementTextComponentsUITests.swift; sourceTree = "<group>"; };
 		700000000000000000000050 /* WKWebViewPDFGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebViewPDFGeneratorTests.swift; sourceTree = "<group>"; };
+		700000000000000000000053 /* WKWebViewNavigationTestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebViewNavigationTestHost.swift; sourceTree = "<group>"; };
+		700000000000000000000055 /* WKWebViewTestAssertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebViewTestAssertions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +132,8 @@
 			children = (
 				700000000000000000000005 /* BreadPartnersUITestHost.swift */,
 				700000000000000000000036 /* BreadPartnersUITestLauncher.swift */,
+				700000000000000000000053 /* WKWebViewNavigationTestHost.swift */,
+				700000000000000000000055 /* WKWebViewTestAssertions.swift */,
 			);
 			path = TestHelpers;
 			sourceTree = "<group>";
@@ -293,6 +299,7 @@
 				700000000000000000000001 /* BreadPartnersUITestHost.swift in Sources */,
 				700000000000000000000024 /* NavigationConfirmationTestHost.swift in Sources */,
 				700000000000000000000029 /* QuickLookPDFPresenterTestHost.swift in Sources */,
+				700000000000000000000052 /* WKWebViewNavigationTestHost.swift in Sources */,
 				700000000000000000000047 /* PlacementTextComponentsTestHost.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -304,6 +311,7 @@
 				700000000000000000000003 /* NavigationConfirmationPresenterUITests.swift in Sources */,
 				700000000000000000000028 /* QuickLookPDFPresenterUITests.swift in Sources */,
 				700000000000000000000035 /* BreadPartnersUITestLauncher.swift in Sources */,
+				700000000000000000000054 /* WKWebViewTestAssertions.swift in Sources */,
 				700000000000000000000037 /* DocumentContentReadyObserverTests.swift in Sources */,
 				700000000000000000000040 /* WKNavigationDelegateSpy.swift in Sources */,
 				700000000000000000000048 /* PlacementTextComponentsUITests.swift in Sources */,

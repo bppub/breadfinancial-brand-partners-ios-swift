@@ -167,7 +167,7 @@ struct HTMLContentRendererTests {
 
         let attributedText: NSAttributedString
         if forSwiftUI {
-            let view: BreadPartnerLinkTextSwitUI
+            let view: BreadPartnerLinkTextSwiftUI
             guard case let .renderSwiftUITextViewWithLink(renderedView) = try #require(events.first) else {
                 Issue.record("Expected a SwiftUI linked-text callback")
                 return

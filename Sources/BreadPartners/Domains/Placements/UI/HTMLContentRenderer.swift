@@ -150,7 +150,7 @@ internal class HTMLContentRenderer {
                 mutableAttributedString.removeAttribute(.underlineStyle, range: range)
 
                 if forSwiftUI {
-                    let swiftUIView = BreadPartnerLinkTextSwitUI(
+                    let swiftUIView = BreadPartnerLinkTextSwiftUI(
                         attributedString: mutableAttributedString,
                         onTap: { Task { await self.handleLinkInteraction(context: context) } }
                     )
@@ -163,7 +163,7 @@ internal class HTMLContentRenderer {
                     callback(.renderTextViewWithLink(textView: textView))
                 }
             } else if forSwiftUI {
-                let swiftUIView = BreadPartnerLinkTextSwitUI(
+                let swiftUIView = BreadPartnerLinkTextSwiftUI(
                     contentText,
                     links: [],
                     onTap: { Task { await self.handleLinkInteraction(context: context) } }
@@ -185,7 +185,7 @@ internal class HTMLContentRenderer {
         }
 
         if forSwiftUI {
-            let swiftUIView = BreadPartnerLinkTextSwitUI(
+            let swiftUIView = BreadPartnerLinkTextSwiftUI(
                 contentText + actionLink,
                 links: [actionLink],
                 onTap: { Task { await self.handleLinkInteraction(context: context) } }
