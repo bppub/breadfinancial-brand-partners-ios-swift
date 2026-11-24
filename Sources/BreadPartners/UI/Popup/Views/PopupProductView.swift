@@ -62,7 +62,7 @@ internal final class PopupProductView: UIView, UITextViewDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
-    @objc private func actionButtonTapped(_ sender: UIButton) {
+    @objc func actionButtonTapped(_ sender: UIButton) {
         onAction()
     }
 
