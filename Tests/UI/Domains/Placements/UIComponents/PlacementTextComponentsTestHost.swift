@@ -97,6 +97,11 @@ private struct PlacementTextComponentsTestHostView: View {
                 }
                 .frame(height: 52)
 
+                UIKitNoActionLinkTextRepresentable {
+                    linkResult = "UIKit no-action tapped"
+                }
+                .frame(height: 52)
+
                 Text(linkResult)
                     .accessibilityIdentifier("link-result")
 
@@ -124,8 +129,27 @@ private struct UIKitLinkTextRepresentable: UIViewRepresentable {
 
     private func configure(_ textView: BreadPartnerLinkText) {
         textView.configure(
-            with: NSAttributedString(string: "UIKit linked text variant"),
+            with: NSAttributedString(
+                string: "UIKit linked text variant",
+                attributes: [.link: URL(string: "https://example.test/UIKit")!]
+            ),
             tapHandler: { _ in onTap() }
         )
     }
+}
+
+private struct UIKitNoActionLinkTextRepresentable: UIViewRepresentable {
+    let onTap: () -> Void
+
+    func makeUIView(context: Context) -> BreadPartnerLinkText {
+        let textView = BreadPartnerLinkText()
+        textView.accessibilityIdentifier = "UIKit no-action text"
+        textView.configure(
+            with: NSAttributedString(string: "UIKit no-action text"),
+            tapHandler: { _ in onTap() }
+        )
+        return textView
+    }
+
+    func updateUIView(_ uiView: BreadPartnerLinkText, context: Context) {}
 }
