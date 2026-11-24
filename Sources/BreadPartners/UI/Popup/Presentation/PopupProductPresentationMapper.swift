@@ -10,7 +10,6 @@
 //  © 2026 Bread Financial
 //------------------------------------------------------------------------------
 
-import SwiftSoup
 import UIKit
 
 internal struct PopupProductPresentationModel {
@@ -79,23 +78,12 @@ internal struct PopupProductPresentationMapper {
             attributedString: styledText(text, style: style)
         )
         let source = styled.string as NSString
-        guard let document = try? SwiftSoup.parse(html), source.length > 0 else {
-            return styled
-        }
+        guard source.length > 0 else { return styled }
 
-        let anchors = (try? document.select("a[href]").array()) ?? []
-        for anchor in anchors {
-            guard
-                let href = try? anchor.attr("href"),
-                !href.isEmpty,
-                let url = URL(string: href),
-                let linkText = try? anchor.text(),
-                !linkText.isEmpty
-            else { continue }
-
-            let range = source.range(of: linkText)
+        for link in HTMLLinkExtractor().links(in: html) {
+            let range = source.range(of: link.text)
             guard range.location != NSNotFound else { continue }
-            styled.addAttribute(.link, value: url, range: range)
+            styled.addAttribute(.link, value: link.url, range: range)
         }
         return styled
     }

@@ -12,7 +12,7 @@
 
 import Foundation
 
-/// Actor responsible for extracting structured data from HTML using SwiftSoup.
+/// Actor responsible for extracting structured data from HTML.
 internal actor HTMLContentParser {
 
     func extractPopupPlacementModel(from htmlContent: String) async throws

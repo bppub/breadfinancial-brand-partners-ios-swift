@@ -46,7 +46,6 @@ let package = Package(
             name: "BreadPartners",
             dependencies: [
                 "BreadPartnersCore",
-                "SwiftSoup",
                 .product(
                     name: "RecaptchaEnterprise",
                     package: "recaptcha-enterprise-mobile-sdk"),
