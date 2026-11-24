@@ -25,8 +25,12 @@ final class PlacementTextComponentsTestHost: NSObject, UITestHostProviding {
 private struct PlacementTextComponentsTestHostView: View {
     @State private var buttonResult = "Buttons ready"
     @State private var linkResult = "Links ready"
+    @State private var legacyLinkText = "Legacy UILabel link"
+    @State private var plainTapCount = 0
 
     var body: some View {
+        let currentLegacyText = legacyLinkText
+
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 BreadPartnerTextView("Default text variant")
@@ -58,7 +62,10 @@ private struct PlacementTextComponentsTestHostView: View {
                 BreadPartnerLinkTextSwiftUI(
                     "Plain linked text variant",
                     links: ["linked"],
-                    onTap: { linkResult = "Plain link tapped" }
+                    onTap: {
+                        plainTapCount += 1
+                        linkResult = "Plain link tapped \(plainTapCount)"
+                    }
                 )
 
                 BreadPartnerLinkTextSwiftUI(
@@ -69,6 +76,22 @@ private struct PlacementTextComponentsTestHostView: View {
                     onTap: { linkResult = "Attributed link tapped" }
                 )
 
+                BreadPartnerLinkTextSwiftUI.UILabelRepresentable(
+                    attributedText: NSAttributedString(string: legacyLinkText),
+                    onTap: {
+                        linkResult =
+                            currentLegacyText == "Legacy UILabel link"
+                            ? "Original legacy handler" : "Updated legacy handler"
+                    },
+                    accessibilityId: "legacy-label"
+                )
+                .frame(minHeight: 44)
+
+                Button("Update legacy label") {
+                    legacyLinkText = "Updated legacy UILabel link"
+                }
+                .accessibilityIdentifier("update-legacy-label")
+
                 UIKitLinkTextRepresentable {
                     linkResult = "UIKit link tapped"
                 }
@@ -76,6 +99,9 @@ private struct PlacementTextComponentsTestHostView: View {
 
                 Text(linkResult)
                     .accessibilityIdentifier("link-result")
+
+                BreadPartnerLinkTextSwiftUI("No action link")
+                    .accessibilityIdentifier("no-action-link")
             }
             .padding()
         }

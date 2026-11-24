@@ -43,12 +43,48 @@ final class PlacementTextComponentsUITests: XCTestCase {
         app.launch(host: "PlacementTextComponentsTestHost")
 
         app.staticTexts["Plain linked text variant"].tap()
-        XCTAssertEqual(app.staticTexts["link-result"].label, "Plain link tapped")
+        XCTAssertEqual(app.staticTexts["link-result"].label, "Plain link tapped 1")
+        app.staticTexts["Plain linked text variant"].tap()
+        XCTAssertEqual(app.staticTexts["link-result"].label, "Plain link tapped 2")
 
         app.staticTexts["Attributed text variant"].tap()
         XCTAssertEqual(app.staticTexts["link-result"].label, "Attributed link tapped")
 
         app.descendants(matching: .any)["UIKit link text"].tap()
         XCTAssertEqual(app.staticTexts["link-result"].label, "UIKit link tapped")
+    }
+
+    @MainActor
+    func testLegacyLabelRepresentableRendersUpdatesAndForwardsTap() {
+        let app = XCUIApplication()
+        app.launch(host: "PlacementTextComponentsTestHost")
+
+        let legacyLink = app.descendants(matching: .any)["legacy-label"]
+        XCTAssertTrue(legacyLink.waitForExistence(timeout: 5))
+        XCTAssertEqual(legacyLink.label, "Legacy UILabel link")
+        legacyLink.tap()
+        XCTAssertEqual(app.staticTexts["link-result"].label, "Original legacy handler")
+
+        app.buttons["update-legacy-label"].tap()
+        let updated = NSPredicate(format: "label == %@", "Updated legacy UILabel link")
+        expectation(for: updated, evaluatedWith: legacyLink)
+        waitForExpectations(timeout: 5)
+
+        legacyLink.tap()
+        XCTAssertEqual(app.staticTexts["link-result"].label, "Updated legacy handler")
+    }
+
+    @MainActor
+    func testLinkWithoutHandlerCanBeTapped() {
+        let app = XCUIApplication()
+        app.launch(host: "PlacementTextComponentsTestHost")
+
+        let link = app.staticTexts["no-action-link"]
+        if !link.isHittable {
+            app.scrollViews.firstMatch.swipeUp()
+        }
+        XCTAssertTrue(link.waitForExistence(timeout: 5))
+        link.tap()
+        XCTAssertEqual(app.staticTexts["link-result"].label, "Links ready")
     }
 }
